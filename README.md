@@ -22,13 +22,12 @@ Start the development server:
 
 The app will be available at http://localhost:5173 by default.
 
-## Code Quality
+## Formating
 
-### Linting:
+Run to check the code sytle in errors:
 
-Run ESLint to check code style and errors:
+    yarn format:check
 
-    yarn lint
+To format and fix the erros:
 
-Formatting:
-Prettier is configured to format code on save (see .prettierrc).
+    yarn format
