@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import defaultImage from '../assets/default-image.png';
 import Search from './Search';
 
-
 const DEFAULT_IMAGE_SRC = defaultImage;
 
-
-const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null }> = ({ items, loading, error }) => {
-  
-
+const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null }> = ({
+  items,
+  loading,
+  error,
+}) => {
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
@@ -24,9 +24,12 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
           return (
             <li
               key={key}
-              className="col-span-1 divide-y divide-white/10 rounded-lg bg-white outline -outline-offset-1 outline-white/10"
+              className="col-span-1 divide-y divide-white/10 rounded-lg bg-white outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-gray-900"
             >
-              <div className="flex w-full items-center justify-between space-x-6 p-6">
+              <div
+                className="flex w-full items-center justify-between space-x-6 p-6"
+                onClick={() => console.log(itemTM.tmName)}
+              >
                 <div className="flex-1 truncate">
                   <div className="flex items-center space-x-3">
                     <h3 className="text-sm font-medium">{itemTM.tmName}</h3>

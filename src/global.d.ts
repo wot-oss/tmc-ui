@@ -19,7 +19,6 @@ type Version = {
   tmID: string;
   version: {
     model: string;
-    [key: string]: string | undefined;
   };
 };
 
