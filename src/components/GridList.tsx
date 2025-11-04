@@ -2,25 +2,12 @@ import React, { useState, useEffect } from 'react';
 import defaultImage from '../assets/default-image.png';
 import Search from './Search';
 
-const TMC_URL = 'http://0.0.0.0:8080';
-const DEFAULT_IMAGE_SRC = defaultImage;
-const GridList: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch(`${TMC_URL}/inventory`)
-      .then((res) => res.json())
-      .then((json) => {
-        setItems(Array.isArray(json.data) ? json.data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError('Failed to fetch inventory.');
-        setLoading(false);
-      });
-  }, []);
+const DEFAULT_IMAGE_SRC = defaultImage;
+
+
+const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null }> = ({ items, loading, error }) => {
+  
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;

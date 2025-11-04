@@ -1,5 +1,6 @@
 import React from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
+import logo from '../assets/minimalist.png';
 
 export interface NavItem {
   name: string;
@@ -33,8 +34,8 @@ const Navbar: React.FC = () => {
             <div className="flex shrink-0 items-center">
               <img
                 alt="Things model Catalog"
-                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                className="h-8 w-auto"
+                src={logo}
+                className="w-72 h-auto"
               />
             </div>
             <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
