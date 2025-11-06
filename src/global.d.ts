@@ -37,3 +37,9 @@ type Item = {
   tmName: string;
   versions: Version[];
 };
+
+type Filters = {
+  id: string;
+  name: string;
+  options: { value: string; label: string; checked: boolean }[];
+}[];
