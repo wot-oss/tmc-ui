@@ -24,7 +24,6 @@ const Layout: React.FC = () => {
     fetch(`${TMC_URL}/inventory`)
       .then((res) => res.json())
       .then((json) => {
-        throw Error('BUMP');
         setItems(Array.isArray(json.data) ? json.data : []);
         setLoading(false);
       })
