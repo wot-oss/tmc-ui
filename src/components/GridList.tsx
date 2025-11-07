@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import defaultImage from '../assets/default-image.png';
-import Search from './Search';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -16,10 +15,7 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
     <div>
       <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((itemTM, i) => {
-          const key =
-            (itemTM.repo && itemTM.tmName && `${itemTM.repo}:${itemTM.tmName}`) ||
-            (itemTM.repo && itemTM['schema:mpn'] && `${itemTM.repo}:${itemTM['schema:mpn']}`) ||
-            `row-${i}`;
+          const key = `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
           return (
             <li
@@ -52,7 +48,7 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
                   <p className="mt-1 truncate text-sm text-gray-400">{itemTM.repo}</p>
                 </div>
                 <img
-                  alt=""
+                  alt={`Product image of ${itemTM.tmName}`}
                   src={DEFAULT_IMAGE_SRC}
                   className="size-20 shrink-0 rounded-md bg-gray-700 outline -outline-offset-1 outline-white/10"
                 />

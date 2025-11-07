@@ -9,23 +9,22 @@ const TMC_URL = 'http://0.0.0.0:8080';
 
 const Layout: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isResetClicked, setIsResetClicked] = useState(false);
+
   const [query, setQuery] = useState('');
-  const [catalogsState, setCatalogsState] = useState<
-    Array<{ value: string; label: string; checked: boolean }>
-  >([]);
-  const [manufacturersState, setManufacturersState] = useState<
-    Array<{ value: string; label: string; checked: boolean }>
-  >([]);
-  const [authorsState, setAuthorsState] = useState<
-    Array<{ value: string; label: string; checked: boolean }>
-  >([]);
+
+  const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
+  const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
+  const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
 
   useEffect(() => {
     fetch(`${TMC_URL}/inventory`)
       .then((res) => res.json())
       .then((json) => {
+        throw Error('BUMP');
         setItems(Array.isArray(json.data) ? json.data : []);
         setLoading(false);
       })
@@ -37,7 +36,7 @@ const Layout: React.FC = () => {
 
   useEffect(() => {
     const uniqueRepoNames = new Set(items.filter((item) => item.repo).map((item) => item.repo));
-    setCatalogsState(
+    setRepositoriesState(
       Array.from(uniqueRepoNames).map((repo) => ({
         value: repo,
         label: capitalizeFirstChar(repo),
@@ -73,51 +72,58 @@ const Layout: React.FC = () => {
   }, [items]);
 
   const filteredItems = useMemo<Item[]>(() => {
-    if (!query) return [];
-    const q = query.toLowerCase();
-    return items.filter((item) => item.tmName.toLowerCase().includes(q));
-  }, [items, query]);
+    const checkedCatalogs = repositoriesState.filter((opt) => opt.checked).map((opt) => opt.value);
+    const checkedManufacturers = manufacturersState
+      .filter((opt) => opt.checked)
+      .map((opt) => opt.value);
+    const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
 
-  const displayItems = filteredItems.length > 0 ? filteredItems : items;
+    const hasFilters =
+      checkedCatalogs.length > 0 || checkedManufacturers.length > 0 || checkedAuthors.length > 0;
 
-  const filters: Filters = [
-    {
-      id: 'protocol',
-      name: 'Protocol',
-      options: [],
-    },
-    {
-      id: 'manufacturer',
-      name: 'Manufacturer',
-      options: manufacturersState,
-    },
-    {
-      id: 'author',
-      name: 'Author',
-      options: authorsState,
-    },
-    {
-      id: 'catalog',
-      name: 'Catalog',
-      options: catalogsState,
-    },
-  ];
+    let result = items;
+
+    if (hasFilters) {
+      result = items.filter((item) => {
+        const matchesCatalog = checkedCatalogs.length === 0 || checkedCatalogs.includes(item.repo);
+        const matchesManufacturer =
+          checkedManufacturers.length === 0 ||
+          checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
+        const matchesAuthor =
+          checkedAuthors.length === 0 ||
+          checkedAuthors.includes(item['schema:author']?.['schema:name']);
+
+        return matchesCatalog && matchesManufacturer && matchesAuthor;
+      });
+    }
+
+    if (query) {
+      const q = query.toLowerCase();
+      result = result.filter((item) => item.tmName.toLowerCase().includes(q));
+    }
+
+    return result;
+  }, [items, query, repositoriesState, manufacturersState, authorsState]);
 
   const handleFilterChange = (sectionId: string, optionValue: string, checked: boolean) => {
-    console.log('filter change detected', checked);
-    console.log(sectionId);
-    console.log(optionValue);
-
-    const updateOptions = (prev: Array<{ value: string; label: string; checked: boolean }>) =>
+    const updateOptions = (prev: FilterData[]) =>
       prev.map((opt) => (opt.value === optionValue ? { ...opt, checked } : opt));
 
-    if (sectionId === 'catalog') {
-      setCatalogsState(updateOptions);
+    if (sectionId === 'repository') {
+      setRepositoriesState(updateOptions);
     } else if (sectionId === 'manufacturer') {
       setManufacturersState(updateOptions);
     } else if (sectionId === 'author') {
       setAuthorsState(updateOptions);
     }
+  };
+  const resetFilters = () => {
+    setQuery('');
+    setRepositoriesState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
+    setManufacturersState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
+    setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
+    setIsResetClicked(true);
+    setTimeout(() => setIsResetClicked(false), 150);
   };
 
   return (
@@ -128,7 +134,11 @@ const Layout: React.FC = () => {
           <div className="mb-4 flex flex-row">
             <div className="basis-64"></div>
             <div className="basis-128 grow">
-              <Search query={query} onSearch={setQuery} filteredItems={filteredItems} />
+              <Search
+                query={query}
+                onSearch={setQuery}
+                filteredItems={!query ? [] : filteredItems}
+              />
             </div>
             <div className="basis-64"></div>
           </div>
@@ -136,23 +146,31 @@ const Layout: React.FC = () => {
           <div className="max-w-screen-3xl flex flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:px-8">
             {/* Sidebar */}
             <aside
-              className="w-1/4 rounded-lg bg-white p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200"
+              className="w-full rounded-lg bg-white p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
               aria-label="Filters"
             >
-              <SideBar filters={filters} onFilterChange={handleFilterChange} />
+              <SideBar
+                manufacturersState={manufacturersState}
+                authorsState={authorsState}
+                catalogsState={repositoriesState}
+                onFilterChange={handleFilterChange}
+              />
             </aside>
 
             {/* Results */}
             <section className="w-3/4 flex-1">
               <div className="mb-4 flex flex-wrap items-center gap-4">
                 <p className="text-lg">
-                  {displayItems.length} result{displayItems.length !== 1 ? 's' : ''} found
+                  {filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''} found
                 </p>
                 <button
                   type="button"
-                  onClick={() => setQuery('')}
-                  disabled={!query}
-                  className="mt-4 w-64 rounded bg-gray-900 px-3 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-40"
+                  onClick={resetFilters}
+                  className={`w-64 rounded bg-gray-900 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-40 ${
+                    isResetClicked
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-gray-900 hover:bg-gray-800'
+                  }`}
                 >
                   Reset filters
                 </button>
@@ -160,7 +178,7 @@ const Layout: React.FC = () => {
                   <span className="text-sm text-gray-500">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList items={displayItems} loading={loading} error={error} />
+              <GridList items={filteredItems} loading={loading} error={error} />
             </section>
           </div>
         </main>

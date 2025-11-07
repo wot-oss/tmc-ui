@@ -41,5 +41,11 @@ type Item = {
 type Filters = {
   id: string;
   name: string;
-  options: { value: string; label: string; checked: boolean }[];
+  options: FilterData[];
 }[];
+
+type FilterData = {
+  value: string;
+  label: string;
+  checked: boolean;
+};

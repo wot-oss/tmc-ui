@@ -1,13 +1,30 @@
-import { useState } from 'react';
+import React, { useMemo } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid';
 
 interface SideBarProps {
-  filters: Filters;
+  manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
+  authorsState: Array<{ value: string; label: string; checked: boolean }>;
+  catalogsState: Array<{ value: string; label: string; checked: boolean }>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({ filters, onFilterChange }) => {
+const SideBar: React.FC<SideBarProps> = ({
+  manufacturersState,
+  authorsState,
+  catalogsState,
+  onFilterChange,
+}) => {
+  const filters = useMemo<Filters>(
+    () => [
+      { id: 'protocol', name: 'Protocol', options: [] },
+      { id: 'manufacturer', name: 'Manufacturer', options: manufacturersState },
+      { id: 'author', name: 'Author', options: authorsState },
+      { id: 'repository', name: 'Repository', options: catalogsState },
+    ],
+    [manufacturersState, authorsState, catalogsState],
+  );
+
   return (
     <div className="w-full bg-white">
       <div className="flex items-baseline justify-between border-b border-gray-200 pb-6">
@@ -22,21 +39,6 @@ const SideBar: React.FC<SideBarProps> = ({ filters, onFilterChange }) => {
         <div className="flex flex-col gap-x-8 gap-y-10">
           {/* Filters */}
           <form className="hidden lg:block">
-            {/* <h3 className="">Protocol</h3>
-            <ul
-              role="list"
-              className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900"
-            >
-              {subCategories.map((category) => (
-                <li
-                  key={category.name}
-                  className="w-full pl-4 outline -outline-offset-1 outline-white/10 hover:outline-gray-900"
-                >
-                  <a href={category.href}>{category.name}</a>
-                </li>
-              ))}
-            </ul> */}
-
             {filters.map((section) => (
               <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
                 <h3 className="-my-3 flow-root">
@@ -75,14 +77,7 @@ const SideBar: React.FC<SideBarProps> = ({ filters, onFilterChange }) => {
                                 strokeWidth={2}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                className="group-has-checked:opacity-100 opacity-0"
-                              />
-                              <path
-                                d="M3 7H11"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="group-has-indeterminate:opacity-100 opacity-0"
+                                className="opacity-0 group-has-[:checked]:opacity-100"
                               />
                             </svg>
                           </div>
