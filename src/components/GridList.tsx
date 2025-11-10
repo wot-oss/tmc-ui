@@ -1,5 +1,6 @@
 import React from 'react';
 import defaultImage from '../assets/default-image.png';
+import FourZeroFourNotFound from './404NotFound';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -9,7 +10,12 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
   error,
 }) => {
   if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (error)
+    return (
+      <div className="p-4">
+        <FourZeroFourNotFound error={error}></FourZeroFourNotFound>
+      </div>
+    );
 
   return (
     <div>

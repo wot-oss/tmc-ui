@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Navbar from './Navbar';
-import GridList from './GridList';
-import Search from './Search';
-import SideBar from './SideBar';
+import Navbar from '../components/Navbar';
+import GridList from '../components/GridList';
+import Search from '../components/Search';
+import SideBar from '../components/SideBar';
 import capitalizeFirstChar from '../utils/strings';
 
 const TMC_URL = 'http://0.0.0.0:8080';
@@ -127,19 +127,21 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <Navbar></Navbar>
       <div className="py-10">
         <main>
-          <div className="mb-4 flex flex-row">
-            <div className="basis-64"></div>
-            <div className="basis-128 grow">
+          <div
+            id="search-bar"
+            className="mb-10 flex flex-col gap-4 px-4 sm:px-6 md:flex-row md:items-center"
+          >
+            <div className="hidden md:block md:w-1/4 lg:w-1/5" />
+            <div className="w-full md:w-2/4 lg:w-3/5">
               <Search
                 query={query}
                 onSearch={setQuery}
                 filteredItems={!query ? [] : filteredItems}
               />
             </div>
-            <div className="basis-64"></div>
+            <div className="hidden md:block md:w-1/4 lg:w-1/5" />
           </div>
 
           <div className="max-w-screen-3xl flex flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:px-8">

@@ -1,12 +1,17 @@
 import React from 'react';
-import Layout from './components/Layout';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Layout from './pages/Layout';
+import Settings from './pages/Settings';
 
 const App = () => {
   return (
     <>
-      <div className="min-h-full">
-        <Layout />
-      </div>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Layout />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </>
   );
 };
