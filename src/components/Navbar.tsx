@@ -1,5 +1,5 @@
 import React from 'react';
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
+import { Disclosure } from '@headlessui/react';
 import { NavLink, useLocation } from 'react-router-dom';
 import logo from '../assets/tm-catalog-logo.svg';
 
