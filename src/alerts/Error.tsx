@@ -9,12 +9,6 @@ const Error: React.FC<{ mainMessage: string }> = ({ mainMessage }) => {
         </div>
         <div className="ml-3">
           <h3 className="text-sm font-medium text-red-200">{mainMessage}</h3>
-          <div className="mt-2 text-sm text-red-200/80">
-            <ul role="list" className="list-disc space-y-1 pl-5">
-              <li>Your password must be at least 8 characters</li>
-              <li>Your password must include at least one pro wrestling finishing move</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
