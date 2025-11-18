@@ -1,0 +1,13 @@
+# dependencies
+/node_modules
+
+
+*/.vscode
+.vscode
+
+# production
+/build
+dist
+
+.yarn
+/docs
