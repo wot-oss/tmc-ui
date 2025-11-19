@@ -124,16 +124,6 @@ const Details = () => {
                         </DisclosureButton>
                       </h3>
                       <DisclosurePanel className="pb-6">
-                        <ul
-                          role="list"
-                          className="list-disc space-y-1 pl-5 text-sm text-gray-700 marker:text-gray-300"
-                        >
-                          {detail.items.map((d) => (
-                            <li key={d} className="pl-2">
-                              {d}
-                            </li>
-                          ))}
-                        </ul>
                         {detail.items.length === 0 ? (
                           <p className="pl-5 text-sm text-gray-500">No data to display</p>
                         ) : (
