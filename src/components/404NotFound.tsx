@@ -9,7 +9,7 @@ const FourZeroFourNotFound: React.FC<{ error: string }> = ({ error }) => {
           </h1>
           <p className="mt-6 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8">
             Oops! We couldn’t locate the catalog you requested. Please double-check the URL endpoint
-            in your Settings
+            on Settings or check if the TMC server is running
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a
