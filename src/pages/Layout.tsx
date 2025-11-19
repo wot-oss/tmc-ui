@@ -171,7 +171,7 @@ const Layout: React.FC = () => {
                   className={`w-64 rounded bg-gray-900 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-40 ${
                     isResetClicked
                       ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-gray-900 hover:bg-gray-800'
+                      : 'bg-tmPrimary hover:bg-indigo-500'
                   }`}
                 >
                   Reset filters
