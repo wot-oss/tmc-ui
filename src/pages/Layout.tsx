@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Navbar from '../components/Navbar';
 import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import capitalizeFirstChar from '../utils/strings';
-
-const TMC_URL = 'http://0.0.0.0:8080';
+import { getLocalStorage } from '../utils/utils';
+import { SETTINGS_URL_CATALOG } from '../utils/constants';
 
 const Layout: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -21,7 +20,9 @@ const Layout: React.FC = () => {
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
 
   useEffect(() => {
-    fetch(`${TMC_URL}/inventory`)
+    let tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
+
+    fetch(`${tmcUrl}/inventory`)
       .then((res) => res.json())
       .then((json) => {
         setItems(Array.isArray(json.data) ? json.data : []);
