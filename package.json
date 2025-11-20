@@ -15,7 +15,8 @@
     "@heroicons/react": "^2.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3"
+    "react-router-dom": "^6.22.3",
+    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.31"
   },
   "devDependencies": {
     "@testing-library/react": "^14.2.1",

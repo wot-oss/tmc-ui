@@ -3829,6 +3829,18 @@ word-wrap@^1.2.5:
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
   integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
 
+wot-thing-description-types@1.1.0-12-March-2025:
+  version "1.1.0-12-March-2025"
+  resolved "https://registry.yarnpkg.com/wot-thing-description-types/-/wot-thing-description-types-1.1.0-12-March-2025.tgz#bbe9dc4da1572c1f630ccc8dcb5343723beec076"
+  integrity sha512-BRRW4uBATljCPqCbpzNhgY2HFXz8Llh7mAJmjkVimxizOPq8bkmlm0Op/Yv8l7pNQ1GaoBtYwn2BQQjhcQCadA==
+
+wot-typescript-definitions@^0.8.0-SNAPSHOT.31:
+  version "0.8.0-SNAPSHOT.31"
+  resolved "https://registry.yarnpkg.com/wot-typescript-definitions/-/wot-typescript-definitions-0.8.0-SNAPSHOT.31.tgz#b8b8d046a50b8a5c13f3d4a5a151c705d3de23c6"
+  integrity sha512-BBUWfJnNsSMb60FlUfQN+TWFP2W71LM4g7in83Y+vO6BjGvsyO0KY4jTbazjhLdxxTjbyftrExNkKNwtBIbxfA==
+  dependencies:
+    wot-thing-description-types "1.1.0-12-March-2025"
+
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"

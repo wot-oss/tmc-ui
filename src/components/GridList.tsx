@@ -1,6 +1,7 @@
 import React from 'react';
 import defaultImage from '../assets/default-image.png';
 import FourZeroFourNotFound from './404NotFound';
+import { Link } from 'react-router-dom';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -28,37 +29,41 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
               key={key}
               className="col-span-1 divide-y divide-white/10 rounded-lg bg-white outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-gray-900"
             >
-              <div
-                className="flex w-full items-center justify-between space-x-6 p-6"
-                onClick={() => console.log(itemTM.tmName)}
-              >
-                <div className="flex-1 truncate">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
-                    <span className="inset-ring inset-ring-green-500/10 inline-flex shrink-0 items-center rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                      {itemTM.tmName}
-                    </span>
+              <Link to={`/details/${itemTM.versions[0].tmID}`} state={{ item: itemTM }}>
+                <div
+                  className="flex w-full items-center justify-between space-x-6 p-6"
+                  onClick={() => console.log(itemTM.tmName)}
+                >
+                  <div className="flex-1 truncate">
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
+                      <span className="inset-ring inset-ring-green-500/10 inline-flex shrink-0 items-center rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
+                        {itemTM.tmName}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-sm text-gray-400">
+                      {itemTM['schema:manufacturer']['schema:name']}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-gray-400">
+                      {itemTM.links.content ?? ''}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-gray-400">
+                      {itemTM.repo.concat(', ')}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM['schema:mpn']}</p>
+                    <p className="mt-1 truncate text-sm text-gray-400">
+                      {itemTM['schema:description']}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM.tmName}</p>
+                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM.repo}</p>
                   </div>
-                  <p className="mt-1 truncate text-sm text-gray-400">
-                    {itemTM['schema:manufacturer']['schema:name']}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-gray-400">
-                    {itemTM.links.content ?? ''}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-gray-400">{itemTM.repo.concat(', ')}</p>
-                  <p className="mt-1 truncate text-sm text-gray-400">{itemTM['schema:mpn']}</p>
-                  <p className="mt-1 truncate text-sm text-gray-400">
-                    {itemTM['schema:description']}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-gray-400">{itemTM.tmName}</p>
-                  <p className="mt-1 truncate text-sm text-gray-400">{itemTM.repo}</p>
+                  <img
+                    alt={`Product image of ${itemTM.tmName}`}
+                    src={DEFAULT_IMAGE_SRC}
+                    className="size-20 shrink-0 rounded-md bg-gray-700 outline -outline-offset-1 outline-white/10"
+                  />
                 </div>
-                <img
-                  alt={`Product image of ${itemTM.tmName}`}
-                  src={DEFAULT_IMAGE_SRC}
-                  className="size-20 shrink-0 rounded-md bg-gray-700 outline -outline-offset-1 outline-white/10"
-                />
-              </div>
+              </Link>
             </li>
           );
         })}
