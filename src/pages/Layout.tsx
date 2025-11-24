@@ -5,7 +5,13 @@ import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
-import { PROTOCOLS } from '../utils/constants';
+import {
+  INVENTORY_ENDPOINT,
+  PROTOCOLS,
+  PROTOCOLS_FILTER,
+  SETTINGS_URL_CATALOG,
+} from '../utils/constants';
+import { getLocalStorage } from '../utils/utils';
 
 const Layout: React.FC = () => {
   const loadedItems = useLoaderData() as Item[];
@@ -26,8 +32,15 @@ const Layout: React.FC = () => {
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
   const [protocolsState, setProtocolsState] = useState<FilterData[]>(PROTOCOLS);
 
+  const [protocolFilteredItems, setProtocolFilteredItems] = useState<Item[] | null>(null);
+  const selectedProtocols = useMemo(
+    () => protocolsState.filter((p) => p.checked).map((p) => p.value),
+    [protocolsState],
+  );
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
+
+  const tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
 
   useEffect(() => {
     if (repositories.length > 0 && repositoriesState.length === 0) {
@@ -47,6 +60,32 @@ const Layout: React.FC = () => {
     }
   }, [authors]);
 
+  useEffect(() => {
+    if (!tmcUrl) return;
+    if (selectedProtocols.length === 0) {
+      setProtocolFilteredItems(null); // no protocol filter applied
+      return;
+    }
+    const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
+
+    const controller = new AbortController();
+    const fetchProtocols = async () => {
+      try {
+        const fp = encodeURIComponent(filterProtocols);
+        const res = await fetch(`${tmcUrl}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Protocol fetch failed: ${res.status}`);
+        const json = await res.json();
+        setProtocolFilteredItems(Array.isArray(json.data) ? json.data : []);
+      } catch (e: any) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    };
+    fetchProtocols();
+    return () => controller.abort();
+  }, [tmcUrl, selectedProtocols]);
+
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
       .filter((opt) => opt.checked)
@@ -55,15 +94,13 @@ const Layout: React.FC = () => {
       .filter((opt) => opt.checked)
       .map((opt) => opt.value);
     const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
-    const checkedProtocols = protocolsState.filter((opt) => opt.checked).map((opt) => opt.value);
 
     const hasFilters =
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
-      checkedAuthors.length > 0 ||
-      checkedProtocols.length > 0;
+      checkedAuthors.length > 0;
 
-    let result = items;
+    let result = protocolFilteredItems ?? items;
 
     if (hasFilters) {
       result = items.filter((item) => {
@@ -79,9 +116,8 @@ const Layout: React.FC = () => {
         return matchesCatalog && matchesManufacturer && matchesAuthor;
       });
     }
-
     return result;
-  }, [items, repositoriesState, manufacturersState, authorsState]);
+  }, [items, repositoriesState, manufacturersState, authorsState, protocolFilteredItems]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
 
