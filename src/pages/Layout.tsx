@@ -1,23 +1,33 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFilters } from '../context/FilterContext';
+import { useLoaderData, useNavigation } from 'react-router-dom';
 import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
+import Pagination from '../components/Pagination';
 import capitalizeFirstChar from '../utils/strings';
 import { getLocalStorage } from '../utils/utils';
 import { SETTINGS_URL_CATALOG } from '../utils/constants';
 
 const Layout: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
+  const loadedItems = useLoaderData() as Item[];
+  const [items, setItems] = useState<Item[]>(loadedItems);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const navigation = useNavigation();
+  const isLoading = navigation.state === 'loading';
+
   const [error, setError] = useState<string | null>(null);
   const [isResetClicked, setIsResetClicked] = useState(false);
 
   const [query, setQuery] = useState('');
 
+  const { repositories, manufacturers, authors, loading: filtersLoading } = useFilters();
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
+
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
 
   useEffect(() => {
     let tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
@@ -26,66 +36,52 @@ const Layout: React.FC = () => {
       .then((res) => res.json())
       .then((json) => {
         setItems(Array.isArray(json.data) ? json.data : []);
-        setLoading(false);
+        //setLoading(false);
       })
       .catch((err) => {
         setError('Failed to fetch inventory.');
-        setLoading(false);
+        //setLoading(false);
       });
   }, []);
 
   useEffect(() => {
-    const uniqueRepoNames = new Set(items.filter((item) => item.repo).map((item) => item.repo));
-    setRepositoriesState(
-      Array.from(uniqueRepoNames).map((repo) => ({
-        value: repo,
-        label: capitalizeFirstChar(repo),
-        checked: false,
-      })),
-    );
+    if (repositories.length > 0 && repositoriesState.length === 0) {
+      setRepositoriesState(repositories);
+    }
+  }, [repositories, repositoriesState]);
 
-    const uniqueManufacturers = new Set(
-      items
-        .filter((item) => item['schema:manufacturer']['schema:name'])
-        .map((item) => item['schema:manufacturer']['schema:name']),
-    );
-    setManufacturersState(
-      Array.from(uniqueManufacturers).map((manufacturer) => ({
-        value: manufacturer,
-        label: capitalizeFirstChar(manufacturer),
-        checked: false,
-      })),
-    );
+  useEffect(() => {
+    if (manufacturers.length > 0 && manufacturersState.length === 0) {
+      setManufacturersState(manufacturers);
+    }
+  }, [manufacturers, manufacturersState.length]);
 
-    const uniqueAuthors = new Set(
-      items
-        .filter((item) => item['schema:author']['schema:name'])
-        .map((item) => item['schema:author']['schema:name']),
-    );
-    setAuthorsState(
-      Array.from(uniqueAuthors).map((author) => ({
-        value: author,
-        label: capitalizeFirstChar(author),
-        checked: false,
-      })),
-    );
-  }, [items]);
+  useEffect(() => {
+    if (authors.length > 0 && authorsState.length === 0) {
+      setAuthorsState(authors);
+    }
+  }, [authors, authorsState.length]);
 
   const filteredItems = useMemo<Item[]>(() => {
-    const checkedCatalogs = repositoriesState.filter((opt) => opt.checked).map((opt) => opt.value);
+    const checkedRepositories = repositoriesState
+      .filter((opt) => opt.checked)
+      .map((opt) => opt.value);
     const checkedManufacturers = manufacturersState
       .filter((opt) => opt.checked)
       .map((opt) => opt.value);
     const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
 
     const hasFilters =
-      checkedCatalogs.length > 0 || checkedManufacturers.length > 0 || checkedAuthors.length > 0;
+      checkedRepositories.length > 0 ||
+      checkedManufacturers.length > 0 ||
+      checkedAuthors.length > 0;
 
     let result = items;
 
     if (hasFilters) {
       result = items.filter((item) => {
-        const matchesCatalog = checkedCatalogs.length === 0 || checkedCatalogs.includes(item.repo);
+        const matchesCatalog =
+          checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
         const matchesManufacturer =
           checkedManufacturers.length === 0 ||
           checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
@@ -97,13 +93,19 @@ const Layout: React.FC = () => {
       });
     }
 
-    if (query) {
-      const q = query.toLowerCase();
-      result = result.filter((item) => item.tmName.toLowerCase().includes(q));
-    }
-
     return result;
-  }, [items, query, repositoriesState, manufacturersState, authorsState]);
+  }, [items, repositoriesState, manufacturersState, authorsState]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
+  const paginatedItems = useMemo<Item[]>(() => {
+    const start = (page - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, page, pageSize]);
 
   const handleFilterChange = (sectionId: string, optionValue: string, checked: boolean) => {
     const updateOptions = (prev: FilterData[]) =>
@@ -117,6 +119,12 @@ const Layout: React.FC = () => {
       setAuthorsState(updateOptions);
     }
   };
+
+  const handleSearchResults = useCallback((results: Item[]) => {
+    setItems(results);
+    setPage(1);
+  }, []);
+
   const resetFilters = () => {
     setQuery('');
     setRepositoriesState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
@@ -124,6 +132,7 @@ const Layout: React.FC = () => {
     setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setIsResetClicked(true);
     setTimeout(() => setIsResetClicked(false), 150);
+    setPage(1);
   };
 
   return (
@@ -139,7 +148,8 @@ const Layout: React.FC = () => {
               <Search
                 query={query}
                 onSearch={setQuery}
-                filteredItems={!query ? [] : filteredItems}
+                onResultsChange={handleSearchResults}
+                baseItems={loadedItems}
               />
             </div>
             <div className="hidden md:block md:w-1/4 lg:w-1/5" />
@@ -154,7 +164,7 @@ const Layout: React.FC = () => {
               <SideBar
                 manufacturersState={manufacturersState}
                 authorsState={authorsState}
-                catalogsState={repositoriesState}
+                repositoriesState={repositoriesState}
                 onFilterChange={handleFilterChange}
               />
             </aside>
@@ -176,11 +186,30 @@ const Layout: React.FC = () => {
                 >
                   Reset filters
                 </button>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  Page size:
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+                  >
+                    {[10, 20, 50, 100].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 {query && filteredItems.length === 0 && (
                   <span className="text-sm text-gray-500">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList items={filteredItems} loading={loading} error={error} />
+              <GridList items={paginatedItems} loading={isLoading} error={error} />
+
+              <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
             </section>
           </div>
         </main>
