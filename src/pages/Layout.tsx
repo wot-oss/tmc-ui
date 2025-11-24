@@ -5,9 +5,7 @@ import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
-import capitalizeFirstChar from '../utils/strings';
-import { getLocalStorage } from '../utils/utils';
-import { SETTINGS_URL_CATALOG } from '../utils/constants';
+import { PROTOCOLS } from '../utils/constants';
 
 const Layout: React.FC = () => {
   const loadedItems = useLoaderData() as Item[];
@@ -22,45 +20,32 @@ const Layout: React.FC = () => {
   const [query, setQuery] = useState('');
 
   const { repositories, manufacturers, authors, loading: filtersLoading } = useFilters();
+
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
+  const [protocolsState, setProtocolsState] = useState<FilterData[]>(PROTOCOLS);
 
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
   useEffect(() => {
-    let tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
-
-    fetch(`${tmcUrl}/inventory`)
-      .then((res) => res.json())
-      .then((json) => {
-        setItems(Array.isArray(json.data) ? json.data : []);
-        //setLoading(false);
-      })
-      .catch((err) => {
-        setError('Failed to fetch inventory.');
-        //setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
     if (repositories.length > 0 && repositoriesState.length === 0) {
       setRepositoriesState(repositories);
     }
-  }, [repositories, repositoriesState]);
+  }, [repositories]);
 
   useEffect(() => {
     if (manufacturers.length > 0 && manufacturersState.length === 0) {
       setManufacturersState(manufacturers);
     }
-  }, [manufacturers, manufacturersState.length]);
+  }, [manufacturers]);
 
   useEffect(() => {
     if (authors.length > 0 && authorsState.length === 0) {
       setAuthorsState(authors);
     }
-  }, [authors, authorsState.length]);
+  }, [authors]);
 
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
@@ -70,11 +55,13 @@ const Layout: React.FC = () => {
       .filter((opt) => opt.checked)
       .map((opt) => opt.value);
     const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
+    const checkedProtocols = protocolsState.filter((opt) => opt.checked).map((opt) => opt.value);
 
     const hasFilters =
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
-      checkedAuthors.length > 0;
+      checkedAuthors.length > 0 ||
+      checkedProtocols.length > 0;
 
     let result = items;
 
@@ -117,6 +104,8 @@ const Layout: React.FC = () => {
       setManufacturersState(updateOptions);
     } else if (sectionId === 'author') {
       setAuthorsState(updateOptions);
+    } else if (sectionId === 'protocol') {
+      setProtocolsState(updateOptions);
     }
   };
 
@@ -130,6 +119,7 @@ const Layout: React.FC = () => {
     setRepositoriesState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setManufacturersState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
+    setProtocolsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setIsResetClicked(true);
     setTimeout(() => setIsResetClicked(false), 150);
     setPage(1);
@@ -165,6 +155,7 @@ const Layout: React.FC = () => {
                 manufacturersState={manufacturersState}
                 authorsState={authorsState}
                 repositoriesState={repositoriesState}
+                protocolsState={protocolsState}
                 onFilterChange={handleFilterChange}
               />
             </aside>

@@ -1,19 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
-import {
-  REPOSITORY_ENDPOINT,
-  SETTINGS_URL_CATALOG,
-  MANUFACTURER_ENDPOINT,
-  AUTHOR_ENDPOINT,
-} from '../utils/constants';
-import { getLocalStorage } from '../utils/utils';
-import capitalizeFirstChar from '../utils/strings';
+import { PROTOCOLS } from '../utils/constants';
 
 interface SideBarProps {
   manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
   authorsState: Array<{ value: string; label: string; checked: boolean }>;
   repositoriesState: Array<{ value: string; label: string; checked: boolean }>;
+  protocolsState: Array<{ value: string; label: string; checked: boolean }>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
 }
 
@@ -21,20 +15,19 @@ const SideBar: React.FC<SideBarProps> = ({
   manufacturersState,
   authorsState,
   repositoriesState,
+  protocolsState,
   onFilterChange,
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-
   const filters = useMemo<Filters>(
     () => [
-      { id: 'protocol', name: 'Protocol', options: [] },
+      { id: 'protocol', name: 'Protocol', options: protocolsState },
       { id: 'manufacturer', name: 'Manufacturer', options: manufacturersState },
       { id: 'author', name: 'Author', options: authorsState },
       { id: 'repository', name: 'Repository', options: repositoriesState },
     ],
-    [manufacturersState, authorsState, repositoriesState],
+    [protocolsState, manufacturersState, authorsState, repositoriesState],
   );
 
   useEffect(() => {

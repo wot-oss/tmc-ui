@@ -11,3 +11,12 @@ export const REPOSITORY_ENDPOINT = 'repos';
 export const MANUFACTURER_ENDPOINT = 'manufacturers';
 
 export const AUTHOR_ENDPOINT = 'authors';
+
+export const PROTOCOLS: FilterData[] = [
+  { value: 'http/https', label: 'HTTP/HTTPS', checked: false },
+  { value: 'modbus', label: 'Modbus', checked: false },
+  { value: 'modbus+tpc', label: 'Modbus TCP', checked: false },
+  { value: 'mqtt', label: 'MQTT', checked: false },
+  { value: 'websocket', label: 'WebSocket', checked: false },
+  { value: 'coap', label: 'CoAP', checked: false },
+];
