@@ -19,7 +19,7 @@ export const AUTHOR_FILTER = 'filter.author=';
 export const PROTOCOLS: FilterData[] = [
   { value: 'http/https', label: 'HTTP/HTTPS', checked: false },
   { value: 'modbus', label: 'Modbus', checked: false },
-  { value: 'modbus+tpc', label: 'Modbus TCP', checked: false },
+  { value: 'modbus+tcp', label: 'Modbus TCP', checked: false },
   { value: 'mqtt', label: 'MQTT', checked: false },
   { value: 'websocket', label: 'WebSocket', checked: false },
   { value: 'coap', label: 'CoAP', checked: false },
