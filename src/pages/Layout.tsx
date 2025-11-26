@@ -214,7 +214,7 @@ const Layout: React.FC = () => {
                   Reset filters
                 </button>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  Page size:
+                  TMs per page:
                   <select
                     value={pageSize}
                     onChange={(e) => {
