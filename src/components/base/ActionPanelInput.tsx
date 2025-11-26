@@ -20,7 +20,7 @@ const ActionPanelInput = () => {
         Define the URL of the catalog where the TMC server is running
       </h3>
       <div className="mt-2 max-w-xl text-sm text-gray-500">
-        <p>If the TMS server is running locally please add the port number to the URL.</p>
+        <p>If the TMC server is running locally please add the port number to the URL.</p>
       </div>
       <form className="mt-5 sm:flex sm:items-center" onSubmit={handleSubmit}>
         <div className="w-full sm:max-w-xs">
