@@ -1,29 +1,46 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
-import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid';
+import { MinusIcon, PlusIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
 interface SideBarProps {
   manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
   authorsState: Array<{ value: string; label: string; checked: boolean }>;
-  catalogsState: Array<{ value: string; label: string; checked: boolean }>;
+  repositoriesState: Array<{ value: string; label: string; checked: boolean }>;
+  protocolsState: Array<{ value: string; label: string; checked: boolean }>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({
   manufacturersState,
   authorsState,
-  catalogsState,
+  repositoriesState,
+  protocolsState,
   onFilterChange,
 }) => {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const filters = useMemo<Filters>(
     () => [
-      { id: 'protocol', name: 'Protocol', options: [] },
+      { id: 'protocol', name: 'Protocol', options: protocolsState },
       { id: 'manufacturer', name: 'Manufacturer', options: manufacturersState },
       { id: 'author', name: 'Author', options: authorsState },
-      { id: 'repository', name: 'Repository', options: catalogsState },
+      { id: 'repository', name: 'Repository', options: repositoriesState },
     ],
-    [manufacturersState, authorsState, catalogsState],
+    [protocolsState, manufacturersState, authorsState, repositoriesState],
   );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="w-full bg-white">
@@ -32,10 +49,6 @@ const SideBar: React.FC<SideBarProps> = ({
       </div>
 
       <section aria-labelledby="products-heading" className="pb-24 pt-6">
-        <h2 id="products-heading" className="sr-only">
-          Products
-        </h2>
-
         <div className="flex flex-col gap-x-8 gap-y-10">
           {/* Filters */}
           <form className="hidden lg:block">
@@ -97,7 +110,19 @@ const SideBar: React.FC<SideBarProps> = ({
           </form>
 
           {/* Product grid */}
-          <div className="lg:col-span-3">{/* Your content */}</div>
+          <div className="lg:col-span-3">
+            {showScrollTop && (
+              <button
+                type="button"
+                onClick={scrollToTop}
+                aria-label="Scroll to top"
+                className="fixed bottom-8 left-8 z-50 flex items-center gap-2 whitespace-nowrap rounded-full bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-lg transition-opacity hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                <ChevronUpIcon className="size-6" aria-hidden="true" />
+                <span>Go back to top</span>
+              </button>
+            )}
+          </div>
         </div>
       </section>
     </div>
