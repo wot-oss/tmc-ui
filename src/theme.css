@@ -1,0 +1,63 @@
+:root {
+  --background-primary-navbar: #111827;
+  --background-secondary-navbar: #ffffff;
+  --background-body-primary: #ffffff;
+  --background-body-secondary: #22c55e1a;
+  /*Input*/
+  --input-background: #e5e7eb;
+  --input-main: #ffffff;
+  --input-on-hover: #e5e7eb;
+  --input-text: #000000;
+  --input-on-focus: #4f46e5;
+  /*Button*/
+  --button-primary: #004f9e;
+  --button-on-hover: #6366f1;
+  --button-on-click: #15803d;
+  --button-border: #6366f1;
+  --button-focus: #4f46e5;
+  /*Border*/
+  --border-on-hover: #e5e7eb;
+  --border: #ffffff1a;
+  /*Text*/
+  --text-on-hover: #e5e7eb;
+  --text-white: #ffffff;
+  --text-gray: #9ca3af;
+  --text-label: #6b7280;
+  --text-value: #111827;
+  --text-highlight: #22c55e1a;
+  /*Status*/
+  --success: #16a34a;
+  --error: #dc2626;
+}
+
+.dark {
+  --background-primary-navbar: #111827;
+  --background-secondary-navbar: #ffffff;
+  --background-body-primary: #000305;
+  --background-body-secondary: #22c55e1a;
+  /*Input*/
+  --input-background: #e5e7eb;
+  --input-main: #ffffff;
+  --input-on-hover: #e5e7eb;
+  --input-text: #000000;
+  --input-on-focus: #4f46e5;
+  /*Button*/
+  --button-primary: #004f9e;
+  --button-on-hover: #6366f1;
+  --button-on-click: #15803d;
+  --button-border: #6366f1;
+  --button-focus: #4f46e5;
+  /*Border*/
+  --border-on-hover: #e5e7eb;
+  --border: #ffffff1a;
+  /*Text*/
+  --text-on-hover: #e5e7eb;
+  --text-white: #ffffff;
+  --text-gray: #9ca3af;
+  --text-label: #6b7280;
+  --text-value: #111827;
+  --text-highlight: #22c55e1a;
+  /*Status*/
+  --success: #16a34a;
+  --error: #dc2626;
+}
