@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { StarIcon } from '@heroicons/react/20/solid';
 import { useParams, useLocation } from 'react-router-dom';
 import { SETTINGS_URL_CATALOG, THING_MODELS_ENDPOINT } from '../utils/constants';
 import { getLocalStorage } from '../utils/utils';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
-import FourZeroFourNotFound from '../components/404NotFound';
 import type { ThingDescription } from 'wot-typescript-definitions';
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
 
 const Details = () => {
   const params = useParams();
@@ -73,7 +67,7 @@ const Details = () => {
   if (!item) return null;
 
   return (
-    <div className="bg-white">
+    <div className="bg-bgBodyPrimary min-h-dvh">
       <main className="mx-auto max-w-7xl sm:px-6 sm:pt-16 lg:px-8">
         <div className="mx-auto max-w-2xl lg:max-w-none">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
@@ -105,31 +99,31 @@ const Details = () => {
 
                 <div className="divide-y divide-gray-200 border-t border-gray-200">
                   {sections.map((detail) => (
-                    <Disclosure key={detail.name} as="div">
+                    <Disclosure key={detail.name} as="div" className="group">
                       <h3>
                         <DisclosureButton className="group relative flex w-full items-center justify-between py-6 text-left">
-                          <span className="group-data-open:text-indigo-600 text-sm font-medium text-gray-900">
+                          <span className="group-data-open:text-indigo-600 text-sm font-medium text-textLabel">
                             {detail.name}
                           </span>
                           <span className="ml-6 flex items-center">
                             <PlusIcon
                               aria-hidden="true"
-                              className="group-data-open:hidden block h-6 w-6 text-gray-400 group-hover:text-gray-500"
+                              className="group-hover:buttonOnHover block h-6 w-6 text-buttonPrimary group-data-[open]:hidden"
                             />
                             <MinusIcon
                               aria-hidden="true"
-                              className="group-data-open:block hidden h-6 w-6 text-indigo-400 group-hover:text-indigo-500"
+                              className="group-hover:buttonOnHover hidden h-6 w-6 text-buttonPrimary group-data-[open]:block"
                             />
                           </span>
                         </DisclosureButton>
                       </h3>
                       <DisclosurePanel className="pb-6">
                         {detail.items.length === 0 ? (
-                          <p className="pl-5 text-sm text-gray-500">No data to display</p>
+                          <p className="pl-5 text-sm text-textLabel">No data to display</p>
                         ) : (
                           <ul
                             role="list"
-                            className="list-disc space-y-1 pl-5 text-sm text-gray-700 marker:text-gray-300"
+                            className="list-disc space-y-1 pl-5 text-sm text-textValue marker:text-gray-300"
                           >
                             {detail.items.map((d) => (
                               <li key={d} className="pl-2">
