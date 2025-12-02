@@ -8,9 +8,8 @@ module.exports = {
     extend: {
       colors: {
         primaryNavbar: 'var(--background-primary-navbar)',
-        //secondaryNavbar: 'var(--background-secondary-navbar)',
         bgBodyPrimary: 'var(--background-body-primary)',
-        //bgBodySecondary: 'var(--background-body-secondary)',
+        bgBodySecondary: 'var(--background-body-secondary)',
         // input
         inputBg: 'var(--input-background)',
         inputMain: 'var(--input-main)',

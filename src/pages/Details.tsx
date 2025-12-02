@@ -67,7 +67,7 @@ const Details = () => {
   if (!item) return null;
 
   return (
-    <div className="bg-bgBodyPrimary min-h-dvh">
+    <div className="min-h-dvh bg-bgBodyPrimary">
       <main className="mx-auto max-w-7xl sm:px-6 sm:pt-16 lg:px-8">
         <div className="mx-auto max-w-2xl lg:max-w-none">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
@@ -80,7 +80,7 @@ const Details = () => {
             </div>
 
             {/* Right: flexible content */}
-            <div className="mt-0 flex-1 px-4 sm:px-0">
+            <div className="mt-0 flex-1 px-4 text-textGray sm:px-0">
               <FieldCard label="Name" value={item.tmName} />
               <FieldCard label="Author" value={item['schema:author']?.['schema:name'] ?? '—'} />
               <FieldCard label="Repository" value={item.repo} />

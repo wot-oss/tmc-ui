@@ -213,7 +213,7 @@ const Layout: React.FC = () => {
                 >
                   Reset filters
                 </button>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2 text-sm text-textValue">
                   TMs per page:
                   <select
                     value={pageSize}
@@ -221,7 +221,7 @@ const Layout: React.FC = () => {
                       setPageSize(Number(e.target.value));
                       setPage(1);
                     }}
-                    className="rounded border border-buttonBorder bg-white px-2 py-1 text-sm hover:border-buttonOnHover"
+                    className="rounded border border-buttonBorder bg-bgBodyPrimary px-2 py-1 text-sm hover:border-buttonOnHover"
                   >
                     {[10, 20, 50, 100].map((n) => (
                       <option key={n} value={n}>
