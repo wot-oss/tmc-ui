@@ -6,6 +6,7 @@ import { SETTINGS_URL_CATALOG, THING_MODELS_ENDPOINT } from '../utils/constants'
 import { getLocalStorage } from '../utils/utils';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
+import DialogAction from '../components/Dialog';
 import type { ThingDescription } from 'wot-typescript-definitions';
 
 const Details = () => {
@@ -19,6 +20,8 @@ const Details = () => {
   const [loading, setLoading] = useState<boolean>(!stateItem);
   const [error, setError] = useState<string | null>(null);
   const [fullDescription, setFullDescription] = useState<ThingDescription | null>(null);
+
+  const [openWith, setOpenWith] = useState(false);
 
   function useThingDetailsSections(td: ThingDescription | null) {
     return [
@@ -60,6 +63,21 @@ const Details = () => {
     })();
   }, [rawId, stateItem]);
 
+  const openFullDetails = (fullDescription: ThingDescription | null) => {
+    if (!fullDescription) return;
+    const jsonText = JSON.stringify(fullDescription, null, 2);
+    const blob = new Blob([jsonText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (win) {
+      const revoke = () => URL.revokeObjectURL(url);
+      win.addEventListener?.('unload', revoke);
+      setTimeout(revoke, 60_000);
+    } else {
+      window.location.href = url;
+    }
+  };
+
   const sections = useThingDetailsSections(fullDescription);
 
   if (loading) return <div className="p-6 text-sm text-gray-600">Loading...</div>;
@@ -77,6 +95,23 @@ const Details = () => {
                 src={defaultImage}
                 className="h-80 w-full rounded-lg object-cover shadow-sm"
               />
+              <div className="mt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => openFullDetails(fullDescription)}
+                  disabled={!fullDescription}
+                  className="inline-flex items-center rounded-md bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Open full details
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenWith(true)}
+                  className="inline-flex items-center rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
+                >
+                  Open with …
+                </button>
+              </div>
             </div>
 
             {/* Right: flexible content */}
@@ -141,6 +176,11 @@ const Details = () => {
           </div>
         </div>
       </main>
+      <DialogAction
+        open={openWith}
+        onClose={() => setOpenWith(false)}
+        fullDescription={fullDescription}
+      />
     </div>
   );
 };
