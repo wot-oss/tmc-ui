@@ -34,7 +34,7 @@ To format and fix the erros:
 
 ## Custom theme
 
-Customize colors by editing CSS variables in `theme.css`. The light theme is defined under calss `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be useds. All color values must be specified in hexadecimal format.
+Customize the colors of the UI by editing CSS variables in `theme.css`. The light theme is defined under calss `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be useds. All color values must be specified in hexadecimal format.
 
 Variables (edit in `src/theme.css`):
 
