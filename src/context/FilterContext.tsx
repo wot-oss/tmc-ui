@@ -1,11 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getLocalStorage } from '../utils/utils';
-import {
-  AUTHOR_ENDPOINT,
-  MANUFACTURER_ENDPOINT,
-  REPOSITORY_ENDPOINT,
-  SETTINGS_URL_CATALOG,
-} from '../utils/constants';
+import { AUTHOR_ENDPOINT, MANUFACTURER_ENDPOINT, REPOSITORY_ENDPOINT } from '../utils/constants';
 
 interface FilterContextType {
   repositories: FilterData[];
@@ -29,14 +24,13 @@ export const FilterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     const fetchFilters = async () => {
       try {
-        const tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
-        if (!tmcUrl) throw new Error('Catalog URL not configured');
+        if (!__API_BASE__) throw new Error('Catalog URL not configured');
 
         // Parallel fetch all filter options
         const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
-          fetch(`${tmcUrl}/${REPOSITORY_ENDPOINT}`, { signal: controller.signal }),
-          fetch(`${tmcUrl}/${MANUFACTURER_ENDPOINT}`, { signal: controller.signal }),
-          fetch(`${tmcUrl}/${AUTHOR_ENDPOINT}`, { signal: controller.signal }),
+          fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`, { signal: controller.signal }),
+          fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`, { signal: controller.signal }),
+          fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`, { signal: controller.signal }),
         ]);
 
         if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
