@@ -15,10 +15,7 @@ export interface UserNavItem {
   href: string;
 }
 
-const navigation = [
-  { name: 'Thing Model Catalog Dashboard', href: '/', current: true },
-  { name: 'Settings', href: '/settings', current: false },
-];
+const navigation = [{ name: 'Thing Model Catalog Dashboard', href: '/', current: true }];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
