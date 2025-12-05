@@ -1,7 +1,6 @@
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import React, { useState, useEffect, useRef } from 'react';
-import { getLocalStorage } from '../utils/utils';
-import { SETTINGS_URL_CATALOG, SEARCH_ENDPOINT } from '../utils/constants';
+import { SEARCH_ENDPOINT } from '../utils/constants';
 
 const DEBOUNCE_MS = 350;
 
@@ -33,10 +32,9 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
       const qs = encodeURIComponent(query.trim());
 
-      fetch(`${tmcUrl}/${SEARCH_ENDPOINT}${qs}`, { signal: controller.signal })
+      fetch(`${__API_BASE__}/${SEARCH_ENDPOINT}${qs}`, { signal: controller.signal })
         .then((res) => res.json())
         .then((json) => {
           const results = Array.isArray(json.data) ? json.data : [];
@@ -62,7 +60,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
           type="text"
           autoFocus
           value={query}
-          className="bg-inputBg focus:outline-inputOnFocus h-12 w-full rounded-md pl-11 pr-10 text-base text-black placeholder:text-gray-500 sm:text-sm"
+          className="h-12 w-full rounded-md bg-inputBg pl-11 pr-10 text-base text-black placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm"
           placeholder="Search..."
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Search inventory"

@@ -18,12 +18,6 @@ const FourZeroFourNotFound: React.FC<{ error: string }> = ({ error }) => {
             on Settings or check if the TMC server is running
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link
-              to="/settings"
-              className="shadow-xs rounded-md bg-buttonPrimary px-3.5 py-2.5 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-buttonFocus"
-            >
-              Go to Settings
-            </Link>
             <button
               type="button"
               onClick={handleReload}
