@@ -2,7 +2,7 @@ export const SETTINGS_URL_CATALOG = 'settings-url-catalog';
 
 export const INVENTORY_ENDPOINT = 'inventory';
 
-export const THING_MODELS_ENDPOINT = 'thing-models';
+export const THING_MODEL_ENDPOINT = 'thing-models/.latest';
 
 export const SEARCH_ENDPOINT = 'inventory?search=';
 
@@ -13,7 +13,6 @@ export const MANUFACTURER_ENDPOINT = 'manufacturers';
 export const AUTHOR_ENDPOINT = 'authors';
 
 export const PROTOCOLS_FILTER = 'filter.protocol=';
-//http://0.0.0.0:8080/inventory?filter.protocol=http%2Chttps
 export const AUTHOR_FILTER = 'filter.author=';
 
 export const PROTOCOLS: FilterData[] = [

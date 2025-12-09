@@ -3,8 +3,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { useParams, useLocation } from 'react-router-dom';
-import { SETTINGS_URL_CATALOG, THING_MODELS_ENDPOINT } from '../utils/constants';
-import { getLocalStorage } from '../utils/utils';
+import { THING_MODEL_ENDPOINT } from '../utils/constants';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
 import FourZeroFourNotFound from '../components/404NotFound';
@@ -40,17 +39,24 @@ const Details = () => {
       setLoading(false);
       return;
     }
-    const base = getLocalStorage(SETTINGS_URL_CATALOG);
-    if (!base) {
+    if (!__API_BASE__) {
       setError('No catalog configured.');
       setLoading(false);
       return;
     }
 
+    if (!item) {
+      setError('No item found.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+
     (async () => {
       try {
-        const res = await fetch(`${base}/${THING_MODELS_ENDPOINT}/${encodeURIComponent(rawId)}`);
+        const res = await fetch(
+          `${__API_BASE__}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(rawId)}`,
+        );
         if (!res.ok) {
           setError('Item not found.');
           setLoading(false);
