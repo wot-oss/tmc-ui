@@ -63,7 +63,7 @@ const Layout: React.FC = () => {
   useEffect(() => {
     if (!tmcUrl) return;
     if (selectedProtocols.length === 0) {
-      setProtocolFilteredItems(null); // no protocol filter applied
+      setProtocolFilteredItems(null);
       return;
     }
     const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
@@ -163,7 +163,7 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <div className="py-10">
+      <div className="bg-bgBodyPrimary py-10">
         <main>
           <div
             id="search-bar"
@@ -184,7 +184,7 @@ const Layout: React.FC = () => {
           <div className="max-w-screen-3xl flex flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:px-8">
             {/* Sidebar */}
             <aside
-              className="w-full rounded-lg bg-white p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
+              className="w-full rounded-lg p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
               aria-label="Filters"
             >
               <SideBar
@@ -205,15 +205,15 @@ const Layout: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className={`w-64 rounded bg-gray-900 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-40 ${
+                  className={`w-64 rounded bg-buttonPrimary px-3 py-2 text-sm text-textWhite disabled:opacity-40 ${
                     isResetClicked
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-tmPrimary hover:bg-indigo-500'
+                      ? 'bg-buttonOnClick hover:bg-buttonOnClick'
+                      : 'bg-buttonPrimary hover:bg-buttonOnHover'
                   }`}
                 >
                   Reset filters
                 </button>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2 text-sm text-textValue">
                   TMs per page:
                   <select
                     value={pageSize}
@@ -221,7 +221,7 @@ const Layout: React.FC = () => {
                       setPageSize(Number(e.target.value));
                       setPage(1);
                     }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+                    className="rounded border border-buttonBorder bg-bgBodyPrimary px-2 py-1 text-sm hover:border-buttonOnHover"
                   >
                     {[10, 20, 50, 100].map((n) => (
                       <option key={n} value={n}>
@@ -231,7 +231,7 @@ const Layout: React.FC = () => {
                   </select>
                 </label>
                 {query && filteredItems.length === 0 && (
-                  <span className="text-sm text-gray-500">(No matches for "{query}")</span>
+                  <span className="text-sm text-textLabel">(No matches for "{query}")</span>
                 )}
               </div>
               <GridList items={paginatedItems} loading={isLoading} error={error} />
