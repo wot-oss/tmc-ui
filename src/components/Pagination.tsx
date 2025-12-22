@@ -27,7 +27,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPageChange,
           onClick={() => goToPage(page - 1)}
           disabled={page === 1}
           aria-label="Previous page"
-          className="rounded px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-gray-100 disabled:opacity-40"
+          className="rounded bg-buttonPrimary px-3 py-1 text-sm font-medium text-textWhite outline outline-1 outline-gray-300 hover:bg-buttonOnHover disabled:opacity-60"
         >
           Prev
         </button>
@@ -37,13 +37,13 @@ const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPageChange,
             const gap = prev && p - prev > 1;
             return (
               <React.Fragment key={p}>
-                {gap && <span className="px-2 text-gray-400">…</span>}
+                {gap && <span className="px-2 text-textValue">…</span>}
                 <button
                   type="button"
                   onClick={() => goToPage(p)}
                   aria-current={p === page ? 'page' : undefined}
-                  className={`rounded px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-gray-100 ${
-                    p === page ? 'bg-indigo-600 text-white hover:bg-indigo-600' : ''
+                  className={`bg-bgBodySecondary rounded px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-buttonOnHover hover:text-textWhite ${
+                    p === page ? 'bg-buttonPrimary text-textWhite hover:bg-buttonOnHover' : ''
                   }`}
                 >
                   {p}
@@ -57,12 +57,12 @@ const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPageChange,
           onClick={() => goToPage(page + 1)}
           disabled={page === totalPages}
           aria-label="Next page"
-          className="rounded px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-gray-100 disabled:opacity-40"
+          className="rounded bg-buttonPrimary px-3 py-1 text-sm font-medium text-textWhite outline outline-1 outline-gray-300 hover:bg-buttonOnHover disabled:opacity-40"
         >
           Next
         </button>
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-textLabel">
         Page {page} of {totalPages}
       </p>
     </nav>

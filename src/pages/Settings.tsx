@@ -3,9 +3,12 @@ import GeneralSettings from '../components/GeneralSettings';
 
 const Settings: React.FC = () => {
   return (
-    <main className="py-10">
-      <GeneralSettings />
-    </main>
+    <div className="bg-bgBodyPrimary flex min-h-dvh flex-col">
+      <main className="py-10">
+        <GeneralSettings />
+      </main>
+      <div className="flex-1"></div>
+    </div>
   );
 };
 

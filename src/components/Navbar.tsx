@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { NavLink, useLocation } from 'react-router-dom';
 import logo from '../assets/tm-catalog-logo.svg';
+import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
 
 export interface NavItem {
   name: string;
@@ -23,11 +24,29 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+const THEME_KEY = 'tmc-ui-theme';
+
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
+
+  useEffect(() => {
+    const stored = (localStorage.getItem(THEME_KEY) as 'dark' | 'light' | null) || 'dark';
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(stored);
+    setTheme(stored);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(next);
+    localStorage.setItem(THEME_KEY, next);
+    setTheme(next);
+  };
 
   return (
-    <Disclosure as="nav" className="border-b border-white/10 bg-gray-900">
+    <Disclosure as="nav" className="border-b border-border bg-primaryNavbar">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex w-full">
@@ -46,8 +65,8 @@ const Navbar: React.FC = () => {
                     to={item.href}
                     className={classNames(
                       isActive
-                        ? 'border-indigo-500 text-white'
-                        : 'border-transparent text-gray-400 hover:border-white/20 hover:text-gray-200',
+                        ? 'border-buttonBorder text-textWhite'
+                        : 'border-transparent text-textGray hover:border-borderOnHover hover:text-textOnHover',
                       'inline-flex items-center border-b-8 px-1 pt-1 text-sm font-medium',
                     )}
                     end={item.href === '/'}
@@ -57,9 +76,25 @@ const Navbar: React.FC = () => {
                 );
               })}
             </div>
+            <div className="hidden sm:ml-6 sm:flex sm:items-center">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="rounded-md border border-buttonBorder px-3 py-2 text-sm font-medium text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
+                aria-label="Toggle theme"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  {theme === 'dark' ? (
+                    <MoonIcon className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <SunIcon className="h-4 w-4" aria-hidden="true" />
+                  )}
+
+                  <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+                </span>
+              </button>
+            </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center"></div>
-          <div className="mr-2 flex items-center sm:hidden"></div>
         </div>
       </div>
     </Disclosure>

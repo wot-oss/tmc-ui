@@ -55,42 +55,41 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
   }, [query, baseItems, onResultsChange]);
 
   return (
-    <div className="relative">
-      <input
-        ref={inputRef}
-        type="text"
-        autoFocus
-        value={query}
-        className="h-12 w-full rounded-md bg-gray-900 pl-11 pr-10 text-base text-white placeholder:text-gray-500 sm:text-sm"
-        placeholder="Search..."
-        onChange={(e) => onSearch(e.target.value)}
-        aria-label="Search inventory"
-      />
-      <MagnifyingGlassIcon
-        className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-gray-500"
-        aria-hidden="true"
-      />
+    <>
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          autoFocus
+          value={query}
+          className="bg-inputBg focus:outline-inputOnFocus h-12 w-full rounded-md pl-11 pr-10 text-base text-black placeholder:text-gray-500 sm:text-sm"
+          placeholder="Search..."
+          onChange={(e) => onSearch(e.target.value)}
+          aria-label="Search inventory"
+        />
+        <MagnifyingGlassIcon
+          className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-textLabel"
+          aria-hidden="true"
+        />
 
-      {query && (
-        <button
-          type="button"
-          aria-label="Clear search"
-          onClick={() => {
-            onSearch('');
-            requestAnimationFrame(() => inputRef.current?.focus());
-          }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
-        >
-          <XMarkIcon className="size-5" aria-hidden="true" />
-        </button>
-      )}
-
-      {loading && (
-        <div className="mt-2 text-sm text-gray-400" aria-live="polite">
-          Searching...
-        </div>
-      )}
-    </div>
+        {query && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => {
+              onSearch('');
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-buttonPrimary hover:bg-buttonPrimary hover:text-white"
+          >
+            <XMarkIcon className="size-5" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <div className="mt-2 h-5 text-sm text-textGray" aria-live="polite" aria-atomic="true">
+        {loading && 'Searching...'}
+      </div>
+    </>
   );
 };
 

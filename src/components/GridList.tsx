@@ -10,7 +10,7 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
   loading,
   error,
 }) => {
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return <div className="p-4 text-textValue">Loading...</div>;
   if (error)
     return (
       <div className="p-4">
@@ -27,35 +27,35 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
           return (
             <li
               key={key}
-              className="col-span-1 divide-y divide-white/10 rounded-lg bg-white outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-gray-900"
+              className="bg-bgBodySecondary col-span-1 divide-y divide-white/10 rounded-lg outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
             >
               <Link to={`/details/${itemTM.versions[0].tmID}`} state={{ item: itemTM }}>
                 <div
                   className="flex w-full items-center justify-between space-x-6 p-6"
                   onClick={() => console.log(itemTM.tmName)}
                 >
-                  <div className="flex-1 truncate">
+                  <div className="flex-1 truncate text-textValue">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
-                      <span className="inset-ring inset-ring-green-500/10 inline-flex shrink-0 items-center rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                        {itemTM.tmName}
-                      </span>
                     </div>
-                    <p className="mt-1 truncate text-sm text-gray-400">
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
+                      {itemTM.tmName}
+                    </span>
+                    <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM['schema:manufacturer']['schema:name']}
                     </p>
-                    <p className="mt-1 truncate text-sm text-gray-400">
+                    <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM.links.content ?? ''}
                     </p>
-                    <p className="mt-1 truncate text-sm text-gray-400">
+                    <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM.repo.concat(', ')}
                     </p>
-                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM['schema:mpn']}</p>
-                    <p className="mt-1 truncate text-sm text-gray-400">
+                    <p className="mt-1 truncate text-sm text-textLabel">{itemTM['schema:mpn']}</p>
+                    <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM['schema:description']}
                     </p>
-                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM.tmName}</p>
-                    <p className="mt-1 truncate text-sm text-gray-400">{itemTM.repo}</p>
+                    <p className="mt-1 truncate text-sm text-textLabel">{itemTM.tmName}</p>
+                    <p className="mt-1 truncate text-sm text-textLabel">{itemTM.repo}</p>
                   </div>
                   <img
                     alt={`Product image of ${itemTM.tmName}`}
