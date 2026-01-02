@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getLocalStorage } from '../utils/utils';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AUTHOR_ENDPOINT, MANUFACTURER_ENDPOINT, REPOSITORY_ENDPOINT } from '../utils/constants';
 
 interface FilterContextType {
@@ -12,11 +11,11 @@ interface FilterContextType {
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
-export const FilterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [repositories, setRepositories] = useState<FilterData[]>([]);
   const [manufacturers, setManufacturers] = useState<FilterData[]>([]);
   const [authors, setAuthors] = useState<FilterData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
