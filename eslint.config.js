@@ -9,7 +9,7 @@ import configPrettier from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['dist/', 'build/', 'node_modules/', '**/vite.config.*', '**/*.d.ts'],
+    ignores: ['dist/', 'build/', 'node_modules/', '**/vite.config.*', 'eslint.config.js'],
   },
   // Base JS + TS + React
   {
@@ -19,12 +19,14 @@ export default [
       sourceType: 'module',
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: { jsx: true },
       },
       globals: {
         ...globals.browser,
         ...globals.es2022,
+        __API_BASE__: 'readonly',
       },
     },
     plugins: {
@@ -45,11 +47,12 @@ export default [
     rules: {
       // Base recommended
       ...js.configs.recommended.rules,
+      'no-undef': 'off',
       // TypeScript recommended (select few, keep concise)
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
       // React
-      'react/jsx-uses-react': 'off', // not needed for react 17+
+      'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/jsx-key': 'error',
       'react/no-unknown-property': ['error', { ignore: ['class', 'for'] }],
@@ -66,7 +69,7 @@ export default [
   },
   // Test files (Vitest)
   {
-    files: ['**/*.test.{js,jsx,ts,tsx}', '**/__tests__/**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.test.{js,jsx,ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,

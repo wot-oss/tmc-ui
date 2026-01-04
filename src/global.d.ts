@@ -8,6 +8,8 @@ declare module '*.svg' {
   export default src;
 }
 
+declare const __API_BASE__: string;
+
 type Link = {
   self: string;
   content?: string;

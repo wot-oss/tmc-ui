@@ -2,21 +2,16 @@ import React from 'react';
 import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Layout from './pages/Layout';
-import Settings from './pages/Settings';
 import Details from './pages/Details';
-import { getLocalStorage } from './utils/utils';
-import { SETTINGS_URL_CATALOG } from './utils/constants';
 import FourZeroFourNotFound from './components/404NotFound';
 import { FilterProvider } from './context/FilterContext';
 
 async function inventoryLoader() {
-  const tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
-
-  if (!tmcUrl) {
+  if (!__API_BASE__) {
     throw new Response('Catalog URL not configured', { status: 400 });
   }
 
-  const res = await fetch(`${tmcUrl}/inventory`);
+  const res = await fetch(`${__API_BASE__}/inventory`);
 
   if (!res.ok) {
     throw new Response('Failed to fetch inventory', { status: res.status });
@@ -41,10 +36,6 @@ const router = createHashRouter(
           element: <Layout />,
           loader: inventoryLoader,
           errorElement: <FourZeroFourNotFound error={'Catalog not found'} />,
-        },
-        {
-          path: 'settings',
-          element: <Settings />,
         },
         {
           path: 'details/*',

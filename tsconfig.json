@@ -34,7 +34,7 @@
       "@components/*": ["src/components/*"]
     } /* Specify a set of entries that re-map imports to additional lookup locations. */,
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
-    "typeRoots": [] /* Specify multiple folders that act like './node_modules/@types'. */,
+    // "typeRoots": [] /* Specify multiple folders that act like './node_modules/@types'. */,
     // "types": [
     //   "wot-typescript-definitions"
     // ] /* Specify type package names to be included without being referenced in a source file. */,
@@ -105,6 +105,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*", "src/*.ts", "src/*.tsx"],
-  "exclude": ["build"]
+  "include": ["src/global.d.ts", "src/**/*", "src/*.ts", "src/*.tsx"],
+  "exclude": ["build", "node_modules" ]
 }

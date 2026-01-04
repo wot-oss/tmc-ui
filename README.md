@@ -22,6 +22,22 @@ Start the development server:
 
 The app will be available at http://localhost:5173 by default.
 
+## Connection to a back end server
+
+The connection with a server that has a catalog can be made by editing a **.env** file. The **.env**file must have the following variables:
+
+VITE_API_HOST=
+VITE_API_PORT=
+VITE_API_PROTOCOL=
+
+Or you can use the **export** command before running the application:
+
+    export VITE_API_HOST=same_value
+
+In case there is no **.env** file defined the default value will be:
+
+    http://localhost:8080
+
 ## Formating
 
 Run to check the code sytle in errors:
