@@ -5,13 +5,7 @@ import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
-import {
-  INVENTORY_ENDPOINT,
-  PROTOCOLS,
-  PROTOCOLS_FILTER,
-  SETTINGS_URL_CATALOG,
-} from '../utils/constants';
-import { getLocalStorage } from '../utils/utils';
+import { INVENTORY_ENDPOINT, PROTOCOLS, PROTOCOLS_FILTER } from '../utils/constants';
 
 const Layout: React.FC = () => {
   const loadedItems = useLoaderData() as Item[];
@@ -40,8 +34,6 @@ const Layout: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
-  const tmcUrl = getLocalStorage(SETTINGS_URL_CATALOG);
-
   useEffect(() => {
     if (repositories.length > 0 && repositoriesState.length === 0) {
       setRepositoriesState(repositories);
@@ -61,7 +53,7 @@ const Layout: React.FC = () => {
   }, [authors]);
 
   useEffect(() => {
-    if (!tmcUrl) return;
+    if (!__API_BASE__) return;
     if (selectedProtocols.length === 0) {
       setProtocolFilteredItems(null);
       return;
@@ -72,7 +64,7 @@ const Layout: React.FC = () => {
     const fetchProtocols = async () => {
       try {
         const fp = encodeURIComponent(filterProtocols);
-        const res = await fetch(`${tmcUrl}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
+        const res = await fetch(`${__API_BASE__}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`Protocol fetch failed: ${res.status}`);
@@ -84,7 +76,7 @@ const Layout: React.FC = () => {
     };
     fetchProtocols();
     return () => controller.abort();
-  }, [tmcUrl, selectedProtocols]);
+  }, [selectedProtocols]);
 
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
