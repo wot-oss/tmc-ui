@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
-import { THING_MODELS_ENDPOINT } from '../utils/constants';
+import { THING_MODEL_ENDPOINT } from '../utils/constants';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
 import DialogAction from '../components/Dialog';
@@ -10,11 +10,11 @@ import type { ThingDescription } from 'wot-typescript-definitions';
 
 const Details = () => {
   const params = useParams();
-  const rawId = (params['*'] ?? params.name ?? '') as string;
+  const fetchName = (params['*'] ?? params.name ?? '') as string;
 
   const location = useLocation();
   const stateItem = location.state && (location.state as { item?: Item }).item;
-  const [item, setItem] = useState<Item | undefined>(stateItem);
+  const [item] = useState<Item | undefined>(stateItem);
 
   const [loading, setLoading] = useState<boolean>(!stateItem);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ const Details = () => {
   }
 
   useEffect(() => {
-    if (!rawId) {
+    if (!fetchName) {
       setError('Missing item id.');
       setLoading(false);
       return;
@@ -42,11 +42,17 @@ const Details = () => {
       return;
     }
 
+    if (!item) {
+      setError('No item found.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+
     (async () => {
       try {
         const res = await fetch(
-          `${__API_BASE__}/${THING_MODELS_ENDPOINT}/${encodeURIComponent(rawId)}`,
+          `${__API_BASE__}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(fetchName)}`,
         );
         if (!res.ok) {
           setError('Item not found.');
@@ -55,13 +61,13 @@ const Details = () => {
         }
         const json = await res.json();
         setFullDescription(json.data ?? json);
-      } catch (e) {
+      } catch {
         setError('Failed to load item.');
       } finally {
         setLoading(false);
       }
     })();
-  }, [rawId, stateItem]);
+  }, [fetchName, stateItem, item]);
 
   const openFullDetails = (fullDescription: ThingDescription | null) => {
     if (!fullDescription) return;

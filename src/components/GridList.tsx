@@ -27,19 +27,19 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
           return (
             <li
               key={key}
-              className="bg-bgBodySecondary col-span-1 divide-y divide-white/10 rounded-lg outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
+              className="col-span-1 divide-y divide-white/10 rounded-lg bg-bgBodySecondary outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
             >
-              <Link to={`/details/${itemTM.versions[0].tmID}`} state={{ item: itemTM }}>
+              <Link to={`/details/${itemTM.tmName}`} state={{ item: itemTM }}>
                 <div
                   className="flex w-full items-center justify-between space-x-6 p-6"
-                  onClick={() => console.log(itemTM.tmName)}
+                  
                 >
                   <div className="flex-1 truncate text-textValue">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
                     </div>
                     <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
-                      {itemTM.tmName}
+                      {itemTM['schema:author']['schema:name']}
                     </span>
                     <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM['schema:manufacturer']['schema:name']}
@@ -54,8 +54,10 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
                     <p className="mt-1 truncate text-sm text-textLabel">
                       {itemTM['schema:description']}
                     </p>
-                    <p className="mt-1 truncate text-sm text-textLabel">{itemTM.tmName}</p>
-                    <p className="mt-1 truncate text-sm text-textLabel">{itemTM.repo}</p>
+
+                    <p className="mt-1 truncate text-sm text-textLabel">
+                      Number of Versions available: {itemTM.versions.length}
+                    </p>
                   </div>
                   <img
                     alt={`Product image of ${itemTM.tmName}`}
