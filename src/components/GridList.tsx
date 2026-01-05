@@ -32,7 +32,7 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
               <Link to={`/details/${itemTM.tmName}`} state={{ item: itemTM }}>
                 <div
                   className="flex w-full items-center justify-between space-x-6 p-6"
-                  onClick={() => console.log(itemTM.tmName)}
+                  
                 >
                   <div className="flex-1 truncate text-textValue">
                     <div className="flex items-center space-x-3">
