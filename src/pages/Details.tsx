@@ -8,13 +8,18 @@ import FieldCard from '../components/base/FieldCard';
 import DialogAction from '../components/Dialog';
 import type { ThingDescription } from 'wot-typescript-definitions';
 
+const DEFAULT_IMAGE_SRC = defaultImage;
+
 const Details = () => {
   const params = useParams();
   const fetchName = (params['*'] ?? params.name ?? '') as string;
 
   const location = useLocation();
-  const stateItem = location.state && (location.state as { item?: Item }).item;
+  const stateItem = location.state && (location.state as { item?: Item, imageSrc?: string }).item;
+  const stateImageSrc = location.state && (location.state as { item?: Item, imageSrc?: string }).imageSrc;
+
   const [item] = useState<Item | undefined>(stateItem);
+  const [imageSrc] = useState<string>(stateImageSrc ?? DEFAULT_IMAGE_SRC );
 
   const [loading, setLoading] = useState<boolean>(!stateItem);
   const [error, setError] = useState<string | null>(null);
@@ -97,9 +102,9 @@ const Details = () => {
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
             <div className="flex-shrink-0 md:w-80">
               <img
-                alt="Default image"
-                src={defaultImage}
-                className="h-80 w-full rounded-lg object-cover shadow-sm"
+                alt={`Product image of ${item.tmName}`}
+                src={imageSrc}
+                className="h-80 w-full rounded-lg object-contain shadow-md"
               />
               <div className="mt-4 flex gap-3">
                 <button
