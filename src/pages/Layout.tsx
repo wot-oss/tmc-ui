@@ -190,7 +190,7 @@ const Layout: React.FC = () => {
 
             {/* Results */}
             <section className="w-3/4 flex-1">
-              <div className="mb-4 flex flex-wrap items-center gap-4">
+              <div className="mb-4 flex flex-wrap items-center gap-4 text-inputText">
                 <p className="text-lg">
                   {filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''} found
                 </p>

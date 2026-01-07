@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { NavLink, useLocation } from 'react-router-dom';
-import logo from '../assets/tm-catalog-logo.svg';
+import logoLight from '../assets/tm-catalog-logo.svg';
+import logoDark from '../assets/tm-catalog-logo-light.svg';
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+import { THEME_KEY } from '../utils/constants';
 
 export interface NavItem {
   name: string;
@@ -15,13 +17,12 @@ export interface UserNavItem {
   href: string;
 }
 
-const navigation = [{ name: 'Thing Model Catalog Dashboard', href: '/', current: true }];
+const navigation = [{ name: 'Thing Model Dashboard', href: '/', current: true }];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-const THEME_KEY = 'tmc-ui-theme';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -48,7 +49,12 @@ const Navbar: React.FC = () => {
         <div className="flex h-16 justify-between">
           <div className="flex w-full">
             <div className="flex shrink-0 items-center">
-              <img alt="Things model Catalog" src={logo} className="h-14 w-auto" />
+              <img alt="Things model Catalog" className="h-14 w-auto" 
+              src={
+                  theme === 'dark'
+                    ?  logoDark
+                    : logoLight
+                }  />
             </div>
             <div className="flex sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
               {navigation.map((item) => {
