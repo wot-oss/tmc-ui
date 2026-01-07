@@ -21,3 +21,5 @@ export const PROTOCOLS: FilterData[] = [
   { value: 'websocket', label: 'WebSocket', checked: false },
   { value: 'coap', label: 'CoAP', checked: false },
 ];
+
+export const THEME_KEY = 'tmc-ui-theme';

@@ -60,7 +60,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
           type="text"
           autoFocus
           value={query}
-          className="h-12 w-full rounded-md bg-inputBg pl-11 pr-10 text-base text-black placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm"
+          className="h-12 w-full rounded-md bg-inputBg pl-11 pr-10 text-base text-inputText placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm"
           placeholder="Search..."
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Search inventory"
