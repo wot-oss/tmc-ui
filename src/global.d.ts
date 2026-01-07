@@ -29,7 +29,6 @@ type Version = {
   };
 };
 
-
 type Attachments = {
   links: Link;
   name: string;

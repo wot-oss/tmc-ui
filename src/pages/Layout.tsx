@@ -19,7 +19,7 @@ const Layout: React.FC = () => {
 
   const [query, setQuery] = useState('');
 
-  const { repositories, manufacturers, authors} = useFilters();
+  const { repositories, manufacturers, authors } = useFilters();
 
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
@@ -34,23 +34,23 @@ const Layout: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
 
-useEffect(() => {
-  if (repositories.length === 0) return;
+  useEffect(() => {
+    if (repositories.length === 0) return;
 
-  setRepositoriesState((prev) => (prev.length === 0 ? repositories : prev));
-}, [repositories]);
+    setRepositoriesState((prev) => (prev.length === 0 ? repositories : prev));
+  }, [repositories]);
 
   useEffect(() => {
-   if (manufacturers.length === 0) return;
+    if (manufacturers.length === 0) return;
 
-  setManufacturersState((prev) => (prev.length === 0 ? manufacturers : prev));
-}, [manufacturers]);
+    setManufacturersState((prev) => (prev.length === 0 ? manufacturers : prev));
+  }, [manufacturers]);
 
   useEffect(() => {
     if (authors.length === 0) return;
 
-  setAuthorsState((prev) => (prev.length === 0 ? authors : prev));
-}, [authors]);
+    setAuthorsState((prev) => (prev.length === 0 ? authors : prev));
+  }, [authors]);
 
   useEffect(() => {
     if (!__API_BASE__) return;

@@ -10,11 +10,9 @@ export const MANUFACTURER_ENDPOINT = 'manufacturers';
 
 export const AUTHOR_ENDPOINT = 'authors';
 
-
 export const PROTOCOLS_FILTER = 'filter.protocol=';
 
 export const AUTHOR_FILTER = 'filter.author=';
-
 
 export const PROTOCOLS: FilterData[] = [
   { value: 'http/https', label: 'HTTP/HTTPS', checked: false },

@@ -15,11 +15,12 @@ const Details = () => {
   const fetchName = (params['*'] ?? params.name ?? '') as string;
 
   const location = useLocation();
-  const stateItem = location.state && (location.state as { item?: Item, imageSrc?: string }).item;
-  const stateImageSrc = location.state && (location.state as { item?: Item, imageSrc?: string }).imageSrc;
+  const stateItem = location.state && (location.state as { item?: Item; imageSrc?: string }).item;
+  const stateImageSrc =
+    location.state && (location.state as { item?: Item; imageSrc?: string }).imageSrc;
 
   const [item] = useState<Item | undefined>(stateItem);
-  const [imageSrc] = useState<string>(stateImageSrc ?? DEFAULT_IMAGE_SRC );
+  const [imageSrc] = useState<string>(stateImageSrc ?? DEFAULT_IMAGE_SRC);
 
   const [loading, setLoading] = useState<boolean>(!stateItem);
   const [error, setError] = useState<string | null>(null);
