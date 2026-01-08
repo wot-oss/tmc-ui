@@ -25,6 +25,8 @@
   --text-label: #6b7280;
   --text-value: #111827;
   --text-highlight: #22c55e1a;
+  /*Image*/
+  --image-background:#f3f4f6;
   /*Status*/
   --success: #16a34a;
   --error: #dc2626;
@@ -57,6 +59,8 @@
   --text-label: #9ca3af;
   --text-value: #ffffff;
   --text-highlight: #1b502f1a;
+  /*Image*/
+  --image-background: #f3f4f6;
   /*Status*/
   --success: #44bd70;
   --error: #dc2626;

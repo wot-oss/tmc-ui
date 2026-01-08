@@ -102,11 +102,13 @@ const Details = () => {
         <div className="mx-auto max-w-2xl lg:max-w-none">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
             <div className="flex-shrink-0 md:w-80">
-              <img
-                alt={`Product image of ${item.tmName}`}
-                src={imageSrc}
-                className="h-80 w-full rounded-lg object-contain shadow-md"
-              />
+              <div className="bg-imageBackground rounded-lg">
+                <img
+                  alt={`Product image of ${item.tmName}`}
+                  src={imageSrc}
+                  className="h-80 w-full rounded-lg object-contain p-4 shadow-md"
+                />
+              </div>
               <div className="mt-4 flex gap-3">
                 <button
                   type="button"

@@ -73,17 +73,19 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
                       Number of Versions available: {itemTM.versions.length}
                     </p>
                   </div>
-                  <div className="flex-1 bg-bgBodySecondary">
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      alt={`Product image of ${itemTM.tmName}`}
-                      src={imageSrc}
-                      onError={(e) => {
-                        e.currentTarget.src = DEFAULT_IMAGE_SRC;
-                      }}
-                      className="aspect-square size-20 shrink-0 rounded-md object-contain outline -outline-offset-1 outline-white/10"
-                    />
+                  <div className="flex-1">
+                    <div className="bg-imageBackground inline-flex rounded-lg p-4 shadow-md">
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        alt={`Product image of ${itemTM.tmName}`}
+                        src={imageSrc}
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_IMAGE_SRC;
+                        }}
+                        className="aspect-square size-28 shrink-0 rounded-lg object-contain"
+                      />
+                    </div>
                   </div>
                 </div>
               </Link>
