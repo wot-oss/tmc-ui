@@ -155,7 +155,7 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <div className="bg-bgBodyPrimary py-10">
+      <div className="min-h-[100dvh] bg-bgBodyPrimary py-10">
         <main>
           <div
             id="search-bar"
