@@ -29,7 +29,14 @@ type Version = {
   };
 };
 
+type Attachments = {
+  links: Link;
+  name: string;
+  mediaType: string;
+};
+
 type Item = {
+  attachments?: Attachments[];
   links: Link;
   repo: string;
   'schema:author': {

@@ -32,7 +32,9 @@ module.exports = {
         textLabel: 'var(--text-label)',
         textValue: 'var(--text-value)',
         textHighlight: 'var(--text-highlight)',
-        //
+        // image
+        imageBackground: 'var(--image-background)',
+
         success: 'var(--success)',
         error: 'var(--error)',
       },
