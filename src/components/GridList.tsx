@@ -74,7 +74,7 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
                     </p>
                   </div>
                   <div className="flex-1">
-                    <div className="bg-imageBackground inline-flex rounded-lg p-4 shadow-md">
+                    <div className="inline-flex rounded-lg bg-imageBackground p-4 shadow-md">
                       <img
                         loading="lazy"
                         decoding="async"
