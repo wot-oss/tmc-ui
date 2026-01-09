@@ -5,6 +5,22 @@ import { Link } from 'react-router-dom';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
+const buildItemKey = (itemTM: Item, i: number): string =>
+  `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
+
+const buildItemImageSrc = (attachments: Attachments[] | undefined): string => {
+  if (!attachments) return DEFAULT_IMAGE_SRC;
+  const pngImageSrc: Attachments | undefined = attachments.find((att) => att.name.endsWith('png'));
+
+  if (!pngImageSrc) return DEFAULT_IMAGE_SRC;
+  const attachmentLink: string | undefined = pngImageSrc.links.content;
+
+  if (!attachmentLink) return DEFAULT_IMAGE_SRC;
+  if (!__API_BASE__) return DEFAULT_IMAGE_SRC;
+
+  return `${__API_BASE__}/${attachmentLink}`;
+};
+
 const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null }> = ({
   items,
   loading,
@@ -22,18 +38,16 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
     <div>
       <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((itemTM, i) => {
-          const key = `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
+          const key = buildItemKey(itemTM, i);
+          const imageSrc = buildItemImageSrc(itemTM.attachments);
 
           return (
             <li
               key={key}
-              className="col-span-1 divide-y divide-white/10 rounded-lg bg-bgBodySecondary outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
+              className="col-span-1 divide-y divide-white/10 rounded-lg bg-bgBodySecondary shadow-md outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
             >
-              <Link to={`/details/${itemTM.tmName}`} state={{ item: itemTM }}>
-                <div
-                  className="flex w-full items-center justify-between space-x-6 p-6"
-                  
-                >
+              <Link to={`/details/${itemTM.tmName}`} state={{ item: itemTM, imageSrc: imageSrc }}>
+                <div className="flex w-full items-center justify-between space-x-6 p-6">
                   <div className="flex-1 truncate text-textValue">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
@@ -59,11 +73,20 @@ const GridList: React.FC<{ items: Item[]; loading: boolean; error: string | null
                       Number of Versions available: {itemTM.versions.length}
                     </p>
                   </div>
-                  <img
-                    alt={`Product image of ${itemTM.tmName}`}
-                    src={DEFAULT_IMAGE_SRC}
-                    className="size-20 shrink-0 rounded-md bg-gray-700 outline -outline-offset-1 outline-white/10"
-                  />
+                  <div className="flex-1">
+                    <div className="inline-flex rounded-lg bg-imageBackground p-4 shadow-md">
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        alt={`Product image of ${itemTM.tmName}`}
+                        src={imageSrc}
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_IMAGE_SRC;
+                        }}
+                        className="aspect-square size-28 shrink-0 rounded-lg object-contain"
+                      />
+                    </div>
+                  </div>
                 </div>
               </Link>
             </li>

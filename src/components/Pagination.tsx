@@ -42,7 +42,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPageChange,
                   type="button"
                   onClick={() => goToPage(p)}
                   aria-current={p === page ? 'page' : undefined}
-                  className={`bg-bgBodySecondary rounded px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-buttonOnHover hover:text-textWhite ${
+                  className={`rounded bg-bgBodySecondary px-3 py-1 text-sm font-medium outline outline-1 outline-gray-300 hover:bg-buttonOnHover hover:text-textWhite ${
                     p === page ? 'bg-buttonPrimary text-textWhite hover:bg-buttonOnHover' : ''
                   }`}
                 >

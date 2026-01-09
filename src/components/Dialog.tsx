@@ -39,7 +39,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="bg-bgBodySecondary w-full max-w-md rounded-lg p-6 shadow-lg">
+        <DialogPanel className="w-full max-w-md rounded-lg bg-bgBodySecondary p-6 shadow-lg">
           <h2 className="mb-4 text-lg font-semibold text-textValue">Open with …</h2>
           <ul className="flex flex-col gap-3">
             {targets.map((t, i) => (

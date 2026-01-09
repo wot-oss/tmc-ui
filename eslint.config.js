@@ -11,9 +11,9 @@ export default [
   {
     ignores: ['dist/', 'build/', 'node_modules/', '**/vite.config.*', 'eslint.config.js'],
   },
-  // Base JS + TS + React
+  // Base TS + React
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -48,6 +48,7 @@ export default [
       // Base recommended
       ...js.configs.recommended.rules,
       'no-undef': 'off',
+      'no-unused-vars': 'off',
       // TypeScript recommended (select few, keep concise)
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
@@ -69,7 +70,7 @@ export default [
   },
   // Test files (Vitest)
   {
-    files: ['**/*.test.{js,jsx,ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,

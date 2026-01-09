@@ -14,12 +14,12 @@ const Layout: React.FC = () => {
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
 
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [isResetClicked, setIsResetClicked] = useState(false);
 
   const [query, setQuery] = useState('');
 
-  const { repositories, manufacturers, authors, loading: filtersLoading } = useFilters();
+  const { repositories, manufacturers, authors } = useFilters();
 
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
@@ -35,21 +35,21 @@ const Layout: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(20);
 
   useEffect(() => {
-    if (repositories.length > 0 && repositoriesState.length === 0) {
-      setRepositoriesState(repositories);
-    }
+    if (repositories.length === 0) return;
+
+    setRepositoriesState((prev) => (prev.length === 0 ? repositories : prev));
   }, [repositories]);
 
   useEffect(() => {
-    if (manufacturers.length > 0 && manufacturersState.length === 0) {
-      setManufacturersState(manufacturers);
-    }
+    if (manufacturers.length === 0) return;
+
+    setManufacturersState((prev) => (prev.length === 0 ? manufacturers : prev));
   }, [manufacturers]);
 
   useEffect(() => {
-    if (authors.length > 0 && authorsState.length === 0) {
-      setAuthorsState(authors);
-    }
+    if (authors.length === 0) return;
+
+    setAuthorsState((prev) => (prev.length === 0 ? authors : prev));
   }, [authors]);
 
   useEffect(() => {
@@ -155,7 +155,7 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <div className="bg-bgBodyPrimary py-10">
+      <div className="min-h-[100dvh] bg-bgBodyPrimary py-10">
         <main>
           <div
             id="search-bar"
