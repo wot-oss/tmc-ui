@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { normalizeString } from '../utils/strings';
+import Button from './base/Button';
 
 interface SideBarProps {
   manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
@@ -172,16 +173,13 @@ const SideBar: React.FC<SideBarProps> = ({
                           placeholder="e.g. OPC UA"
                           className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         />
-
-                        <button
+                        <Button
                           type="button"
+                          text="Add"
                           onClick={handleAddProtocol}
                           disabled={!onAddProtocol}
-                          className="rounded-md bg-buttonPrimary px-3 py-2 text-sm font-medium text-textWhite hover:bg-buttonOnHover disabled:cursor-not-allowed disabled:opacity-60"
-                          title={!onAddProtocol ? 'Missing onAddProtocol handler' : undefined}
-                        >
-                          Add
-                        </button>
+                          className=""
+                        ></Button>
                       </div>
 
                       {customProtocolError && (
