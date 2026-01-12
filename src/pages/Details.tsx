@@ -75,19 +75,11 @@ const Details = () => {
     })();
   }, [fetchName, stateItem, item]);
 
-  const openFullDetails = (fullDescription: ThingDescription | null) => {
-    if (!fullDescription) return;
-    const jsonText = JSON.stringify(fullDescription, null, 2);
-    const blob = new Blob([jsonText], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url, '_blank');
-    if (win) {
-      const revoke = () => URL.revokeObjectURL(url);
-      win.addEventListener?.('unload', revoke);
-      setTimeout(revoke, 60_000);
-    } else {
-      window.location.href = url;
-    }
+  const openFullDetails = () => {
+    if (!fetchName || !__API_BASE__) return;
+
+    const url = `${__API_BASE__}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(fetchName)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const sections = useThingDetailsSections(fullDescription);
@@ -112,7 +104,7 @@ const Details = () => {
               <div className="mt-4 flex gap-3">
                 <button
                   type="button"
-                  onClick={() => openFullDetails(fullDescription)}
+                  onClick={openFullDetails}
                   disabled={!fullDescription}
                   className="inline-flex items-center rounded-md bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
                 >
