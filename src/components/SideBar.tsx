@@ -51,7 +51,7 @@ const SideBar: React.FC<SideBarProps> = ({
     const trimmed = label.trim();
     if (!trimmed) return 'Protocol cannot be empty.';
     if (trimmed.length < 2) return 'Protocol must be at least 2 characters.';
-    if (!/^[A-Za-z0-9 ._/-]+$/.test(trimmed)) {
+    if (!/^[A-Za-z0-9 ._/+-]+$/.test(trimmed)) {
       return 'Protocol contains invalid characters.';
     }
 
@@ -152,7 +152,7 @@ const SideBar: React.FC<SideBarProps> = ({
                   {section.id === 'protocol' && (
                     <div className="ml-7 mt-4">
                       <label htmlFor="custom-protocol" className="block text-sm text-textLabel">
-                        Add new protocol filter
+                        Add new protocol filter with its URI Scheme
                       </label>
 
                       <div className="mt-2 flex gap-2">
@@ -170,7 +170,7 @@ const SideBar: React.FC<SideBarProps> = ({
                               handleAddProtocol();
                             }
                           }}
-                          placeholder="e.g. OPC UA"
+                          placeholder="e.g. opc.tcp"
                           className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         />
                         <Button
