@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
+import { normalizeString } from '../utils/strings';
+import Button from './base/Button';
 
 interface SideBarProps {
   manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
@@ -8,6 +10,7 @@ interface SideBarProps {
   repositoriesState: Array<{ value: string; label: string; checked: boolean }>;
   protocolsState: Array<{ value: string; label: string; checked: boolean }>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
+  onAddProtocol?: (protocol: { value: string; label: string; checked: true }) => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({
@@ -16,9 +19,11 @@ const SideBar: React.FC<SideBarProps> = ({
   repositoriesState,
   protocolsState,
   onFilterChange,
+  onAddProtocol,
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
-
+  const [customProtocol, setCustomProtocol] = useState('');
+  const [customProtocolError, setCustomProtocolError] = useState<string | null>(null);
   const filters = useMemo<Filters>(
     () => [
       { id: 'protocol', name: 'Protocol', options: protocolsState },
@@ -40,6 +45,40 @@ const SideBar: React.FC<SideBarProps> = ({
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const validateProtocolLabel = (label: string) => {
+    const trimmed = label.trim();
+    if (!trimmed) return 'Protocol cannot be empty.';
+    if (trimmed.length < 2) return 'Protocol must be at least 2 characters.';
+    if (!/^[A-Za-z0-9 ._/+-]+$/.test(trimmed)) {
+      return 'Protocol contains invalid characters.';
+    }
+
+    const normalized = normalizeString(trimmed);
+    const alreadyExists = protocolsState.some(
+      (p) =>
+        p.value.toLowerCase() === normalized || p.label.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (alreadyExists) return 'That protocol already exists.';
+
+    return null;
+  };
+
+  const handleAddProtocol = () => {
+    const error = validateProtocolLabel(customProtocol);
+    setCustomProtocolError(error);
+    if (error) return;
+
+    const label = customProtocol.trim();
+    const value = normalizeString(label);
+
+    const protocol = { value, label, checked: true as const };
+    onAddProtocol?.(protocol);
+    onFilterChange('protocol', value, true);
+
+    setCustomProtocol('');
+    setCustomProtocolError(null);
   };
 
   return (
@@ -110,6 +149,44 @@ const SideBar: React.FC<SideBarProps> = ({
                       </div>
                     ))}
                   </div>
+                  {section.id === 'protocol' && (
+                    <div className="ml-7 mt-4">
+                      <label htmlFor="custom-protocol" className="block text-sm text-textLabel">
+                        Add new protocol filter with its URI Scheme
+                      </label>
+
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          id="custom-protocol"
+                          type="text"
+                          value={customProtocol}
+                          onChange={(e) => {
+                            setCustomProtocol(e.target.value);
+                            if (customProtocolError) setCustomProtocolError(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddProtocol();
+                            }
+                          }}
+                          placeholder="e.g. opc.tcp"
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        />
+                        <Button
+                          type="button"
+                          text="Add"
+                          onClick={handleAddProtocol}
+                          disabled={!onAddProtocol}
+                          className=""
+                        ></Button>
+                      </div>
+
+                      {customProtocolError && (
+                        <p className="mt-2 text-sm text-red-600">{customProtocolError}</p>
+                      )}
+                    </div>
+                  )}
                 </DisclosurePanel>
               </Disclosure>
             ))}
