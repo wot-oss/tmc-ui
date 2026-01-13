@@ -1,25 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
-
-interface FilterOption {
-  value: string;
-  label: string;
-  checked: boolean;
-}
+import Button from './base/Button';
+import { normalizeString } from '../utils/strings';
 
 interface FilterOptionsProps {
   sectionId: string;
-  options: readonly FilterOption[];
+  options: readonly FilterData[];
   onOptionChange: (sectionId: string, optionValue: string, checked: boolean) => void;
+  onAddProtocol?: (protocol: FilterData) => void;
 }
 
 const CHUNK_SIZE = 10;
 const SCROLL_THRESHOLD_PX = 64;
 
-const FilterOptions: React.FC<FilterOptionsProps> = ({ sectionId, options, onOptionChange }) => {
+const FilterOptions: React.FC<FilterOptionsProps> = ({
+  sectionId,
+  options,
+  onOptionChange,
+  onAddProtocol,
+}) => {
   const shouldSectionScroll = sectionId === 'manufacturer';
   const shouldScroll = shouldSectionScroll && options.length > CHUNK_SIZE;
 
   const [visibleCount, setVisibleCount] = useState<number>(CHUNK_SIZE);
+
+  const [customProtocolError, setCustomProtocolError] = useState<string | null>(null);
+  const [customProtocol, setCustomProtocol] = useState('');
 
   useEffect(() => {
     setVisibleCount(CHUNK_SIZE);
@@ -39,6 +44,40 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({ sectionId, options, onOpt
     if (distanceFromBottom <= SCROLL_THRESHOLD_PX) {
       setVisibleCount((current) => Math.min(current + CHUNK_SIZE, options.length));
     }
+  };
+
+  const validateProtocolLabel = (label: string) => {
+    const trimmed = label.trim();
+    if (!trimmed) return 'Protocol cannot be empty.';
+    if (trimmed.length < 2) return 'Protocol must be at least 2 characters.';
+    if (!/^[A-Za-z0-9 ._/+-]+$/.test(trimmed)) {
+      return 'Protocol contains invalid characters.';
+    }
+
+    const normalized = normalizeString(trimmed);
+    const alreadyExists = options.some(
+      (p) =>
+        p.value.toLowerCase() === normalized || p.label.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (alreadyExists) return 'That protocol already exists.';
+
+    return null;
+  };
+
+  const handleAddProtocol = () => {
+    const error = validateProtocolLabel(customProtocol);
+    setCustomProtocolError(error);
+    if (error) return;
+
+    const label = customProtocol.trim();
+    const value = normalizeString(label);
+
+    const protocol = { value, label, checked: true as const };
+    onAddProtocol?.(protocol);
+    onOptionChange('protocol', value, true);
+
+    setCustomProtocol('');
+    setCustomProtocolError(null);
   };
 
   return (
@@ -84,6 +123,44 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({ sectionId, options, onOpt
           </label>
         </div>
       ))}
+      {sectionId === 'protocol' && (
+        <div className="ml-7 mt-4">
+          <label htmlFor="custom-protocol" className="block text-sm text-textLabel">
+            Add new protocol filter with its URI Scheme
+          </label>
+
+          <div className="mt-2 flex gap-2">
+            <input
+              id="custom-protocol"
+              type="text"
+              value={customProtocol}
+              onChange={(e) => {
+                setCustomProtocol(e.target.value);
+                if (customProtocolError) setCustomProtocolError(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddProtocol();
+                }
+              }}
+              placeholder="e.g. opc.tcp"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            />
+            <Button
+              type="button"
+              text="Add"
+              onClick={handleAddProtocol}
+              disabled={!onAddProtocol}
+              className=""
+            ></Button>
+          </div>
+
+          {customProtocolError && (
+            <p className="mt-2 text-sm text-red-600">{customProtocolError}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
