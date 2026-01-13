@@ -185,6 +185,9 @@ const Layout: React.FC = () => {
                 repositoriesState={repositoriesState}
                 protocolsState={protocolsState}
                 onFilterChange={handleFilterChange}
+                onAddProtocol={(protocol) => {
+                  setProtocolsState((prev) => [...prev, protocol]);
+                }}
               />
             </aside>
 
