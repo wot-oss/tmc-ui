@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusIcon, PlusIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
-import { normalizeString } from '../utils/strings';
-import Button from './base/Button';
+import FilterOptions from './FilterOptions';
 
 interface SideBarProps {
   manufacturersState: Array<{ value: string; label: string; checked: boolean }>;
@@ -109,84 +108,11 @@ const SideBar: React.FC<SideBarProps> = ({
                   </DisclosureButton>
                 </h3>
                 <DisclosurePanel className="bg-bgBodyPrimary pt-6">
-                  <div className="space-y-4">
-                    {section.options.map((option, optionIdx) => (
-                      <div key={option.value} className="flex gap-3">
-                        <div className="flex h-5 shrink-0 items-center">
-                          <div className="group grid size-4 grid-cols-1">
-                            <input
-                              id={`filter-${section.id}-${optionIdx}`}
-                              name={`${section.id}[]`}
-                              value={option.value}
-                              checked={option.checked}
-                              type="checkbox"
-                              onChange={(e) =>
-                                onFilterChange(section.id, option.value, e.target.checked)
-                              }
-                              className="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
-                            />
-                            <svg
-                              fill="none"
-                              viewBox="0 0 14 14"
-                              className="group-has-disabled:stroke-gray-950/25 pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white"
-                            >
-                              <path
-                                d="M3 8L6 11L11 3.5"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="opacity-0 group-has-[:checked]:opacity-100"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <label
-                          htmlFor={`filter-${section.id}-${optionIdx}`}
-                          className="text-sm text-textValue hover:text-textLabel"
-                        >
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {section.id === 'protocol' && (
-                    <div className="ml-7 mt-4">
-                      <label htmlFor="custom-protocol" className="block text-sm text-textLabel">
-                        Add new protocol filter with its URI Scheme
-                      </label>
-
-                      <div className="mt-2 flex gap-2">
-                        <input
-                          id="custom-protocol"
-                          type="text"
-                          value={customProtocol}
-                          onChange={(e) => {
-                            setCustomProtocol(e.target.value);
-                            if (customProtocolError) setCustomProtocolError(null);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddProtocol();
-                            }
-                          }}
-                          placeholder="e.g. opc.tcp"
-                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                        />
-                        <Button
-                          type="button"
-                          text="Add"
-                          onClick={handleAddProtocol}
-                          disabled={!onAddProtocol}
-                          className=""
-                        ></Button>
-                      </div>
-
-                      {customProtocolError && (
-                        <p className="mt-2 text-sm text-red-600">{customProtocolError}</p>
-                      )}
-                    </div>
-                  )}
+                  <FilterOptions
+                    sectionId={section.id}
+                    options={section.options}
+                    onOptionChange={onFilterChange}
+                  />
                 </DisclosurePanel>
               </Disclosure>
             ))}
