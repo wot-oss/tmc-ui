@@ -24,3 +24,7 @@ export const PROTOCOLS: FilterData[] = [
 ];
 
 export const THEME_KEY = 'tmc-ui-theme';
+
+export const OPTIONS_LIST_SIZE = 10;
+
+export const SCROLL_THRESHOLD_PX = 64;

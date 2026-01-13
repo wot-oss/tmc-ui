@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Button from './base/Button';
 import { normalizeString } from '../utils/strings';
+import { OPTIONS_LIST_SIZE, SCROLL_THRESHOLD_PX } from '../utils/constants';
 
 interface FilterOptionsProps {
   sectionId: string;
@@ -9,25 +10,21 @@ interface FilterOptionsProps {
   onAddProtocol?: (protocol: FilterData) => void;
 }
 
-const CHUNK_SIZE = 10;
-const SCROLL_THRESHOLD_PX = 64;
-
 const FilterOptions: React.FC<FilterOptionsProps> = ({
   sectionId,
   options,
   onOptionChange,
   onAddProtocol,
 }) => {
-  const shouldSectionScroll = sectionId === 'manufacturer';
-  const shouldScroll = shouldSectionScroll && options.length > CHUNK_SIZE;
+  const shouldScroll = options.length > OPTIONS_LIST_SIZE;
 
-  const [visibleCount, setVisibleCount] = useState<number>(CHUNK_SIZE);
+  const [visibleCount, setVisibleCount] = useState<number>(OPTIONS_LIST_SIZE);
 
   const [customProtocolError, setCustomProtocolError] = useState<string | null>(null);
   const [customProtocol, setCustomProtocol] = useState('');
 
   useEffect(() => {
-    setVisibleCount(CHUNK_SIZE);
+    setVisibleCount(OPTIONS_LIST_SIZE);
   }, [sectionId, options.length]);
 
   const visibleOptions = useMemo(() => {
@@ -42,7 +39,7 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
     const distanceFromBottom = el.scrollHeight - (el.scrollTop + el.clientHeight);
 
     if (distanceFromBottom <= SCROLL_THRESHOLD_PX) {
-      setVisibleCount((current) => Math.min(current + CHUNK_SIZE, options.length));
+      setVisibleCount((current) => Math.min(current + OPTIONS_LIST_SIZE, options.length));
     }
   };
 
