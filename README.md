@@ -1,7 +1,7 @@
 # TMC User Interface
 
 Open-source Web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
-The initial goal is to support only GET requests in the UI, i.e. this will not be a CLI replicated in the Web.
+The initial goal is to support only GET requests in the UI, i.e. this is not a CLI replicated in the browser.
 
 # Development
 
@@ -22,9 +22,49 @@ Start the development server:
 
 The app will be available at http://localhost:5173 by default.
 
+# Deploy
+
+This UI can be deployed as a static site (no UI backend server) using GitHub Pages (and/or GitLab Pages).
+
+## Requirements
+
+For all deployment types, the repository where the catalog lives must have the following requirements at the repository root:
+
+- A folder named `.tmc`
+- Inside the `.tmc` folder, the following files are required:
+    - tm-catalog.toc.json
+    - tmauthors.txt
+    - tmmanufactures.txt
+    - tmprotocols.txt
+
+
+## Types of deployments
+
+1) The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`)
+
+
+2) The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`)
+
+In this case, the requirements are:
+
+In this case the mandatory requirements are:
+    - Setup GitHub Pages in the Settings section of the account, under **Settings** -> **Enviroments** -> **github-pages**
+    - Under **Deployment branches**, change from **Selected branches** to the branch you wish.
+
+Detail documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+
+The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
+Next, you need to edit the enviroment variable **REPO_URL** in deploy.yml file.
+
+`REPO_URL` must be in the format `<owner>/<repo>`, where:
+
+- `<owner>` is the GitHub account/organization name that owns the repository (e.g. your GitHub username)
+- `<repo>` is the repository name (e.g. `example-catalog`)
+
+
 ## Connection to a back end server
 
-The connection with a server that has a catalog can be made by editing a **.env** file. The **.env** file must have the following variables:
+The connection to a backend server that provides the catalog can be made by creating a `.env` file with the following variables:
 
     VITE_API_HOST=
     VITE_API_PORT=
@@ -34,23 +74,23 @@ Or you can use the **export** command before running the application:
 
     export VITE_API_HOST=some_value
 
-In case there is no **.env** file defined the default value will be:
+If no `.env` file is defined, the default value will be:
 
     http://localhost:8080
 
-## Formating
+## Formatting
 
-Run to check the code sytle in errors:
+Run to check the code style for errors:
 
     yarn format:check
 
-To format and fix the erros:
+To format and fix the errors:
 
     yarn format
 
 ## Custom theme
 
-Customize the colors of the UI by editing CSS variables in `theme.css`. The light theme is defined under calss `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be useds. All color values must be specified in hexadecimal format.
+Customize the colors of the UI by editing CSS variables in `src/theme.css`. The light theme is defined under class `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be used. All color values must be specified in hexadecimal format.
 
 Variables (edit in `src/theme.css`):
 
