@@ -24,11 +24,60 @@ The app will be available at http://localhost:5173 by default.
 
 # Deploy
 
-This UI can be deployed as a static site (no UI backend server) using GitHub Pages (and/or GitLab Pages).
+This UI can be deployed as a static site or with a backend server using GitHub Pages (and/or GitLab Pages).  
 
-## Requirements
 
-For all deployment types, the repository where the catalog lives must have the following requirements at the repository root:
+## Types of deployments
+
+There is 3 types of deployments possible for github pages. Check the [github pages configuration](#github-pages-configuration) before choosing a type of deployment.
+
+
+1) With a back end server(`SERVER_AVAILABLE`). Ensure the variable on __deploy.yml__  workflow is set to true.
+If you wish to change the location of the server it is possible setting up enviroment variables, according to the section [Connection To a backend server](#connection-to-a-back-end-server)
+
+
+2) The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`). 
+
+    See the list of mandatory [requiremnts](#requirements) for this case.
+    On __deploy.yml__  workflow you need to edit the the env variables to:
+
+        SERVER_AVAILABLE: false
+        TMC-UI: wot-oss/tmc-ui 
+        CATALOG_URL: 
+
+    Note: CATALOG_URL is an empty value
+
+3) The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`). 
+    
+    See the list of mandatory [requiremnts](#requirements) for this case.
+    On __deploy.yml__  workflow you need to edit the the env variables to:
+
+        SERVER_AVAILABLE: false
+        TMC-UI: wot-oss/tmc-ui 
+        CATALOG_URL: <owner>/<repo>
+
+    `CATALOG_URL` value must be in the format `<owner>/<repo>`, no commas are necessary, where:
+
+    - `<owner>` is the GitHub account/organization name that owns the repository (e.g. your GitHub username)
+    - `<repo>` is the repository name (e.g. `example-catalog`)
+
+
+
+
+### GitHub Pages configuration
+
+- Setup GitHub Pages in the Settings section of the account, under **Settings** -> **Enviroments** -> **github-pages**
+
+- Under **Deployment branches**, change from **Selected branches** to the branch you wish.
+
+Detail documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+
+The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
+
+
+### Requirements
+
+The repository where the catalog lives must have the following requirements at the repository root:
 
 - A folder named `.tmc`
 - Inside the `.tmc` folder, the following files are required:
@@ -36,30 +85,6 @@ For all deployment types, the repository where the catalog lives must have the f
     - tmauthors.txt
     - tmmanufactures.txt
     - tmprotocols.txt
-
-
-## Types of deployments
-
-1) The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`)
-
-
-2) The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`)
-
-In this case, the requirements are:
-
-In this case the mandatory requirements are:
-    - Setup GitHub Pages in the Settings section of the account, under **Settings** -> **Enviroments** -> **github-pages**
-    - Under **Deployment branches**, change from **Selected branches** to the branch you wish.
-
-Detail documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-
-The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
-Next, you need to edit the enviroment variable **REPO_URL** in deploy.yml file.
-
-`REPO_URL` must be in the format `<owner>/<repo>`, where:
-
-- `<owner>` is the GitHub account/organization name that owns the repository (e.g. your GitHub username)
-- `<repo>` is the repository name (e.g. `example-catalog`)
 
 
 ## Connection to a back end server
