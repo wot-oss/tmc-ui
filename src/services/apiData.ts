@@ -1,4 +1,4 @@
-import { type ThingDescription } from "wot-typescript-definitions";
+import { type ThingDescription } from 'wot-typescript-definitions';
 import {
   INVENTORY_TIMEOUT_MS,
   INVENTORY_ENDPOINT,
@@ -6,7 +6,7 @@ import {
   MANUFACTURER_ENDPOINT,
   AUTHOR_ENDPOINT,
   THING_MODEL_ENDPOINT,
-} from "../utils/constants";
+} from '../utils/constants';
 
 export async function fetchApiDataFilters(): Promise<{
   nextProtocols: FilterData[];
@@ -27,7 +27,7 @@ export async function fetchApiDataFilters(): Promise<{
     ]);
 
     if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
-      throw new Error("Failed to fetch filter data");
+      throw new Error('Failed to fetch filter data');
     }
 
     const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
@@ -36,13 +36,11 @@ export async function fetchApiDataFilters(): Promise<{
       authorsRes.json(),
     ]);
 
-    nextManufacturers = (manufacturersJson.data || []).map(
-      (manufacturer: string) => ({
-        value: manufacturer,
-        label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
-        checked: false,
-      })
-    );
+    nextManufacturers = (manufacturersJson.data || []).map((manufacturer: string) => ({
+      value: manufacturer,
+      label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
+      checked: false,
+    }));
 
     nextAuthors = (authorsJson.data || []).map((author: string) => ({
       value: author,
@@ -61,22 +59,20 @@ export async function fetchApiDataFilters(): Promise<{
       nextManufacturers.length === 0 &&
       nextRepositories.length === 0
     ) {
-      throw new Error("No filter data available");
+      throw new Error('No filter data available');
     }
   } catch (err: unknown) {
-    throw new Error(
-      err instanceof Error ? err.message : "fecthApiDataFilters unknown error"
-    );
+    throw new Error(err instanceof Error ? err.message : 'fecthApiDataFilters unknown error');
   }
   return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
 }
 
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
-  request: Request
+  request: Request,
 ): Promise<unknown[]> {
   if (!baseUrl) {
-    throw new Response("Catalog URL not configured", { status: 400 });
+    throw new Response('Catalog URL not configured', { status: 400 });
   }
   const controller = new AbortController();
   let didTimeout = false;
@@ -87,7 +83,7 @@ export async function fetchApiDataInventory(
   }, INVENTORY_TIMEOUT_MS);
 
   const abortFromRouter = () => controller.abort();
-  request.signal.addEventListener("abort", abortFromRouter);
+  request.signal.addEventListener('abort', abortFromRouter);
 
   try {
     const res = await fetch(`${baseUrl}/${INVENTORY_ENDPOINT}`, {
@@ -95,14 +91,14 @@ export async function fetchApiDataInventory(
     });
 
     if (!res.ok) {
-      throw new Response("Failed to fetch inventory", { status: res.status });
+      throw new Response('Failed to fetch inventory', { status: res.status });
     }
 
     const json: unknown = await res.json();
     if (
-      typeof json === "object" &&
+      typeof json === 'object' &&
       json !== null &&
-      "data" in json &&
+      'data' in json &&
       Array.isArray((json as { data?: unknown }).data)
     ) {
       return (json as { data: unknown[] }).data;
@@ -110,9 +106,9 @@ export async function fetchApiDataInventory(
 
     return [];
   } catch (err: unknown) {
-    if (err instanceof DOMException && err.name === "AbortError") {
+    if (err instanceof DOMException && err.name === 'AbortError') {
       if (didTimeout) {
-        throw new Response("Inventory request timed out", { status: 504 });
+        throw new Response('Inventory request timed out', { status: 504 });
       }
       // Aborted due to navigation; let router handle it naturally
       throw err;
@@ -120,36 +116,32 @@ export async function fetchApiDataInventory(
     throw err;
   } finally {
     clearTimeout(timeoutId);
-    request.signal.removeEventListener("abort", abortFromRouter);
+    request.signal.removeEventListener('abort', abortFromRouter);
   }
 }
 
 export async function fetchApiThingModel(
   baseUrl: string | undefined,
-  itemName: string
+  itemName: string,
 ): Promise<ThingDescription> {
   if (!baseUrl) {
-    throw new Error("Catalog URL not configured");
+    throw new Error('Catalog URL not configured');
   }
 
   if (!itemName) {
-    throw new Error("Missing item name");
+    throw new Error('Missing item name');
   }
 
   try {
-    const res = await fetch(
-      `${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`
-    );
+    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`);
 
     if (!res.ok) {
-      throw new Error("Item not found");
+      throw new Error('Item not found');
     }
 
     const json = await res.json();
     return json.data ?? json;
   } catch (err: unknown) {
-    throw new Error(
-      err instanceof Error ? err.message : "Failed to load thing model"
-    );
+    throw new Error(err instanceof Error ? err.message : 'Failed to load thing model');
   }
 }
