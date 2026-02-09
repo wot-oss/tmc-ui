@@ -28,3 +28,15 @@ export const THEME_KEY = 'tmc-ui-theme';
 export const OPTIONS_LIST_SIZE = 10;
 
 export const SCROLL_THRESHOLD_PX = 64;
+
+export const INVENTORY_TIMEOUT_MS = 1000;
+
+export const REPOSITORY_CATALOG_DEFAULT_FOLDER = '.tmc/';
+
+export const AUTHORS_FILENAME = 'tmauthors.txt';
+
+export const PROTOCOLS_FILENAME = 'tmprotocols.txt';
+
+export const MANUFACTURERS_FILENAME = 'tmmanufacturers.txt';
+
+export const INVENTORY_FILENAME = 'tm-catalog.toc.json';

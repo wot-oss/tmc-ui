@@ -10,6 +10,29 @@ declare module '*.svg' {
 
 declare const __API_BASE__: string;
 
+declare const __CATALOG_URL__: string;
+
+declare const __DEBUG__: boolean;
+
+declare const __SERVER_AVAILABLE__: boolean;
+interface ImportMetaEnv {
+  readonly VITE_REPO_URL?: string;
+  readonly BASE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+type DeploymentType = 'SERVER_AVAILABLE' | 'TYPE_TMC-UI-CATALOG' | 'TYPE_CATALOG-TMC-UI';
+interface IDataLoader {
+  readonly deploymentType: DeploymentType;
+  readonly inventory: readonly unknown[];
+}
+
+interface ItemExtended extends Item {
+  name?: string;
+}
+
 type Link = {
   self: string;
   content?: string;
