@@ -1,25 +1,23 @@
-import React from "react";
-import defaultImage from "../assets/default-image.png";
-import FourZeroFourNotFound from "./404NotFound";
-import { Link } from "react-router-dom";
+import React from 'react';
+import defaultImage from '../assets/default-image.png';
+import FourZeroFourNotFound from './404NotFound';
+import { Link } from 'react-router-dom';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
 const buildItemKey = (itemTM: Item, i: number): string =>
-  `${itemTM.repo}:${itemTM.repo}:${itemTM["schema:mpn"]}:row-${i}`;
+  `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
 const buildItemImageSrc = (
   tmName: string,
   deploymentType: DeploymentType,
-  attachments: Attachments[] | undefined
+  attachments: Attachments[] | undefined,
 ): string => {
   if (!attachments) return DEFAULT_IMAGE_SRC;
 
-  const pngImageSrc: Attachments | undefined = attachments.find((att) =>
-    att.name.endsWith("png")
-  );
+  const pngImageSrc: Attachments | undefined = attachments.find((att) => att.name.endsWith('png'));
 
-  if (deploymentType !== "SERVER_AVAILABLE") {
+  if (deploymentType !== 'SERVER_AVAILABLE') {
     return `${tmName}/.attachments/${pngImageSrc?.name}`;
   }
 
@@ -40,14 +38,16 @@ const GridList: React.FC<{
   error: string | null;
   deploymentType: DeploymentType;
 }> = ({ items, loading, error, deploymentType }) => {
-  console.log(
-    "Rendering GridList with items:",
-    items,
-    "loading:",
-    loading,
-    "deploymenType:",
-    deploymentType
-  );
+  __DEBUG__
+    ? console.warn(
+        'Rendering GridList with items:',
+        items,
+        'loading:',
+        loading,
+        'deploymenType:',
+        deploymentType,
+      )
+    : null;
 
   if (loading) return <div className="p-4 text-textValue">Loading...</div>;
   if (error)
@@ -57,20 +57,13 @@ const GridList: React.FC<{
       </div>
     );
 
-  if (deploymentType === "SERVER_AVAILABLE")
+  if (deploymentType === 'SERVER_AVAILABLE')
     return (
       <div>
-        <ul
-          role="list"
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((itemTM, i) => {
             const key = buildItemKey(itemTM, i);
-            const imageSrc = buildItemImageSrc(
-              itemTM.tmName,
-              deploymentType,
-              itemTM.attachments
-            );
+            const imageSrc = buildItemImageSrc(itemTM.tmName, deploymentType, itemTM.attachments);
             return (
               <li
                 key={key}
@@ -90,22 +83,20 @@ const GridList: React.FC<{
                         <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
                       </div>
                       <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
-                        {itemTM["schema:author"]["schema:name"]}
+                        {itemTM['schema:author']['schema:name']}
                       </span>
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM["schema:manufacturer"]["schema:name"]}
+                        {itemTM['schema:manufacturer']['schema:name']}
                       </p>
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM.links?.content ?? ""}
+                        {itemTM.links?.content ?? ''}
                       </p>
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM.repo?.concat(", ") ?? ""}
+                        {itemTM.repo?.concat(', ') ?? ''}
                       </p>
+                      <p className="mt-1 truncate text-sm text-textLabel">{itemTM['schema:mpn']}</p>
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM["schema:mpn"]}
-                      </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM["schema:description"]}
+                        {itemTM['schema:description']}
                       </p>
 
                       <p className="mt-1 truncate text-sm text-textLabel">
@@ -137,16 +128,13 @@ const GridList: React.FC<{
   else
     return (
       <div>
-        <ul
-          role="list"
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        >
+        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((itemTM, i) => {
             const key = buildItemKey(itemTM, i);
             const imageSrc = buildItemImageSrc(
               itemTM.name ?? itemTM.tmName,
               deploymentType,
-              itemTM.attachments
+              itemTM.attachments,
             );
 
             return (
@@ -165,19 +153,15 @@ const GridList: React.FC<{
                   <div className="flex w-full items-center justify-between space-x-6 p-6">
                     <div className="flex-1 truncate text-textValue">
                       <div className="flex items-center space-x-3">
-                        <h3 className="text-sm font-medium">
-                          {itemTM.name ?? itemTM.tmName}
-                        </h3>
+                        <h3 className="text-sm font-medium">{itemTM.name ?? itemTM.tmName}</h3>
                       </div>
                       <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
-                        {itemTM["schema:author"]["schema:name"]}
+                        {itemTM['schema:author']['schema:name']}
                       </span>
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM["schema:manufacturer"]["schema:name"]}
+                        {itemTM['schema:manufacturer']['schema:name']}
                       </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM["schema:mpn"]}
-                      </p>
+                      <p className="mt-1 truncate text-sm text-textLabel">{itemTM['schema:mpn']}</p>
 
                       <p className="mt-1 truncate text-sm text-textLabel">
                         Number of Versions available: {itemTM.versions.length}

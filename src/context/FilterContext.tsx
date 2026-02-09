@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { PROTOCOLS } from "../utils/constants";
-import { fetchApiDataFilters } from "../services/apiData";
-import { fetchLocalDataFilters } from "../services/localData";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { PROTOCOLS } from '../utils/constants';
+import { fetchApiDataFilters } from '../services/apiData';
+import { fetchLocalDataFilters } from '../services/localData';
 
 interface FilterContextType {
   repositories: FilterData[];
@@ -20,10 +20,7 @@ interface FilterProviderProps {
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
-export const FilterProvider: React.FC<FilterProviderProps> = ({
-  children,
-  deploymentType,
-}) => {
+export const FilterProvider: React.FC<FilterProviderProps> = ({ children, deploymentType }) => {
   const [repositories, setRepositories] = useState<FilterData[]>([]);
   const [manufacturers, setManufacturers] = useState<FilterData[]>([]);
   const [authors, setAuthors] = useState<FilterData[]>([]);
@@ -35,49 +32,40 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({
     const controller = new AbortController();
 
     const isAbortError = (err: unknown): boolean =>
-      err instanceof DOMException && err.name === "AbortError";
+      err instanceof DOMException && err.name === 'AbortError';
 
-    async function a() {
+    async function fetchData() {
       let nextAuthors: FilterData[] = [];
       let nextManufacturers: FilterData[] = [];
       let nextProtocols: FilterData[] = [];
       let nextRepositories: FilterData[] = [];
 
-      if (
-        deploymentType === "TYPE_TMC-UI-CATALOG" ||
-        deploymentType === "TYPE_CATALOG-TMC-UI"
-      ) {
+      if (deploymentType === 'TYPE_TMC-UI-CATALOG' || deploymentType === 'TYPE_CATALOG-TMC-UI') {
         setLoading(true);
-        const result = await fetchLocalDataFilters(
-          import.meta.env.BASE_URL
-        ).catch((err: unknown) => {
-          if (!isAbortError(err)) {
-            setErrorFetchData(
-              err instanceof Error ? err.message : "Unknown error"
-            );
-            setLoading(false);
-            console.error("Error fetching local filters:", err);
-          }
-        });
+        const result = await fetchLocalDataFilters(import.meta.env.BASE_URL).catch(
+          (err: unknown) => {
+            if (!isAbortError(err)) {
+              setErrorFetchData(err instanceof Error ? err.message : 'Unknown error');
+              setLoading(false);
+              console.error('Error fetching local filters:', err);
+            }
+          },
+        );
         if (result) {
-          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } =
-            result);
+          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } = result);
         }
         setLoading(false);
       } else {
         setLoading(true);
         const result = await fetchApiDataFilters().catch((err: unknown) => {
           if (!isAbortError(err)) {
-            setErrorFetchData(
-              err instanceof Error ? err.message : "Unknown error"
-            );
+            setErrorFetchData(err instanceof Error ? err.message : 'Unknown error');
             setLoading(false);
-            console.error("Error fetching filters:", err);
+            console.error('Error fetching filters:', err);
           }
         });
         if (result) {
-          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } =
-            result);
+          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } = result);
         }
         setLoading(false);
       }
@@ -86,9 +74,9 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({
       setAuthors(nextAuthors);
       setRepositories(nextRepositories);
     }
-    a();
+    fetchData();
     return () => controller.abort();
-  }, []);
+  }, [deploymentType]);
 
   return (
     <FilterContext.Provider
@@ -108,6 +96,6 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({
 
 export const useFilters = () => {
   const ctx = useContext(FilterContext);
-  if (!ctx) throw new Error("useFilters must be used inside FilterProvider");
+  if (!ctx) throw new Error('useFilters must be used inside FilterProvider');
   return ctx;
 };

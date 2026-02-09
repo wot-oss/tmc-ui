@@ -14,12 +14,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 env:
-  SERVER_AVAILABLE: false 
-  CATALOG_URL: ""
+  SERVER_AVAILABLE: false
+  CATALOG_URL: ''
   REQUIRED_FILES: tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt
 
 jobs:
@@ -100,9 +100,8 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
-
   configuration:
-    needs: fetch-catalog 
+    needs: fetch-catalog
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +118,7 @@ jobs:
       - name: Set config - base path
         run: |
           sed -i "s|return {|return {\n    base: '/${{ github.event.repository.name }}/',|" vite.config.mjs
-      - name: Set config step 1 - CATALOG_URL to __CATALOG_URL__  
+      - name: Set config step 1 - CATALOG_URL to __CATALOG_URL__
         run: |
           sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" vite.config.mjs
       - name: Set config step 2 -  SERVER_AVAILABLE to __SERVER_AVAILABLE__
@@ -149,12 +148,12 @@ jobs:
         with:
           name: configured-workspace
           path: .
-      
+
       - name: Set tool - yarn
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "yarn"
+          node-version: '22'
+          cache: 'yarn'
           cache-dependency-path: yarn.lock
       - name: Install dependencies
         run: yarn install
