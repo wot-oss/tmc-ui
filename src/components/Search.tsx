@@ -1,6 +1,6 @@
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid';
-import React, { useState, useEffect, useRef } from 'react';
-import { SEARCH_ENDPOINT } from '../utils/constants';
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import React, { useState, useEffect, useRef } from "react";
+import { SEARCH_ENDPOINT } from "../utils/constants";
 
 const DEBOUNCE_MS = 350;
 
@@ -11,14 +11,19 @@ interface SearchProps {
   baseItems: Item[];
 }
 
-const DEFAULT_ERROR_MESSAGE = 'An error occurred during the search.';
+const DEFAULT_ERROR_MESSAGE = "An error occurred during the search.";
 
-const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseItems }) => {
+const Search: React.FC<SearchProps> = ({
+  query,
+  onSearch,
+  onResultsChange,
+  baseItems,
+}) => {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<number | null>(null);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -26,7 +31,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
     if (!query.trim()) {
       onResultsChange(baseItems);
       setLoading(false);
-      setError('');
+      setError("");
       return;
     }
     setLoading(true);
@@ -61,7 +66,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
         const results = Array.isArray(json.data) ? json.data : [];
         onResultsChange(results);
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') return;
+        if (err instanceof Error && err.name === "AbortError") return;
       } finally {
         setLoading(false);
       }
@@ -95,7 +100,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
             type="button"
             aria-label="Clear search"
             onClick={() => {
-              onSearch('');
+              onSearch("");
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-buttonPrimary hover:bg-buttonPrimary hover:text-white"
@@ -105,8 +110,12 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
         )}
       </div>
       <>{error && <div className="mt-2 h-5 text-sm text-error">{error}</div>}</>
-      <div className="mt-2 h-5 text-sm text-textGray" aria-live="polite" aria-atomic="true">
-        {loading && 'Searching...'}
+      <div
+        className="mt-2 h-5 text-sm text-textGray"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {loading && "Searching..."}
       </div>
     </>
   );
