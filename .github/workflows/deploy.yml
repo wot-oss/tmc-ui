@@ -91,9 +91,6 @@ jobs:
         run: |
           rsync -a temp-repo/ public/ --exclude '.git'
           rm -rf temp-repo
-          ls -la public/
-          ls -la public/.tmc/
-
       - name: Upload catalog public files
         if: ${{ steps.catalog-gate.outputs.catalog_enabled == 'true' }}
         uses: actions/upload-artifact@v4
@@ -108,7 +105,6 @@ jobs:
     needs: fetch-catalog 
     if: ${{ always() }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -123,22 +119,14 @@ jobs:
       - name: Set config - base path
         run: |
           sed -i "s|return {|return {\n    base: '/${{ github.event.repository.name }}/',|" vite.config.mjs
-          echo "=== vite.config.mjs after modification ==="
-          cat vite.config.mjs
-
       - name: Set config step 1 - CATALOG_URL to __CATALOG_URL__  
         run: |
-          echo "Setting __CATALOG_URL__ to: $CATALOG_URL"
           sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" vite.config.mjs
-          echo "=== vite.config.mjs after __CATALOG_URL__ update ==="
-          cat vite.config.mjs
-
       - name: Set config step 2 -  SERVER_AVAILABLE to __SERVER_AVAILABLE__
         shell: bash
         run: |
-          echo "Setting __SERVER_AVAILABLE__ to: $SERVER_AVAILABLE"
           sed -i -E "s/(__SERVER_AVAILABLE__:[[:space:]]*)(true|false)/\1$SERVER_AVAILABLE/g" vite.config.mjs
-          echo "=== vite.config.mjs after __SERVER_AVAILABLE__ update ==="
+          echo "Final verification of config file: vite.config.mjs after updates ==="
           cat vite.config.mjs
 
       - name: Upload configured workspace
