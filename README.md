@@ -32,7 +32,7 @@ This UI can be deployed as a static site or with a backend server using GitHub P
 There is 3 types of deployments possible for github pages. Check the [github pages configuration](#github-pages-configuration) before choosing a type of deployment.
 
 
-1) With a back end server(`SERVER_AVAILABLE`). Ensure the variable on __deploy.yml__  workflow is set to true.
+1) With a back end server(`SERVER_AVAILABLE`). Ensure the variable `SERVER_AVAILABLE` on __deploy.yml__  workflow is set to true.
 If you wish to change the location of the server it is possible setting up enviroment variables, according to the section [Connection To a backend server](#connection-to-a-back-end-server)
 
 
