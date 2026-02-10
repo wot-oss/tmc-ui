@@ -35,14 +35,17 @@ There is 3 types of deployments possible for github pages. Check the [github pag
 
 2.  The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`).
 
-    See the list of mandatory [requiremnts](#requirements) for this case.
-    On **deploy.yml** workflow you need to edit the the env variables to:
+    A) See the list of mandatory [requiremnts](#requirements) for this case.
+    
+    B) On **deploy.yml** workflow you need to edit the the env variables to:
 
          SERVER_AVAILABLE: false
          TMC-UI: wot-oss/tmc-ui
          CATALOG_URL:
 
     Note: CATALOG_URL is an empty value
+    
+    C) Copy **deploy.yml** workflow to the repository catalog and check the [configuration] (#github-pages-configuration)
 
 3.  The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`).
 
