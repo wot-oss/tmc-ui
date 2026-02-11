@@ -1,0 +1,189 @@
+name: Deploy TMC-UI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  SERVER_AVAILABLE: false 
+  FRONTEND_URL: "wot-oss/tmc-ui"  # Repository with the frontend code
+  REQUIRED_FILES: tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt
+
+jobs:
+  validate-and-fetch-frontend:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_enabled: ${{ steps.frontend-gate.outputs.frontend_enabled }}
+    steps:
+      - name: Checkout catalog repository
+        uses: actions/checkout@v4
+        with:
+          path: catalog-repo
+
+      - name: Verify required catalog files exist
+        run: |
+          if [ -z "${REQUIRED_FILES:-}" ]; then
+            echo "Error: REQUIRED_FILES env var is empty"
+            exit 1
+          fi
+
+          if [ ! -d "catalog-repo/.tmc" ]; then
+            echo "Error: Required folder .tmc/ not found in this repository"
+            exit 1
+          fi
+
+          missing=0
+          required_files="${REQUIRED_FILES//,/ }"
+
+          echo "Validating required catalog files in this repository:"
+          echo "$required_files" | tr ' ' '\n' | sed '/^$/d' | sed 's|^|- |'
+
+          for file in $required_files; do
+            file="$(echo "$file" | xargs)"
+            [ -z "$file" ] && continue
+
+            if [[ "$file" == */* ]]; then
+              candidate_path="$file"
+            else
+              candidate_path=".tmc/$file"
+            fi
+
+            if [ ! -f "catalog-repo/$candidate_path" ]; then
+              echo "Error: Required catalog file not found: $candidate_path"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "Requirement satisfied: all required catalog files are present"
+
+      - name: Frontend Enabled Gate
+        id: frontend-gate
+        shell: bash
+        run: |
+          if [ -n "${FRONTEND_URL:-}" ]; then
+            echo "frontend_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend_enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout frontend repository
+        if: ${{ steps.frontend-gate.outputs.frontend_enabled == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.FRONTEND_URL }}
+          path: frontend-repo
+          fetch-depth: 1
+
+      - name: Merge catalog into frontend structure
+        if: ${{ steps.frontend-gate.outputs.frontend_enabled == 'true' }}
+        run: |
+          # Copy catalog files into the frontend's public directory structure
+          mkdir -p frontend-repo/public
+          rsync -a catalog-repo/ frontend-repo/public/ --exclude '.git' --exclude '.github'
+          
+          echo "=== Catalog files in frontend/public ==="
+          ls -la frontend-repo/public/
+          echo "=== Catalog files in frontend/public/.tmc ==="
+          ls -la frontend-repo/public/.tmc/
+
+      - name: Upload merged workspace
+        if: ${{ steps.frontend-gate.outputs.frontend_enabled == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-workspace
+          path: frontend-repo
+          include-hidden-files: true
+          if-no-files-found: error
+
+  configuration:
+    needs: validate-and-fetch-frontend
+    if: ${{ needs.validate-and-fetch-frontend.outputs.frontend_enabled == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download merged workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: merged-workspace
+          path: .
+
+      - name: Set config - base path
+        run: |
+          sed -i "s|return {|return {\n    base: '/${{ github.event.repository.name }}/',|" vite.config.mjs
+
+      - name: Set config step 1 - CATALOG_URL to current repository
+        run: |
+          CATALOG_URL="${{ github.repository }}"
+          echo "Setting __CATALOG_URL__ to: $CATALOG_URL"
+          sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" vite.config.mjs
+
+      - name: Set config step 2 - SERVER_AVAILABLE to __SERVER_AVAILABLE__
+        shell: bash
+        run: |
+          echo "Setting __SERVER_AVAILABLE__ to: $SERVER_AVAILABLE"
+          sed -i -E "s/(__SERVER_AVAILABLE__:[[:space:]]*)(true|false)/\1$SERVER_AVAILABLE/g" vite.config.mjs
+          echo "=== Final version of vite.config.mjs ==="
+          cat vite.config.mjs
+
+      - name: Upload configured workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: configured-workspace
+          path: .
+          include-hidden-files: true
+          if-no-files-found: error
+
+  deploy-tmc-ui:
+    needs: configuration
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download configured workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: configured-workspace
+          path: .
+      
+      - name: Set tool - yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
