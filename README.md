@@ -28,45 +28,64 @@ This UI can be deployed as a static site or with a backend server using GitHub P
 
 ## Types of deployments
 
-There is 3 types of deployments possible for github pages. Check the [github pages configuration](#github-pages-configuration) before choosing a type of deployment.
+There are 3 types of deployments possible for GitHub/GitLab Pages. Check the necessary configurations in the repository provider before running the pipeline files.
 
-1.  With a back end server(`SERVER_AVAILABLE`). Ensure the variable `SERVER_AVAILABLE` on **deploy.yml** workflow is set to true.
-    If you wish to change the location of the server it is possible setting up enviroment variables, according to the section [Connection To a backend server](#connection-to-a-back-end-server)
+The default deployment is forking the repository and workflows in **.github/workflows** will run. The other configuration files for other types of deployment are in folder **ci-cd**.
 
-2.  The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`).
 
-    A) See the list of mandatory [requiremnts](#requirements) for this case.
-    
-    B) On **deploy.yml** workflow you need to edit the the env variables to:
+### Instructions
+
+For each type of deployment and repository provider there is a pipeline/workflow available. Here are the instructions and the names of the file to be used.
+
+
+1. With a backend server (`SERVER_AVAILABLE`).
+     - Case GitHub: Ensure the variable `SERVER_AVAILABLE` on **.github/workflows/deploy.yml** is set to true.
+     - Case GitLab: Copy the **ci-cd/.gitlab-ci.yml** file to the root folder of the project and ensure the variable `SERVER_AVAILABLE` is set to true.
+
+            SERVER_AVAILABLE: true
+            CATALOG_URL: ""
+
+     - If you wish to change the location of the server, set environment variables according to [Connection to a backend server](#connection-to-a-back-end-server).
+
+
+
+2. The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`).
+     - See the list of mandatory [requirements](#requirements) for this case.
+     - Case GitHub: On **.github/workflows/deploy.yml** you need to edit the env variables to:
 
          SERVER_AVAILABLE: false
-         TMC-UI: wot-oss/tmc-ui
-         CATALOG_URL:
-
-    Note: CATALOG_URL is an empty value
-    
-    C) Copy **deploy.yml** workflow to the repository catalog and check the [configuration] (#github-pages-configuration)
-
-3.  The user clones the TMC-UI repository and configures it to point to the repository where the catalog lives. (`TYPE_TMC-UI-CATALOG`).
-
-    See the list of mandatory [requiremnts](#requirements) for this case.
-    On **deploy.yml** workflow you need to edit the the env variables to:
-
-         SERVER_AVAILABLE: false
-         TMC-UI: wot-oss/tmc-ui
          CATALOG_URL: <owner>/<repo>
 
-    `CATALOG_URL` value must be in the format `<owner>/<repo>`, no commas are necessary, where:
-    - `<owner>` is the GitHub account/organization name that owns the repository (e.g. your GitHub username)
-    - `<repo>` is the repository name (e.g. `example-catalog`)
+     - `CATALOG_URL` value must be in the format `<owner>/<repo>`, no commas are necessary, where:
+         - `<owner>` is the GitHub account/organization name that owns the repository (e.g. your GitHub username)
+         - `<repo>` is the repository name (e.g. `example-catalog`)
+
+     - Case GitLab: Copy file in **ci-cd/.gitlab-ci.yml** to the root folder and edit the env variables to:
+         SERVER_AVAILABLE: "false"
+         CATALOG_URL: "<owner>/<repo>"
+
+3. The user has a repository with a catalog and wants to deploy TMC-UI in this catalog. (`TYPE_CATALOG-TMC-UI`).
+     - See the list of mandatory [requirements](#requirements) for this case.
+     - Case GitHub: Copy the file in **ci-cd/catalog-tmc-ui/.github/workflows/deploy-tmc-ui.yml** to your catalog repository, and place it inside the folder structure: **.github/workflows/**. Next, edit the env variables to:
+
+            SERVER_AVAILABLE: false
+            TMC-UI: wot-oss/tmc-ui
+
+     - Ensure GitHub Pages are configured. Check the [configuration](#github-pages-configuration).
+     - Case GitLab: Copy file in **ci-cd/gitlab-tmc-ui/.gitlab-ci.yml** to the root folder. Next, edit the env variables to:
+
+            SERVER_AVAILABLE: "false"
+            FRONTEND_URL: ""
+
+
 
 ### GitHub Pages configuration
 
-- Setup GitHub Pages in the Settings section of the account, under **Settings** -> **Enviroments** -> **github-pages**
+- Set up GitHub Pages in the Settings section of the account, under **Settings** -> **Environments** -> **github-pages**
 
 - Under **Deployment branches**, change from **Selected branches** to the branch you wish.
 
-Detail documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+Detailed documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
 The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
 
@@ -81,7 +100,7 @@ The repository where the catalog lives must have the following requirements at t
   - tmmanufactures.txt
   - tmprotocols.txt
 
-## Connection to a back end server
+## Connection to a backend server
 
 The connection to a backend server that provides the catalog can be made by creating a `.env` file with the following variables:
 

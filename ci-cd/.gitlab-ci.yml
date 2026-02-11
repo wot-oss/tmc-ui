@@ -1,0 +1,147 @@
+stages:
+  - fetch-catalog
+  - configure
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+variables:
+  SERVER_AVAILABLE: "false"
+  CATALOG_URL: ""
+  REQUIRED_FILES: "tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt"
+
+fetch-catalog:
+  stage: fetch-catalog
+  image: ubuntu:24.04
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git ca-certificates
+  script:
+    - |
+      set -euo pipefail
+      
+      if [ -n "${CATALOG_URL:-}" ]; then
+        echo "CATALOG_ENABLED=true" >> build.env
+        
+        CATALOG_CLONE_URL="$CATALOG_URL"
+        if ! echo "$CATALOG_CLONE_URL" | grep -qE '^https?://'; then
+          CATALOG_CLONE_URL="https://gitlab.com/${CATALOG_CLONE_URL}.git"
+        fi
+        mkdir -p catalog-files
+        git clone --depth 1 "$CATALOG_CLONE_URL" catalog-files
+        
+        if [ -z "${REQUIRED_FILES:-}" ]; then
+          echo "Error: REQUIRED_FILES env var is empty"
+          exit 1
+        fi
+        
+        if [ ! -d "catalog-files/.tmc" ]; then
+          echo "Error: Required folder .tmc/ not found"
+          exit 1
+        fi
+        
+        missing=0
+        required_files="${REQUIRED_FILES//,/ }"
+        
+        for file in $required_files; do
+          file="$(echo "$file" | xargs)"
+          [ -z "$file" ] && continue
+          
+          if [[ "$file" == */* ]]; then
+            candidate_path="$file"
+          else
+            candidate_path=".tmc/$file"
+          fi
+          
+          if [ ! -f "catalog-files/$candidate_path" ]; then
+            echo "Error: Required file not found: $candidate_path"
+            missing=1
+          fi
+        done
+        
+        if [ "$missing" -ne 0 ]; then
+          exit 1
+        fi
+        
+        rm -rf catalog-files/.git
+     
+      else
+        echo "CATALOG_ENABLED=false" >> build.env
+        echo "CATALOG_URL is empty; skipping external catalog fetch."
+      fi
+  artifacts:
+    expire_in: 1 hour
+    reports:
+      dotenv: build.env
+    paths:
+      - catalog-files/
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+configure:
+  stage: configure
+  image: node:22
+  needs:
+    - job: fetch-catalog
+  script: | 
+      set -euo pipefail
+      #if [ "$SERVER_AVAILABLE" != "true" ]; then
+      # sed -i "s|return {|return {\n    base: '${CI_PROJECT_NAME}',|" vite.config.mjs
+      #fi
+      sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" vite.config.mjs
+      sed -i -E "s/(__SERVER_AVAILABLE__:[[:space:]]*)(true|false)/\1$SERVER_AVAILABLE/g" vite.config.mjs
+        
+      echo "=== vite.config.mjs after updates ==="
+      cat vite.config.mjs
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - vite.config.mjs
+      
+
+pages:
+  stage: deploy
+  image: node:22
+  needs:
+    - job: configure
+      artifacts: true
+    - job: fetch-catalog
+      artifacts: true
+  cache:
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules/
+  script:
+    - ls -la catalog-files/
+    - corepack enable || true
+    - yarn install --frozen-lockfile || yarn install
+
+    - yarn build
+    
+    - rm -rf public
+    - mv dist public
+
+    - |
+      if [ -d "catalog-files" ]; then
+        rm -rf catalog-files/.git
+        cp -a catalog-files/. public/
+        echo "Catalog files (including hidden) copied to public/"
+      fi
+  artifacts:
+    when: always
+    expire_in: never
+    paths:
+      - public/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+    url: $CI_PAGES_URL
