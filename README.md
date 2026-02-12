@@ -69,13 +69,15 @@ For each type of deployment and repository provider there is a pipeline/workflow
      - Case GitHub: Copy the file in **ci-cd/catalog-tmc-ui/.github/workflows/deploy-tmc-ui.yml** to your catalog repository, and place it inside the folder structure: **.github/workflows/**. Next, edit the env variables to:
 
             SERVER_AVAILABLE: false
-            TMC-UI: wot-oss/tmc-ui
+            FRONTEND_URL: "wot-oss/tmc-ui"  # Repository with the frontend code
 
-     - Ensure GitHub Pages are configured. Check the [configuration](#github-pages-configuration).
+        Ensure GitHub Pages are configured. Check the [configuration](#github-pages-configuration).
+     
      - Case GitLab: Copy file in **ci-cd/gitlab-tmc-ui/.gitlab-ci.yml** to the root folder. Next, edit the env variables to:
 
             SERVER_AVAILABLE: "false"
-            FRONTEND_URL: ""
+            FRONTEND_URL: "https://github.com/wot-oss/tmc-ui.git"
+            CATALOG_URL: "" # This will be set to the repository of the catalog, the same this workflow is running
 
 
 
