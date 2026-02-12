@@ -76,7 +76,7 @@ const SideBar: React.FC<SideBarProps> = ({
                 </h3>
                 <DisclosurePanel className="bg-bgBodyPrimary pt-6">
                   {section.id === 'protocol' && deploymentType !== 'SERVER_AVAILABLE' ? (
-                    <p className="text-textSecondary mb-4 text-sm">
+                    <p className="mb-4 text-sm text-textValue">
                       Protocol filtering is only available when connected to a backend server.
                     </p>
                   ) : (

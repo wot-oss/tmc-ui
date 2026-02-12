@@ -11,12 +11,10 @@ stages:
 
 variables:
   SERVER_AVAILABLE: "false"
-  # Use a full Git URL (HTTPS or SSH). Example:
-  # https://oauth2:${FRONTEND_TOKEN}@gitlab.com/group/tmc-ui.git
-  FRONTEND_URL: ""
+  FRONTEND_URL: "https://github.com/wot-oss/tmc-ui.git" ## Use a full Git URL (HTTPS or SSH)
   REQUIRED_FILES: "tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt"
 
-validate-and-fetch-frontend:
+validate-files:
   stage: validate
   image: ubuntu:22.04
   script:
@@ -59,54 +57,54 @@ validate-and-fetch-frontend:
       fi
 
       echo "Requirement satisfied: all required catalog files are present"
-    - |
-      if [ -n "${FRONTEND_URL:-}" ]; then
-        echo "FRONTEND_ENABLED=true" > frontend.env
-      else
-        echo "FRONTEND_ENABLED=false" > frontend.env
-        echo "FRONTEND_URL is empty. Skipping frontend steps."
-        exit 0
-      fi
+
+fetch-frontend:
+  stage: validate
+  image: ubuntu:22.04
+  needs:
+    - job: validate-files
+  script:
+    - set -euo pipefail
+    - apt-get update -y && apt-get install -y rsync git
+
     - git clone --depth 1 "$FRONTEND_URL" frontend-repo
+    - rm -rf frontend-repo/.git frontend-repo/.github frontend-repo/.gitlab
     - mkdir -p frontend-repo/public
     - |
       rsync -a . frontend-repo/public/ \
         --exclude '.git' \
-        --exclude '.github' \
         --exclude '.gitlab' \
         --exclude 'frontend-repo'
-    - echo "=== Catalog files in frontend/public ==="
+    - ls -la  frontend-repo/
     - ls -la frontend-repo/public/
-    - echo "=== Catalog files in frontend/public/.tmc ==="
-    - ls -la frontend-repo/public/.tmc/
   artifacts:
     paths:
       - frontend-repo
-    reports:
-      dotenv: frontend.env
+
 
 configuration:
   stage: config
   image: node:22
   needs:
-    - job: validate-and-fetch-frontend
+    - job: fetch-frontend
       artifacts: true
-  rules:
-    - if: '$FRONTEND_ENABLED == "true"'
+
   script:
     - set -euo pipefail
-    - cd frontend-repo
     - |
-      sed -i "s|return {|return {\n  base: '/${CI_PROJECT_NAME}/',|" vite.config.mjs
+      echo "=== Initial version of vite.config.mjs ==="
+      cat frontend-repo/vite.config.mjs
+    #- |
+    #  sed -i "s|return {|return {\n  base: '/${CI_PROJECT_NAME}/',|" vite.config.mjs
     - |
-      CATALOG_URL="${CI_PROJECT_PATH}"
+      CATALOG_URL="$CI_PROJECT_PATH"
       echo "Setting __CATALOG_URL__ to: $CATALOG_URL"
-      sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" vite.config.mjs
+      sed -i -E "s|__CATALOG_URL__:[[:space:]]*JSON.stringify(.*)|__CATALOG_URL__: JSON.stringify(\"$CATALOG_URL\"),|g" frontend-repo/vite.config.mjs
     - |
       echo "Setting __SERVER_AVAILABLE__ to: $SERVER_AVAILABLE"
-      sed -i -E "s/(__SERVER_AVAILABLE__:[[:space:]]*)(true|false)/\1$SERVER_AVAILABLE/g" vite.config.mjs
+      sed -i -E "s/(__SERVER_AVAILABLE__:[[:space:]]*)(true|false)/\1$SERVER_AVAILABLE/g" frontend-repo/vite.config.mjs
       echo "=== Final version of vite.config.mjs ==="
-      cat vite.config.mjs
+      cat frontend-repo/vite.config.mjs
   artifacts:
     paths:
       - frontend-repo
@@ -117,17 +115,24 @@ pages:
   needs:
     - job: configuration
       artifacts: true
-  rules:
-    - if: '$FRONTEND_ENABLED == "true"'
+
   script:
     - set -euo pipefail
     - cd frontend-repo
     - corepack enable
     - yarn install
     - yarn build
-    - mkdir -p public
-    - rm -rf public/*
-    - mv dist/* public/
+    - |
+      if [ -d public ]; then
+        cp -a public/. dist/
+      fi
+    - cd ..
+    - rm -rf public
+    - mv frontend-repo/dist public
   artifacts:
     paths:
-      - frontend-repo/public
+      - public
+
+  environment:
+    name: production
+    url: $CI_PAGES_URL
