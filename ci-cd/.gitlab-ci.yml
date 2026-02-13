@@ -11,7 +11,7 @@ workflow:
 variables:
   SERVER_AVAILABLE: "false"
   CATALOG_URL: ""
-  REQUIRED_FILES: "tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt"
+  REQUIRED_FILES: "tmnames.txt,mpns.txt,manufacturers.txt"
 
 fetch-catalog:
   stage: fetch-catalog

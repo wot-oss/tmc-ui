@@ -12,7 +12,7 @@ stages:
 variables:
   SERVER_AVAILABLE: "false"
   FRONTEND_URL: "https://github.com/wot-oss/tmc-ui.git" ## Use a full Git URL (HTTPS or SSH)
-  REQUIRED_FILES: "tmnames.txt,tmauthors.txt,tmprotocols.txt,tmmanufacturers.txt"
+  REQUIRED_FILES: "tmnames.txt,mpns.txt,manufacturers.txt"
 
 validate-files:
   stage: validate

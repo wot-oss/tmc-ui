@@ -33,10 +33,10 @@ export const INVENTORY_TIMEOUT_MS = 1000;
 
 export const REPOSITORY_CATALOG_DEFAULT_FOLDER = '.tmc/';
 
-export const AUTHORS_FILENAME = 'tmauthors.txt';
+export const AUTHORS_FILENAME = 'mpns.txt';
 
-export const PROTOCOLS_FILENAME = 'tmprotocols.txt';
+export const PROTOCOLS_FILENAME = '';
 
-export const MANUFACTURERS_FILENAME = 'tmmanufacturers.txt';
+export const MANUFACTURERS_FILENAME = 'manufacturers.txt';
 
 export const INVENTORY_FILENAME = 'tm-catalog.toc.json';
