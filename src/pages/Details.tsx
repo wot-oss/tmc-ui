@@ -246,11 +246,27 @@ const Details = () => {
               />
               <FieldCard label="Title" value={(fullDescription?.title as string) ?? '—'} />
               <FieldCard label="MPN" value={(fullDescription?.['schema:mpn'] as string) ?? '—'} />
-              <FieldCard
-                label="Number of Versions"
-                value={item.versions?.length.toString() ?? '0'}
-              />
-              <FieldCard label="Current Version" value={selectedVersion} />
+              <div className="mt-2 flex items-center gap-10 divide-gray-200 border-t border-gray-200 pt-2">
+                <div className="flex items-center gap-4">
+                  <FieldCard label="Current Version" value=""></FieldCard>
+                  <div className="flex items-center">
+                    <Dropdown
+                      label="version"
+                      id="currentVersion"
+                      options={dropdownData}
+                      value={selectedVersion}
+                      onChange={handleVersionChange}
+                      className="self-center text-2xl font-normal tracking-normal text-textValue"
+                    ></Dropdown>
+                  </div>
+                </div>
+                <div className="flex items-center pl-10">
+                  <FieldCard
+                    label="Number of Versions"
+                    value={item.versions?.length.toString() ?? '0'}
+                  />
+                </div>
+              </div>
 
               <div className="mt-2 flex divide-y divide-gray-200 border-t border-gray-200"></div>
               <FieldCard label="ID" value={fullDescription?.id ?? '—'} />
