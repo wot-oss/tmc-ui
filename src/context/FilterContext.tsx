@@ -15,8 +15,13 @@ interface FilterContextType {
 interface FilterProviderProps {
   readonly children: React.ReactNode;
   readonly deploymentType: DeploymentType;
-  readonly baseUrl: string;
 }
+
+const normalizeAuthor = (raw: string): string => {
+  const firstSegment = raw.split('/')[0]?.trim() ?? '';
+  if (!firstSegment) return '';
+  return firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
+};
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
@@ -34,7 +39,7 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children, deploy
     const isAbortError = (err: unknown): boolean =>
       err instanceof DOMException && err.name === 'AbortError';
 
-    async function fetchData() {
+    async function loadData() {
       let nextAuthors: FilterData[] = [];
       let nextManufacturers: FilterData[] = [];
       let nextProtocols: FilterData[] = [];
@@ -51,9 +56,21 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children, deploy
             }
           },
         );
+
         if (result) {
           ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } = result);
         }
+
+        const normalizedAuthors = Array.from(
+          new Set(nextAuthors.map((author) => normalizeAuthor(author.value)).filter(Boolean)),
+        ).map((name) => ({
+          value: name,
+          label: name,
+          checked: false,
+        }));
+
+        nextAuthors = normalizedAuthors;
+
         setLoading(false);
       } else {
         setLoading(true);
@@ -73,10 +90,11 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children, deploy
       setManufacturers(nextManufacturers);
       setAuthors(nextAuthors);
       setRepositories(nextRepositories);
+      setErrorFetchData(null);
     }
-    fetchData();
+    loadData();
     return () => controller.abort();
-  }, [deploymentType]);
+  }, []);
 
   return (
     <FilterContext.Provider

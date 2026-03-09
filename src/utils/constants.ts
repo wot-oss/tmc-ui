@@ -33,9 +33,9 @@ export const INVENTORY_TIMEOUT_MS = 1000;
 
 export const REPOSITORY_CATALOG_DEFAULT_FOLDER = '.tmc/';
 
-export const AUTHORS_FILENAME = 'mpns.txt';
+export const AUTHORS_FILENAME = 'tmnames.txt'; // it will be latter another file
 
-export const PROTOCOLS_FILENAME = '';
+export const PROTOCOLS_FILENAME = 'protocols.txt';
 
 export const MANUFACTURERS_FILENAME = 'manufacturers.txt';
 

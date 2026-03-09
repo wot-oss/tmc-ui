@@ -10,7 +10,7 @@ import { dataLoader } from './services/dataLoader';
 function DeploymentTypeConfiguration() {
   const { deploymentType, inventory } = useLoaderData() as IDataLoader;
   return (
-    <FilterProvider deploymentType={deploymentType} baseUrl={import.meta.env.BASE_URL}>
+    <FilterProvider deploymentType={deploymentType}>
       <Layout deploymentType={deploymentType} loadedItems={inventory as Item[]} />
     </FilterProvider>
   );
