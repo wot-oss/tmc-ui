@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
                 );
               })}
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            <div className="flex px-2 py-2 sm:ml-6 sm:flex sm:items-center sm:space-x-8">
               <button
                 type="button"
                 onClick={toggleTheme}

@@ -40,14 +40,13 @@ const GridList: React.FC<{
 }> = ({ items, loading, error, deploymentType }) => {
   __DEBUG__
     ? console.warn(
-        'Rendering GridList with items:',
-        items,
-        'loading:',
-        loading,
-        'deploymenType:',
-        deploymentType,
-      )
-    : null;
+    'Rendering GridList with items:',
+    items,
+    'loading:',
+    loading,
+    'deploymenType:',
+    deploymentType,
+  );
 
   if (loading) return <div className="p-4 text-textValue">Loading...</div>;
   if (error)
@@ -77,7 +76,7 @@ const GridList: React.FC<{
                     deploymentType: deploymentType,
                   }}
                 >
-                  <div className="flex w-full items-center justify-between space-x-6 p-6">
+                  <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
                     <div className="flex-1 truncate text-textValue">
                       <div className="flex items-center space-x-3">
                         <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
@@ -150,7 +149,7 @@ const GridList: React.FC<{
                     deploymentType: deploymentType,
                   }}
                 >
-                  <div className="flex w-full items-center justify-between space-x-6 p-6">
+                  <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
                     <div className="flex-1 truncate text-textValue">
                       <div className="flex items-center space-x-3">
                         <h3 className="text-sm font-medium">{itemTM.name ?? itemTM.tmName}</h3>

@@ -43,7 +43,7 @@ export async function fetchLocalDataInventory(baseUrl: string): Promise<unknown[
 
   const json: unknown = await res.json();
 
-  __DEBUG__ ? console.log('Fetched local inventory JSON:', json) : null;
+  __DEBUG__ ? console.warn('Fetched local inventory JSON:', json) : null;
 
   if (
     typeof json === 'object' &&
@@ -93,8 +93,11 @@ export async function fetchDataFromTxT(
 }
 
 export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescription> {
+  __DEBUG__ ? console.warn('Fetching local Thing Model from path:', fullpath) : null;
+
   const basePath = import.meta.env.BASE_URL || '/';
   const urlBase = `${basePath}${fullpath.startsWith('/') ? fullpath.slice(1) : fullpath}`;
+  __DEBUG__ ? console.warn('Computed URL base for Thing Model:', urlBase) : null;
   const url = new URL(`${urlBase}`, window.location.origin);
 
   __DEBUG__ ? console.warn('Fetching local Thing Model from URL:', url.toString()) : null;
@@ -107,6 +110,7 @@ export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescr
   }
 
   const json: unknown = await res.json();
+  __DEBUG__ ? console.warn('Fetched local Thing Model JSON:', json) : null;
 
   return json as ThingDescription;
 }

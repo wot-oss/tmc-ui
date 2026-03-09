@@ -12,7 +12,7 @@ const Layout: React.FC<{
   loadedItems: Item[];
 }> = ({ deploymentType, loadedItems }) => {
   const [items, setItems] = useState<Item[]>(loadedItems ?? []);
-
+  console.log('Loaded', items);
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
 
@@ -109,7 +109,8 @@ const Layout: React.FC<{
           checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
         const matchesAuthor =
           checkedAuthors.length === 0 ||
-          checkedAuthors.includes(item['schema:author']?.['schema:name']);
+          //checkedAuthors.includes(item["schema:author"]?.["schema:name"]); // case api
+          checkedAuthors.some((author) => item.name?.toLowerCase().includes(author.toLowerCase())); // case local
 
         return matchesCatalog && matchesManufacturer && matchesAuthor;
       });

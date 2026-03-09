@@ -71,7 +71,8 @@ type Item = {
     [key: string]: string;
   };
   'schema:mpn': string;
-  tmName: string;
+  tmName?: string;
+  name?: string;
   versions: Version[];
 };
 
