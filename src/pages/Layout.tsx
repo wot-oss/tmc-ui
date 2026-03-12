@@ -12,7 +12,7 @@ const Layout: React.FC<{
   loadedItems: Item[];
 }> = ({ deploymentType, loadedItems }) => {
   const [items, setItems] = useState<Item[]>(loadedItems ?? []);
-  console.log('Loaded', items);
+
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
 
