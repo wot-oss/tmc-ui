@@ -26,16 +26,15 @@ The app will be available at http://localhost:5173 by default.
 
 This UI can be deployed as a static site or with a backend server using GitHub Pages (and/or GitLab Pages).
 
-
 ### Instructions - Deploy
 
 To deploy the application, create a `.env` file that reflects your deployment type.
 
-    APP_REPO_URL= https://github.com/<user_group>/<tmc-ui repository>.git  # The repository TMC-UI 
-    CATALOG_REPO_URL=https://github.com/<user_group>/<repository-catalog>.git       # The repository where the catalog and Things Description here 
+    APP_REPO_URL= https://github.com/<user_group>/<tmc-ui repository>.git  # The repository TMC-UI
+    CATALOG_REPO_URL=https://github.com/<user_group>/<repository-catalog>.git       # The repository where the catalog and Things Description here
     SERVER_AVAILABLE=false                                                          # If there is adeploy with a back end available served tby the tool tmc this flag is set to true
 
-In the configuration of the pipeline/workflow invoke the script deploy.sh. This script will call all the scripts in folder __ci-cd/__ and perform the necessary validations and configurations.
+In the configuration of the pipeline/workflow invoke the script deploy.sh. This script will call all the scripts in folder **ci-cd/** and perform the necessary validations and configurations.
 
 ### GitHub Pages configuration
 
