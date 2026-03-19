@@ -6,7 +6,9 @@ import { THING_MODEL_ENDPOINT } from '../utils/constants';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
 import DialogAction from '../components/Dialog';
+import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
+import { fetchLocalThingModel } from '../services/localData';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -15,11 +17,37 @@ const Details = () => {
   const fetchName = (params['*'] ?? params.name ?? '') as string;
 
   const location = useLocation();
-  const stateItem = location.state && (location.state as { item?: Item; imageSrc?: string }).item;
-  const stateImageSrc =
-    location.state && (location.state as { item?: Item; imageSrc?: string }).imageSrc;
+  const stateItem: Item =
+    location.state &&
+    (
+      location.state as {
+        item: Item;
+        imageSrc: string;
+        deploymentType: DeploymentType;
+      }
+    ).item;
 
-  const [item] = useState<Item | undefined>(stateItem);
+  const stateImageSrc: string =
+    location.state &&
+    (
+      location.state as {
+        item: Item;
+        imageSrc: string;
+        deploymentType: DeploymentType;
+      }
+    ).imageSrc;
+
+  const deploymentType: DeploymentType =
+    location.state &&
+    (
+      location.state as {
+        item: Item;
+        imageSrc: string;
+        deploymentType: DeploymentType;
+      }
+    ).deploymentType;
+
+  const [item] = useState<Item | ItemExtended>(stateItem);
   const [imageSrc] = useState<string>(stateImageSrc ?? DEFAULT_IMAGE_SRC);
 
   const [loading, setLoading] = useState<boolean>(!stateItem);
@@ -37,6 +65,30 @@ const Details = () => {
   }
 
   useEffect(() => {
+    setLoading(true);
+    const fetchApi = async () => {
+      try {
+        const data = await fetchApiThingModel(__API_BASE__, fetchName);
+        setFullDescription(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load item.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchLocal = async () => {
+      try {
+        const fullPath: string = item.versions?.[0].links.content ?? '';
+        const data = await fetchLocalThingModel(fullPath);
+        setFullDescription(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load item.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (!fetchName) {
       setError('Missing item id.');
       setLoading(false);
@@ -53,31 +105,25 @@ const Details = () => {
       setLoading(false);
       return;
     }
-    setLoading(true);
 
-    (async () => {
-      try {
-        const res = await fetch(
-          `${__API_BASE__}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(fetchName)}`,
-        );
-        if (!res.ok) {
-          setError('Item not found.');
-          setLoading(false);
-          return;
-        }
-        const json = await res.json();
-        setFullDescription(json.data ?? json);
-      } catch {
-        setError('Failed to load item.');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [fetchName, stateItem, item]);
+    if (deploymentType !== 'SERVER_AVAILABLE') {
+      fetchLocal();
+    } else {
+      fetchApi();
+    }
+  }, [fetchName, stateItem, item, deploymentType]);
 
   const openFullDetails = () => {
     if (!fetchName || !__API_BASE__) return;
 
+    if (deploymentType !== 'SERVER_AVAILABLE') {
+      const baseUrl = import.meta.env.BASE_URL;
+
+      const url = `${window.location.origin}${baseUrl}${item.versions?.[0].links.content}`;
+
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
     const url = `${__API_BASE__}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(fetchName)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -96,7 +142,7 @@ const Details = () => {
             <div className="flex-shrink-0 md:w-80">
               <div className="rounded-lg bg-imageBackground">
                 <img
-                  alt={`Product image of ${item.tmName}`}
+                  alt={`Product image of ${(item as ItemExtended).name ?? item.tmName}`}
                   src={imageSrc}
                   className="h-80 w-full rounded-lg object-contain p-4 shadow-md"
                 />
@@ -122,7 +168,7 @@ const Details = () => {
 
             {/* Right: flexible content */}
             <div className="mt-0 flex-1 px-4 text-textGray sm:px-0">
-              <FieldCard label="Name" value={item.tmName} />
+              <FieldCard label="Name" value={(item as ItemExtended).name ?? item.tmName ?? '—'} />
               <FieldCard label="Author" value={item['schema:author']?.['schema:name'] ?? '—'} />
               <FieldCard label="Repository" value={item.repo} />
               <FieldCard label="MPN" value={item['schema:mpn']} />

@@ -10,6 +10,7 @@ interface SideBarProps {
   protocolsState: Array<FilterData>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
   onAddProtocol?: (protocol: FilterData) => void;
+  deploymentType: DeploymentType;
 }
 
 const SideBar: React.FC<SideBarProps> = ({
@@ -19,18 +20,24 @@ const SideBar: React.FC<SideBarProps> = ({
   protocolsState,
   onFilterChange,
   onAddProtocol,
+  deploymentType,
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const filters = useMemo<Filters>(
-    () => [
+  const filters = useMemo<Filters>(() => {
+    const baseFilters: Filters = [
       { id: 'protocol', name: 'Protocol', options: protocolsState },
       { id: 'manufacturer', name: 'Manufacturer', options: manufacturersState },
       { id: 'author', name: 'Author', options: authorsState },
       { id: 'repository', name: 'Repository', options: repositoriesState },
-    ],
-    [protocolsState, manufacturersState, authorsState, repositoriesState],
-  );
+    ];
+
+    if (deploymentType !== 'SERVER_AVAILABLE') {
+      return baseFilters.filter((filter) => filter.id !== 'repository');
+    }
+
+    return baseFilters;
+  }, [protocolsState, manufacturersState, authorsState, repositoriesState, deploymentType]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,17 +54,17 @@ const SideBar: React.FC<SideBarProps> = ({
 
   return (
     <div className="w-full">
-      <div className="flex items-baseline justify-between border-b border-gray-200 pb-6">
+      <div className="flex items-baseline justify-between border-b border-gray-200 pb-5">
         <h1 className="text-3xl font-bold tracking-tight text-textValue">Filters</h1>
       </div>
 
-      <section aria-labelledby="products-heading" className="pb-24 pt-6">
+      <section aria-labelledby="products-heading" className="pb-15 pt-6">
         <div className="flex flex-col gap-x-8 gap-y-10">
           {/* Filters */}
-          <form className="hidden lg:block">
+          <form className="lg:block">
             {filters.map((section) => (
               <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
-                <h3 className="-my-3 flow-root">
+                <h3 className="flow-root">
                   <DisclosureButton className="group flex w-full items-center justify-between bg-bgBodyPrimary py-3 text-sm">
                     <span className="font-medium text-textLabel">{section.name}</span>
                     <span className="ml-6 flex items-center">
@@ -73,12 +80,18 @@ const SideBar: React.FC<SideBarProps> = ({
                   </DisclosureButton>
                 </h3>
                 <DisclosurePanel className="bg-bgBodyPrimary pt-6">
-                  <FilterOptions
-                    sectionId={section.id}
-                    options={section.options}
-                    onOptionChange={onFilterChange}
-                    onAddProtocol={onAddProtocol}
-                  />
+                  {section.id === 'protocol' && deploymentType !== 'SERVER_AVAILABLE' ? (
+                    <p className="mb-4 text-sm text-textValue">
+                      Protocol filtering is only available when connected to a backend server.
+                    </p>
+                  ) : (
+                    <FilterOptions
+                      sectionId={section.id}
+                      options={section.options}
+                      onOptionChange={onFilterChange}
+                      onAddProtocol={onAddProtocol}
+                    />
+                  )}
                 </DisclosurePanel>
               </Disclosure>
             ))}

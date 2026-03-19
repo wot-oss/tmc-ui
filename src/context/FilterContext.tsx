@@ -1,86 +1,112 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AUTHOR_ENDPOINT, MANUFACTURER_ENDPOINT, REPOSITORY_ENDPOINT } from '../utils/constants';
+import { PROTOCOLS } from '../utils/constants';
+import { fetchApiDataFilters } from '../services/apiData';
+import { fetchLocalDataFilters } from '../services/localData';
 
 interface FilterContextType {
   repositories: FilterData[];
   manufacturers: FilterData[];
   authors: FilterData[];
+  protocols: FilterData[];
   loading: boolean;
-  error: string | null;
+  errorFetchData: string | null;
 }
+
+interface FilterProviderProps {
+  readonly children: React.ReactNode;
+  readonly deploymentType: DeploymentType;
+}
+
+const normalizeAuthor = (raw: string): string => {
+  const firstSegment = raw.split('/')[0]?.trim() ?? '';
+  if (!firstSegment) return '';
+  return firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
+};
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
-export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const FilterProvider: React.FC<FilterProviderProps> = ({ children, deploymentType }) => {
   const [repositories, setRepositories] = useState<FilterData[]>([]);
   const [manufacturers, setManufacturers] = useState<FilterData[]>([]);
   const [authors, setAuthors] = useState<FilterData[]>([]);
+  const [protocols, setProtocols] = useState<FilterData[]>(PROTOCOLS);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorFetchData, setErrorFetchData] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    const fetchFilters = async () => {
-      try {
-        if (!__API_BASE__) throw new Error('Catalog URL not configured');
+    const isAbortError = (err: unknown): boolean =>
+      err instanceof DOMException && err.name === 'AbortError';
 
-        // Parallel fetch all filter options
-        const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
-          fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`, { signal: controller.signal }),
-          fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`, { signal: controller.signal }),
-          fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`, { signal: controller.signal }),
-        ]);
+    async function loadData() {
+      let nextAuthors: FilterData[] = [];
+      let nextManufacturers: FilterData[] = [];
+      let nextProtocols: FilterData[] = [];
+      let nextRepositories: FilterData[] = [];
 
-        if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
-          throw new Error('Failed to fetch filter data');
+      if (deploymentType === 'TYPE_TMC-UI-CATALOG' || deploymentType === 'TYPE_CATALOG-TMC-UI') {
+        setLoading(true);
+        const result = await fetchLocalDataFilters(import.meta.env.BASE_URL).catch(
+          (err: unknown) => {
+            if (!isAbortError(err)) {
+              setErrorFetchData(err instanceof Error ? err.message : 'Unknown error');
+              setLoading(false);
+              console.error('Error fetching local filters:', err);
+            }
+          },
+        );
+
+        if (result) {
+          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } = result);
         }
 
-        const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
-          reposRes.json(),
-          manufacturersRes.json(),
-          authorsRes.json(),
-        ]);
+        const normalizedAuthors = Array.from(
+          new Set(nextAuthors.map((author) => normalizeAuthor(author.value)).filter(Boolean)),
+        ).map((name) => ({
+          value: name,
+          label: name,
+          checked: false,
+        }));
 
-        setRepositories(
-          (reposJson.data || []).map((repo: { name: string }) => ({
-            value: repo.name,
-            label: repo.name.charAt(0).toUpperCase() + repo.name.slice(1),
-            checked: false,
-          })),
-        );
+        nextAuthors = normalizedAuthors;
 
-        setManufacturers(
-          (manufacturersJson.data || []).map((manufacturer: string) => ({
-            value: manufacturer,
-            label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
-            checked: false,
-          })),
-        );
-
-        setAuthors(
-          (authorsJson.data || []).map((author: string) => ({
-            value: author,
-            label: author.charAt(0).toUpperCase() + author.slice(1),
-            checked: false,
-          })),
-        );
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setError(err.message);
-          console.error('Error fetching filters:', err);
+        setLoading(false);
+      } else {
+        setLoading(true);
+        const result = await fetchApiDataFilters().catch((err: unknown) => {
+          if (!isAbortError(err)) {
+            setErrorFetchData(err instanceof Error ? err.message : 'Unknown error');
+            setLoading(false);
+            console.error('Error fetching filters:', err);
+          }
+        });
+        if (result) {
+          ({ nextProtocols, nextManufacturers, nextAuthors, nextRepositories } = result);
         }
-      } finally {
         setLoading(false);
       }
-    };
-
-    fetchFilters();
+      setProtocols(nextProtocols);
+      setManufacturers(nextManufacturers);
+      setAuthors(nextAuthors);
+      setRepositories(nextRepositories);
+      setErrorFetchData(null);
+    }
+    loadData();
     return () => controller.abort();
   }, []);
 
   return (
-    <FilterContext.Provider value={{ repositories, manufacturers, authors, loading, error }}>
+    <FilterContext.Provider
+      value={{
+        repositories,
+        manufacturers,
+        authors,
+        protocols,
+        loading,
+        errorFetchData,
+      }}
+    >
       {children}
     </FilterContext.Provider>
   );
