@@ -38,16 +38,15 @@ const GridList: React.FC<{
   error: string | null;
   deploymentType: DeploymentType;
 }> = ({ items, loading, error, deploymentType }) => {
-  __DEBUG__
-    ? console.warn(
-        'Rendering GridList with items:',
-        items,
-        'loading:',
-        loading,
-        'deploymenType:',
-        deploymentType,
-      )
-    : null;
+  __DEBUG__ &&
+    console.warn(
+      'Rendering GridList with items:',
+      items,
+      'loading:',
+      loading,
+      'deploymenType:',
+      deploymentType,
+    );
 
   if (loading) return <div className="p-4 text-textValue">Loading...</div>;
 

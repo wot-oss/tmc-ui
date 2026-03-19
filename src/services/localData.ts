@@ -43,7 +43,7 @@ export async function fetchLocalDataInventory(baseUrl: string): Promise<unknown[
 
   const json: unknown = await res.json();
 
-  __DEBUG__ ? console.warn('Fetched local inventory JSON:', json) : null;
+  __DEBUG__ && console.warn('Fetched local inventory JSON:', json);
 
   if (
     typeof json === 'object' &&
@@ -93,14 +93,14 @@ export async function fetchDataFromTxT(
 }
 
 export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescription> {
-  __DEBUG__ ? console.warn('Fetching local Thing Model from path:', fullpath) : null;
+  __DEBUG__ && console.warn('Fetching local Thing Model from path:', fullpath);
 
   const basePath = import.meta.env.BASE_URL || '/';
   const urlBase = `${basePath}${fullpath.startsWith('/') ? fullpath.slice(1) : fullpath}`;
-  __DEBUG__ ? console.warn('Computed URL base for Thing Model:', urlBase) : null;
+  __DEBUG__ && console.warn('Computed URL base for Thing Model:', urlBase);
   const url = new URL(`${urlBase}`, window.location.origin);
 
-  __DEBUG__ ? console.warn('Fetching local Thing Model from URL:', url.toString()) : null;
+  __DEBUG__ && console.warn('Fetching local Thing Model from URL:', url.toString());
 
   const res = await fetch(url.toString());
   if (!res.ok) {
@@ -110,7 +110,7 @@ export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescr
   }
 
   const json: unknown = await res.json();
-  __DEBUG__ ? console.warn('Fetched local Thing Model JSON:', json) : null;
+  __DEBUG__ && console.warn('Fetched local Thing Model JSON:', json);
 
   return json as ThingDescription;
 }
