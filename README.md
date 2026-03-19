@@ -28,36 +28,70 @@ This UI can be deployed as a static site or with a backend server using GitHub P
 
 ### Instructions - Deploy
 
-To deploy the application, create a `.env` file that reflects your deployment type.
+The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
-    APP_REPO_URL= https://github.com/<user_group>/<tmc-ui repository>.git  # The repository TMC-UI
-    CATALOG_REPO_URL=https://github.com/<user_group>/<repository-catalog>.git       # The repository where the catalog and Things Description here
-    SERVER_AVAILABLE=false                                                          # If there is adeploy with a back end available served tby the tool tmc this flag is set to true
+Create a `.env` file at the repository root before running the script:
 
-In the configuration of the pipeline/workflow invoke the script deploy.sh. This script will call all the scripts in folder **ci-cd/** and perform the necessary validations and configurations.
+    APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
+    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+    SERVER_AVAILABLE=false
 
-### GitHub Pages configuration
+Variables:
 
-- Set up GitHub Pages in the Settings section of the account, under **Settings** -> **Environments** -> **github-pages**
+- `APP_REPO_URL`: repository that contains the TMC UI source code. This is only used when the current workspace does not already contain `package.json` and `src`.
+- `CATALOG_REPO_URL`: repository that contains the catalog content to be copied into `public`.
+- `SERVER_AVAILABLE`: must be either `true` or `false`.
+  - `false`: the UI is prepared as a static deployment and reads catalog files from the contents copied into `public`
+  - `true`: the UI is prepared to work with a backend server, and the build configuration is updated accordingly
 
-- Under **Deployment branches**, change from **Selected branches** to the branch you wish.
+Run the deployment preparation step with:
 
-Detailed documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+    sh deploy.sh
 
-The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
+The script performs the following steps:
 
-### Requirements
+1. Loads variables from `.env` if the file exists.
+2. Checks whether the current workspace already contains the UI source.
+3. If the UI source is missing, clones the repository defined in `APP_REPO_URL` into a temporary folder and copies its contents into the working directory.
+4. Verifies that the `public` directory exists.
+5. If `public/.tmc` already exists, skips the catalog download.
+6. Otherwise, clones the repository defined in `CATALOG_REPO_URL` into a temporary folder and copies its contents into `public`.
+7. Validates that the catalog contains all required files under `.tmc`.
+8. Updates `vite.config.mjs` so `SERVER_AVAILABLE` matches the selected deployment mode.
 
-The repository where the catalog lives must have the following requirements at the repository root:
+If `.env` is not present, `deploy.sh` falls back to these defaults:
 
-- A folder named `.tmc`
-- Inside the `.tmc` folder, the following files are required:
-  - tm-catalog.toc.json
-  - authors.txt
-  - manufactures.txt
-  - mpns.txt
+    APP_REPO_URL=https://github.com/TejInaco/test-tmc-ui.git
+    CATALOG_REPO_URL=https://github.com/TejInaco/example-catalog.git
+    SERVER_AVAILABLE=false
 
-## Connection to a backend server
+#### GitHub Pages configuration
+
+- Set up GitHub Pages under **Settings** -> **Environments** -> **github-pages**
+- Under **Deployment branches**, select the branch that should publish the site
+
+Detailed documentation is available [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+
+The GitHub Pages workflow for this repository is defined in `.github/workflows/fetch-files.yml`.
+
+#### Catalog repository requirements
+
+The catalog repository must contain a `.tmc` directory at its root.
+
+Inside `.tmc`, the following files are required:
+
+- `tm-catalog.toc.json`
+- `tmnames.txt`
+- `mpns.txt`
+- `manufacturers.txt`
+- `protocols.txt`
+
+Notes:
+
+- The catalog validation step fails if any of the required files are missing.
+- The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
+- `SERVER_AVAILABLE` only accepts the values `true` or `false`.
+### Connection to a backend server
 
 The connection to a backend server that provides the catalog can be made by creating a `.env` file with the following variables:
 
@@ -76,7 +110,7 @@ If no `.env` file is defined, the default value will be:
 ## Formatting
 
 Run to check the code style for errors:
-
+                                                                                                                                                
     yarn format:check
 
 To format and fix the errors:
