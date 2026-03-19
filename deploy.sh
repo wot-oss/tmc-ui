@@ -6,8 +6,8 @@ if [ -f ".env" ]; then
 	set +a
 fi
 
-: "${APP_REPO_URL:=https://github.com/TejInaco/test-tmc-ui.git}"
-: "${CATALOG_REPO_URL:=https://github.com/TejInaco/example-catalog.git}"
+: "${APP_REPO_URL:=https://github.com/wot-oss/tmc-ui.git}"
+: "${CATALOG_REPO_URL:=https://github.com/wot-oss/example-catalog.git}"
 : "${SERVER_AVAILABLE:=false}"
 
 log_info() {

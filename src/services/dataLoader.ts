@@ -8,21 +8,18 @@ export async function dataLoader({ request }: LoaderFunctionArgs) {
 
   switch (deploymentType) {
     case 'SERVER_AVAILABLE': {
-      __DEBUG__ ? console.warn('Fetching inventory from local backend server...') : null;
+      __DEBUG__ && console.warn('Fetching inventory from local backend server...');
       const inventory = await fetchApiDataInventory(__API_BASE__, request);
       return { deploymentType, inventory };
     }
     case 'TYPE_TMC-UI-CATALOG': {
-      __DEBUG__
-        ? console.warn('Fetching inventory from a repository that contains a catalog...')
-        : null;
+      __DEBUG__ && console.warn('Fetching inventory from a repository that contains a catalog...');
+
       const inventory = await fetchLocalDataInventory(import.meta.env.BASE_URL);
       return { deploymentType, inventory };
     }
     case 'TYPE_CATALOG-TMC-UI': {
-      __DEBUG__
-        ? console.warn('Fetching inventory from local files in a catalog repository...')
-        : null;
+      __DEBUG__ && console.warn('Fetching inventory from local files in a catalog repository...');
       return { deploymentType, inventory: [] };
     }
   }
