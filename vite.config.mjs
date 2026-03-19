@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
     plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
     define: {
       __API_BASE__: JSON.stringify(API_BASE),
+      __CATALOG_URL__: JSON.stringify('test-tm-ui'),
+      __DEBUG__: true,
+      __SERVER_AVAILABLE__: false,
     },
   };
 });

@@ -18,8 +18,16 @@ interface DialogActionProps {
 
 const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onClose }) => {
   const [targets, setTargets] = useState<OpenTarget[]>([
-    { name: 'Editdor', url: 'https://eclipse.github.io/editdor/', status: 'idle' },
-    { name: 'TD Playground', url: 'https://playground.thingweb.io/', status: 'idle' },
+    {
+      name: 'Editdor',
+      url: 'https://eclipse-editdor.github.io/editdor/',
+      status: 'idle',
+    },
+    {
+      name: 'TD Playground',
+      url: 'https://playground.thingweb.io/',
+      status: 'idle',
+    },
   ]);
 
   const handleOpen = async (idx: number) => {

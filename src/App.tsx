@@ -1,26 +1,20 @@
 import React from 'react';
-import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createHashRouter, RouterProvider, Outlet, useLoaderData } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Layout from './pages/Layout';
 import Details from './pages/Details';
 import FourZeroFourNotFound from './components/404NotFound';
 import { FilterProvider } from './context/FilterContext';
+import { dataLoader } from './services/dataLoader';
 
-async function inventoryLoader() {
-  if (!__API_BASE__) {
-    throw new Response('Catalog URL not configured', { status: 400 });
-  }
-
-  const res = await fetch(`${__API_BASE__}/inventory`);
-
-  if (!res.ok) {
-    throw new Response('Failed to fetch inventory', { status: res.status });
-  }
-
-  const json = await res.json();
-  return Array.isArray(json.data) ? json.data : [];
+function DeploymentTypeConfiguration() {
+  const { deploymentType, inventory } = useLoaderData() as IDataLoader;
+  return (
+    <FilterProvider deploymentType={deploymentType}>
+      <Layout deploymentType={deploymentType} loadedItems={inventory as Item[]} />
+    </FilterProvider>
+  );
 }
-
 const router = createHashRouter(
   [
     {
@@ -30,16 +24,23 @@ const router = createHashRouter(
           <Outlet />
         </>
       ),
+      errorElement: (
+        <>
+          <Navbar />
+          <FourZeroFourNotFound error={'Settings not defined'} />
+        </>
+      ),
       children: [
         {
           index: true,
-          element: <Layout />,
-          loader: inventoryLoader,
+          element: <DeploymentTypeConfiguration />,
+          loader: dataLoader,
           errorElement: <FourZeroFourNotFound error={'Catalog not found'} />,
         },
         {
           path: 'details/*',
           element: <Details />,
+          errorElement: <FourZeroFourNotFound error={'Details not found'} />,
         },
       ],
     },
@@ -51,10 +52,6 @@ const router = createHashRouter(
   },
 );
 
-const App = () => (
-  <FilterProvider>
-    <RouterProvider router={router} future={{ v7_startTransition: true }} />
-  </FilterProvider>
-);
+const App = () => <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 
 export default App;
