@@ -9,3 +9,12 @@ export function normalizeString(str: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9._-]/g, '');
 }
+
+export function normalizeRelativePathSegment(value: string): string {
+  // remove leading slashes so it stays relative when used with new URL()
+  return value.replace(/^\/+/, '');
+}
+
+export function ensureTrailingSlash(value: string): string {
+  return value.endsWith('/') ? value : `${value}/`;
+}

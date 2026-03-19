@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFilters } from '../context/FilterContext';
-import { useLoaderData, useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router-dom';
 import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
-import { INVENTORY_ENDPOINT, PROTOCOLS, PROTOCOLS_FILTER } from '../utils/constants';
+import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
 
-const Layout: React.FC = () => {
-  const loadedItems = useLoaderData() as Item[];
-  const [items, setItems] = useState<Item[]>(loadedItems);
+const Layout: React.FC<{
+  deploymentType: DeploymentType;
+  loadedItems: Item[];
+}> = ({ deploymentType, loadedItems }) => {
+  const [items, setItems] = useState<Item[]>(loadedItems ?? []);
 
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
@@ -19,12 +21,12 @@ const Layout: React.FC = () => {
 
   const [query, setQuery] = useState('');
 
-  const { repositories, manufacturers, authors } = useFilters();
+  const { repositories, manufacturers, authors, protocols, loading, errorFetchData } = useFilters();
 
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
-  const [protocolsState, setProtocolsState] = useState<FilterData[]>(PROTOCOLS);
+  const [protocolsState, setProtocolsState] = useState<FilterData[]>(protocols);
 
   const [protocolFilteredItems, setProtocolFilteredItems] = useState<Item[] | null>(null);
   const selectedProtocols = useMemo(
@@ -53,7 +55,8 @@ const Layout: React.FC = () => {
   }, [authors]);
 
   useEffect(() => {
-    if (!__API_BASE__) return;
+    if (deploymentType !== 'SERVER_AVAILABLE') return;
+
     if (selectedProtocols.length === 0) {
       setProtocolFilteredItems(null);
       return;
@@ -61,6 +64,7 @@ const Layout: React.FC = () => {
     const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
 
     const controller = new AbortController();
+
     const fetchProtocols = async () => {
       try {
         const fp = encodeURIComponent(filterProtocols);
@@ -74,9 +78,11 @@ const Layout: React.FC = () => {
         if (e.name !== 'AbortError') console.error(e);
       }
     };
+
     fetchProtocols();
+
     return () => controller.abort();
-  }, [selectedProtocols]);
+  }, [selectedProtocols, deploymentType]);
 
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
@@ -103,7 +109,8 @@ const Layout: React.FC = () => {
           checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
         const matchesAuthor =
           checkedAuthors.length === 0 ||
-          checkedAuthors.includes(item['schema:author']?.['schema:name']);
+          //checkedAuthors.includes(item["schema:author"]?.["schema:name"]); // case api
+          checkedAuthors.some((author) => item.name?.toLowerCase().includes(author.toLowerCase())); // case local
 
         return matchesCatalog && matchesManufacturer && matchesAuthor;
       });
@@ -163,12 +170,14 @@ const Layout: React.FC = () => {
           >
             <div className="hidden md:block md:w-1/4 lg:w-1/5" />
             <div className="w-full md:w-2/4 lg:w-3/5">
-              <Search
-                query={query}
-                onSearch={setQuery}
-                onResultsChange={handleSearchResults}
-                baseItems={loadedItems}
-              />
+              {deploymentType === 'SERVER_AVAILABLE' && (
+                <Search
+                  query={query}
+                  onSearch={setQuery}
+                  onResultsChange={handleSearchResults}
+                  baseItems={loadedItems}
+                />
+              )}
             </div>
             <div className="hidden md:block md:w-1/4 lg:w-1/5" />
           </div>
@@ -179,23 +188,35 @@ const Layout: React.FC = () => {
               className="w-full rounded-lg p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
               aria-label="Filters"
             >
-              <SideBar
-                manufacturersState={manufacturersState}
-                authorsState={authorsState}
-                repositoriesState={repositoriesState}
-                protocolsState={protocolsState}
-                onFilterChange={handleFilterChange}
-                onAddProtocol={(protocol) => {
-                  setProtocolsState((prev) => [...prev, protocol]);
-                }}
-              />
+              {loading && <div style={{ padding: 12 }}>Loading filters…</div>}
+
+              {errorFetchData && (
+                <div style={{ padding: 12 }}>
+                  <strong>Filters unavailable:</strong> {errorFetchData}
+                </div>
+              )}
+
+              {!errorFetchData && (
+                <SideBar
+                  manufacturersState={manufacturersState}
+                  authorsState={authorsState}
+                  repositoriesState={repositoriesState}
+                  protocolsState={protocolsState}
+                  onFilterChange={handleFilterChange}
+                  onAddProtocol={(protocol) => {
+                    setProtocolsState((prev) => [...prev, protocol]);
+                  }}
+                  deploymentType={deploymentType}
+                />
+              )}
             </aside>
 
             {/* Results */}
             <section className="w-3/4 flex-1">
               <div className="mb-4 flex flex-wrap items-center gap-4 text-inputText">
                 <p className="text-lg">
-                  {filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''} found
+                  {filteredItems.length} result
+                  {filteredItems.length !== 1 ? 's' : ''} found
                 </p>
                 <button
                   type="button"
@@ -229,7 +250,12 @@ const Layout: React.FC = () => {
                   <span className="text-sm text-textLabel">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList items={paginatedItems} loading={isLoading} error={error} />
+              <GridList
+                items={paginatedItems}
+                loading={isLoading}
+                error={error}
+                deploymentType={deploymentType}
+              />
 
               <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
             </section>
