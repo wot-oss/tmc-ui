@@ -49,7 +49,7 @@ export default [
       ...js.configs.recommended.rules,
       'no-undef': 'off',
       'no-unused-vars': 'off',
-      // TypeScript recommended (select few, keep concise)
+      // TypeScript recommended
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
       // React

@@ -20,5 +20,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Fix format style
+        run: yarn format
+
       - name: Run format check
         run: yarn format:check
