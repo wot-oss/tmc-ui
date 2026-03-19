@@ -239,11 +239,11 @@ const Details = () => {
                       options={dropdownData}
                       value={selectedVersion}
                       onChange={handleVersionChange}
-                      className="self-center text-2xl font-normal tracking-normal text-textValue"
+                      className="self-center text-2xl tracking-normal text-textValue"
                     ></Dropdown>
                   </div>
                 </div>
-                <div className="flex items-center pl-10">
+                <div className="flex items-center gap-4 pl-10">
                   <FieldCard
                     label="Number of Versions"
                     value={item.versions?.length.toString() ?? '0'}
