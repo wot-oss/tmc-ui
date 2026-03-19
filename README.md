@@ -53,9 +53,9 @@ The repository where the catalog lives must have the following requirements at t
 - A folder named `.tmc`
 - Inside the `.tmc` folder, the following files are required:
   - tm-catalog.toc.json
-  - tmauthors.txt
-  - tmmanufactures.txt
-  - tmprotocols.txt
+  - authors.txt
+  - manufactures.txt
+  - mpns.txt
 
 ## Connection to a backend server
 
