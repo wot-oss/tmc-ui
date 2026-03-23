@@ -26,9 +26,19 @@ The app will be available at http://localhost:5173 by default.
 
 This UI can be deployed as a static site or with a backend server using GitHub Pages (and/or GitLab Pages).
 
-### Instructions - Deploy
+The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings define in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
-The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
+Inside the `ci-cd` folder are the files used by `deploy.sh`.
+ - `editConfig.sh`
+ - `fetchRepository.sh`
+ - `validateRequiredFiles.sh`
+
+### Workflow of deploy.sh
+<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
+
+
+### Instructions
+
 
 Create a `.env` file at the repository root before running the script:
 
@@ -93,7 +103,7 @@ Notes:
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
 ### Connection to a backend server
 
-The connection to a backend server that provides the catalog can be made by creating a `.env` file with the following variables:
+The connection to a backend server that provides the catalog can be made by adding to the `.env` file with the following variables:
 
     VITE_API_HOST=
     VITE_API_PORT=
