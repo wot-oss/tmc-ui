@@ -1,7 +1,7 @@
 # TMC User Interface
 
 Open-source Web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
-The initial goal is to support only GET requests in the UI, i.e. this is not a CLI replicated in the browser.
+The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
 
 # Development
 
@@ -24,9 +24,9 @@ The app will be available at http://localhost:5173 by default.
 
 # Deploy
 
-This UI can be deployed as a static site or with a backend server using GitHub Pages (and/or GitLab Pages).
+This UI can be deployed as a static site or with a backend server using GitHub Pages or GitLab Pages.
 
-The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings define in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
+The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
 Inside the `ci-cd` folder are the files used by `deploy.sh`.
  - `editConfig.sh`
@@ -94,16 +94,16 @@ Inside `.tmc`, the following files are required:
 - `tmnames.txt`
 - `mpns.txt`
 - `manufacturers.txt`
-- `protocols.txt`
 
 Notes:
 
 - The catalog validation step fails if any of the required files are missing.
 - The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
+
 ### Connection to a backend server
 
-The connection to a backend server that provides the catalog can be made by adding to the `.env` file with the following variables:
+The connection to a backend server that provides the catalog can be configured adding by adding the following variables to the `.env` file:
 
     VITE_API_HOST=
     VITE_API_PORT=
@@ -161,7 +161,7 @@ Variables (edit in `src/theme.css`):
 - `--border-on-hover`: generic border on hover
 - `--border`: generic border
 
-5. Color to give to the letters
+5. Text colors
 
 - `--text-on-hover`: text color on hover
 - `--text-white`: white text
