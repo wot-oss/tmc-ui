@@ -2,13 +2,15 @@
   "name": "tmc-ui",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "test": "vitest",
     "clean": "rm -rf node_modules dist build && yarn install && yarn build",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "setup:local": "yarn install && yarn build && yarn preview"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
