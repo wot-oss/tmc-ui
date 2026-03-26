@@ -10,17 +10,22 @@ The initial goal is to support only GET requests in the UI; this is not a CLI re
 - Node.js >= 22.20.0
 - Yarn
 
-## Setup
+## Local Setup
 
-Install dependencies:
+If you wish to have a local setup, you only need to have the `setup-local.sh`. file, `deploy.sh` file, a `.env` file and the `ci-cd` folder int he current folder.
 
-    yarn install
+Edit the `.env file, and the run:
 
-Start the development server:
+    sh setup-loca.sh
 
-    yarn dev
+It will automatically install, build and give a preview of the current application.
 
-The app will be available at http://localhost:5173 by default.
+What the script does:
+
+1. Checks that Node.js `>= 22.20.0` is installed.
+2. Checks whether Yarn is available.
+4. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
+5. Runs `yarn install && yarn build && yarn preview`.
 
 # Deploy
 
