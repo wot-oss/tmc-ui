@@ -4,7 +4,7 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
-import DialogAction from '../components/Dialog';
+import DialogAction from '../components/DialogAction';
 import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
 import { fetchLocalThingModel } from '../services/localData';
