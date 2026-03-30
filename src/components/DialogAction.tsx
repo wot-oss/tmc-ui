@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ThingDescription } from 'wot-typescript-definitions';
 
 type ItemStatus = 'idle' | 'copied' | 'error' | 'sent';
@@ -12,34 +12,44 @@ interface DialogActionProps {
 
 const EDITDOR_URL = 'http://localhost:5173';
 const PLAYGROUND_URL = 'https://playground.thingweb.io/';
+const EDITDOR_READY_TIMEOUT_MS = 10000;
 const INITIAL_STATUSES = {
   editdor: 'idle' as ItemStatus,
   playground: 'idle' as ItemStatus,
 };
 
+interface PendingEditdorMessage {
+  description: string;
+  payload: string;
+}
+
 const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onClose }) => {
   const [statuses, setStatuses] = useState(INITIAL_STATUSES);
+  const editdorWindowRef = useRef<Window | null>(null);
+  const pendingEditdorMessageRef = useRef<PendingEditdorMessage | null>(null);
+  const editdorReadyTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setStatuses(INITIAL_STATUSES);
+
+    if (!open) {
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+    }
   }, [open]);
 
-  function handleOnOpenInEdiTDor(tdJson: string): void {
-    setStatuses((prev) => ({ ...prev, editdor: 'idle' }));
-    const editdorWindow = window.open(EDITDOR_URL, '_blank');
-
-    if (!editdorWindow) {
-      console.error('Failed to open ediTDor window.');
-      setStatuses((prev) => ({ ...prev, editdor: 'error' }));
-      return;
-    }
-
-    const handleMessage = (event: MessageEvent) => {
+  useEffect(() => {
+    function handleEditdorMessage(event: MessageEvent) {
       if (event.origin !== EDITDOR_URL) {
         return;
       }
 
-      if (event.source !== editdorWindow) {
+      if (event.source !== editdorWindowRef.current) {
         return;
       }
 
@@ -47,22 +57,75 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
         return;
       }
 
-      editdorWindow.postMessage(
+      if (!editdorWindowRef.current || !pendingEditdorMessageRef.current) {
+        return;
+      }
+
+      editdorWindowRef.current.postMessage(
         {
           type: 'LOAD_TD',
-          description:
-            fullDescription?.title ||
-            fullDescription?.id ||
-            'No title or id available in the Thing Description',
-          payload: tdJson,
+          description: pendingEditdorMessageRef.current.description,
+          payload: pendingEditdorMessageRef.current.payload,
         },
         EDITDOR_URL,
       );
-      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
 
-      window.removeEventListener('message', handleMessage);
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
+    }
+
+    window.addEventListener('message', handleEditdorMessage);
+
+    return () => {
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+      window.removeEventListener('message', handleEditdorMessage);
     };
-    window.addEventListener('message', handleMessage);
+  }, []);
+
+  function handleOnOpenInEdiTDor(tdJson: string): void {
+    setStatuses((prev) => ({ ...prev, editdor: 'idle' }));
+    pendingEditdorMessageRef.current = {
+      description:
+        fullDescription?.title ||
+        fullDescription?.id ||
+        'No title or id available in the Thing Description',
+      payload: tdJson,
+    };
+
+    const editdorWindow = window.open(EDITDOR_URL, '_blank');
+
+    if (!editdorWindow) {
+      pendingEditdorMessageRef.current = null;
+      setStatuses((prev) => ({ ...prev, editdor: 'error' }));
+      return;
+    }
+
+    editdorWindowRef.current = editdorWindow;
+
+    if (editdorReadyTimeoutRef.current !== null) {
+      window.clearTimeout(editdorReadyTimeoutRef.current);
+    }
+
+    editdorReadyTimeoutRef.current = window.setTimeout(() => {
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+      editdorReadyTimeoutRef.current = null;
+      setStatuses((prev) => ({
+        ...prev,
+        editdor: prev.editdor === 'sent' ? prev.editdor : 'error',
+      }));
+    }, EDITDOR_READY_TIMEOUT_MS);
   }
 
   const handleOpenPlayground = async () => {
@@ -129,6 +192,13 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
             <button
               type="button"
               onClick={() => {
+                if (editdorReadyTimeoutRef.current !== null) {
+                  window.clearTimeout(editdorReadyTimeoutRef.current);
+                  editdorReadyTimeoutRef.current = null;
+                }
+
+                pendingEditdorMessageRef.current = null;
+                editdorWindowRef.current = null;
                 setStatuses(INITIAL_STATUSES);
                 onClose();
               }}
