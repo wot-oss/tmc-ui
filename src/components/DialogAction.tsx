@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ThingDescription } from 'wot-typescript-definitions';
 
 type ItemStatus = 'idle' | 'copied' | 'error' | 'sent';
@@ -10,46 +10,27 @@ interface DialogActionProps {
   onClose: () => void;
 }
 
-const EDITDOR_URL = 'http://localhost:5174';
+const EDITDOR_URL = 'http://localhost:5173';
 const PLAYGROUND_URL = 'https://playground.thingweb.io/';
+const INITIAL_STATUSES = {
+  editdor: 'idle' as ItemStatus,
+  playground: 'idle' as ItemStatus,
+};
 
 const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onClose }) => {
-  const editdorWindowRef = useRef<Window | null>(null);
-  const pendingTdRef = useRef<string | null>(null);
-  const [statuses, setStatuses] = useState({
-    editdor: 'idle' as ItemStatus,
-    playground: 'idle' as ItemStatus,
-  });
+  const [statuses, setStatuses] = useState(INITIAL_STATUSES);
 
   useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (event.origin !== EDITDOR_URL) return;
-      if (event.data?.type !== 'EDITDOR_READY') return;
-      if (event.source !== editdorWindowRef.current) return;
-      if (!pendingTdRef.current || !editdorWindowRef.current) return;
-
-      editdorWindowRef.current.postMessage(
-        {
-          type: 'EDITDOR_LOAD_TD',
-          payload: pendingTdRef.current,
-        },
-        EDITDOR_URL,
-      );
-
-      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
-    }
-    window.addEventListener('message', handleMessage);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, []);
+    setStatuses(INITIAL_STATUSES);
+  }, [open]);
 
   function handleOnOpenInEdiTDor(tdJson: string): void {
+    setStatuses((prev) => ({ ...prev, editdor: 'idle' }));
     const editdorWindow = window.open(EDITDOR_URL, '_blank');
 
     if (!editdorWindow) {
       console.error('Failed to open ediTDor window.');
+      setStatuses((prev) => ({ ...prev, editdor: 'error' }));
       return;
     }
 
@@ -69,10 +50,15 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       editdorWindow.postMessage(
         {
           type: 'LOAD_TD',
+          description:
+            fullDescription?.title ||
+            fullDescription?.id ||
+            'No title or id available in the Thing Description',
           payload: tdJson,
         },
         EDITDOR_URL,
       );
+      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
 
       window.removeEventListener('message', handleMessage);
     };
@@ -83,6 +69,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
     if (!fullDescription) return;
 
     try {
+      setStatuses((prev) => ({ ...prev, playground: 'idle' }));
       const json = JSON.stringify(fullDescription, null, 2);
       await navigator.clipboard.writeText(json);
       setStatuses((prev) => ({ ...prev, playground: 'copied' }));
@@ -96,7 +83,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
 
   const targets = [
     {
-      name: 'Editdor',
+      name: 'EdiTDor',
       url: EDITDOR_URL,
       status: statuses.editdor,
       handleOnClick: () => {
@@ -132,6 +119,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                 <span className="px-3 text-sm text-success">
                   {t.status === 'copied' && 'Copied!'}
                   {t.status === 'error' && 'Copy failed'}
+                  {t.status === 'sent' && 'TD sent to EdiTDor!'}
                 </span>
               </li>
             ))}
@@ -140,7 +128,10 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                setStatuses(INITIAL_STATUSES);
+                onClose();
+              }}
               className="rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-medium text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
             >
               Close
