@@ -50,6 +50,7 @@ const GridList: React.FC<{
     : null;
 
   if (loading) return <div className="p-4 text-textValue">Loading...</div>;
+
   if (error)
     return (
       <div className="p-4">
@@ -100,7 +101,8 @@ const GridList: React.FC<{
                       </p>
 
                       <p className="mt-1 truncate text-sm text-textLabel">
-                        Number of Versions available: {itemTM.versions.length}
+                        {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
+                        available
                       </p>
                     </div>
                     <div className="flex-1">

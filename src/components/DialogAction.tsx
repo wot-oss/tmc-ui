@@ -1,0 +1,216 @@
+import { Dialog, DialogPanel } from '@headlessui/react';
+import React, { useEffect, useRef, useState } from 'react';
+import type { ThingDescription } from 'wot-typescript-definitions';
+
+type ItemStatus = 'idle' | 'copied' | 'error' | 'sent';
+
+interface DialogActionProps {
+  open: boolean;
+  fullDescription: ThingDescription | null;
+  onClose: () => void;
+}
+
+const EDITDOR_URL = 'http://localhost:5173';
+const PLAYGROUND_URL = 'https://playground.thingweb.io/';
+const EDITDOR_READY_TIMEOUT_MS = 10000;
+const INITIAL_STATUSES = {
+  editdor: 'idle' as ItemStatus,
+  playground: 'idle' as ItemStatus,
+};
+
+interface PendingEditdorMessage {
+  description: string;
+  payload: string;
+}
+
+const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onClose }) => {
+  const [statuses, setStatuses] = useState(INITIAL_STATUSES);
+  const editdorWindowRef = useRef<Window | null>(null);
+  const pendingEditdorMessageRef = useRef<PendingEditdorMessage | null>(null);
+  const editdorReadyTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setStatuses(INITIAL_STATUSES);
+
+    if (!open) {
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+    }
+  }, [open]);
+
+  useEffect(() => {
+    function handleEditdorMessage(event: MessageEvent) {
+      if (event.origin !== EDITDOR_URL) {
+        return;
+      }
+
+      if (event.source !== editdorWindowRef.current) {
+        return;
+      }
+
+      if (event.data?.type !== 'EDITDOR_READY') {
+        return;
+      }
+
+      if (!editdorWindowRef.current || !pendingEditdorMessageRef.current) {
+        return;
+      }
+
+      editdorWindowRef.current.postMessage(
+        {
+          type: 'LOAD_TD',
+          description: pendingEditdorMessageRef.current.description,
+          payload: pendingEditdorMessageRef.current.payload,
+        },
+        EDITDOR_URL,
+      );
+
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
+    }
+
+    window.addEventListener('message', handleEditdorMessage);
+
+    return () => {
+      if (editdorReadyTimeoutRef.current !== null) {
+        window.clearTimeout(editdorReadyTimeoutRef.current);
+        editdorReadyTimeoutRef.current = null;
+      }
+
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+      window.removeEventListener('message', handleEditdorMessage);
+    };
+  }, []);
+
+  function handleOnOpenInEdiTDor(tdJson: string): void {
+    setStatuses((prev) => ({ ...prev, editdor: 'idle' }));
+    pendingEditdorMessageRef.current = {
+      description:
+        fullDescription?.title ||
+        fullDescription?.id ||
+        'No title or id available in the Thing Description',
+      payload: tdJson,
+    };
+
+    const editdorWindow = window.open(EDITDOR_URL, '_blank');
+
+    if (!editdorWindow) {
+      pendingEditdorMessageRef.current = null;
+      setStatuses((prev) => ({ ...prev, editdor: 'error' }));
+      return;
+    }
+
+    editdorWindowRef.current = editdorWindow;
+
+    if (editdorReadyTimeoutRef.current !== null) {
+      window.clearTimeout(editdorReadyTimeoutRef.current);
+    }
+
+    editdorReadyTimeoutRef.current = window.setTimeout(() => {
+      pendingEditdorMessageRef.current = null;
+      editdorWindowRef.current = null;
+      editdorReadyTimeoutRef.current = null;
+      setStatuses((prev) => ({
+        ...prev,
+        editdor: prev.editdor === 'sent' ? prev.editdor : 'error',
+      }));
+    }, EDITDOR_READY_TIMEOUT_MS);
+  }
+
+  const handleOpenPlayground = async () => {
+    if (!fullDescription) return;
+
+    try {
+      setStatuses((prev) => ({ ...prev, playground: 'idle' }));
+      const json = JSON.stringify(fullDescription, null, 2);
+      await navigator.clipboard.writeText(json);
+      setStatuses((prev) => ({ ...prev, playground: 'copied' }));
+
+      const win = window.open(PLAYGROUND_URL, '_blank');
+      if (!win) window.location.href = PLAYGROUND_URL;
+    } catch {
+      setStatuses((prev) => ({ ...prev, playground: 'error' }));
+    }
+  };
+
+  const targets = [
+    {
+      name: 'EdiTDor',
+      url: EDITDOR_URL,
+      status: statuses.editdor,
+      handleOnClick: () => {
+        if (!fullDescription) return;
+        handleOnOpenInEdiTDor(JSON.stringify(fullDescription, null, 2));
+      },
+    },
+    {
+      name: 'TD Playground',
+      url: PLAYGROUND_URL,
+      status: statuses.playground,
+      handleOnClick: handleOpenPlayground,
+    },
+  ];
+
+  return (
+    <Dialog open={open} onClose={onClose} className="relative z-50">
+      <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <DialogPanel className="w-full max-w-md rounded-lg bg-bgBodySecondary p-6 shadow-lg">
+          <h2 className="mb-4 text-lg font-semibold text-textValue">Open with …</h2>
+          <ul className="flex flex-col gap-3">
+            {targets.map((t) => (
+              <li key={t.name} className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={t.handleOnClick}
+                  disabled={!fullDescription}
+                  className="flex-1 rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-center text-sm text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:opacity-40"
+                >
+                  <span>{t.name}</span>
+                </button>
+                <span className="px-3 text-sm text-success">
+                  {t.status === 'copied' && 'Copied!'}
+                  {t.status === 'error' && 'Copy failed'}
+                  {t.status === 'sent' && 'TD sent to EdiTDor!'}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (editdorReadyTimeoutRef.current !== null) {
+                  window.clearTimeout(editdorReadyTimeoutRef.current);
+                  editdorReadyTimeoutRef.current = null;
+                }
+
+                pendingEditdorMessageRef.current = null;
+                editdorWindowRef.current = null;
+                setStatuses(INITIAL_STATUSES);
+                onClose();
+              }}
+              className="rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-medium text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
+            >
+              Close
+            </button>
+          </div>
+        </DialogPanel>
+      </div>
+    </Dialog>
+  );
+};
+
+export default DialogAction;
