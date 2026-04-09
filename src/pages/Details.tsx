@@ -198,19 +198,36 @@ const Details = () => {
                   className="h-80 w-full rounded-lg object-contain p-4 shadow-md"
                 />
               </div>
-              <div className="mt-4 flex gap-3">
+              <div className="mt-5 flex w-full items-center justify-between gap-4">
+                <h1 className="shrink-0 text-sm font-medium uppercase tracking-[0.18em] text-textLabel">
+                  Version:
+                </h1>
+                <Dropdown
+                  label="version"
+                  id="currentVersion"
+                  options={dropdownData}
+                  value={selectedVersion}
+                  onChange={handleVersionChange}
+                  showChevron
+                  wrapperClassName="ml-auto w-full max-w-[13rem]"
+                  chevronClassName="h-5 w-5 text-textWhite"
+                  className="block h-10 w-full rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite shadow-sm transition hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
+                ></Dropdown>
+              </div>
+              <div className="mt-4 divide-y divide-gray-200 border-t border-gray-200"></div>
+              <div className="mt-4 flex w-full items-center gap-3">
                 <button
                   type="button"
                   onClick={() => openFullDetails(selectedVersion)}
                   disabled={!fullDescription}
-                  className="inline-flex items-center rounded-md bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex flex-1 items-center justify-center rounded-md bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Open full details
                 </button>
                 <button
                   type="button"
                   onClick={() => setOpenWith(true)}
-                  className="inline-flex items-center rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
+                  className="inline-flex flex-1 items-center justify-center rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
                 >
                   Open with …
                 </button>
@@ -229,27 +246,11 @@ const Details = () => {
               />
               <FieldCard label="Title" value={(fullDescription?.title as string) ?? '—'} />
               <FieldCard label="MPN" value={(fullDescription?.['schema:mpn'] as string) ?? '—'} />
-              <div className="mt-2 flex items-center gap-10 divide-gray-200 border-t border-gray-200 pt-2">
-                <div className="flex items-center gap-4">
-                  <FieldCard label="Current Version" value=""></FieldCard>
-                  <div className="flex items-center">
-                    <Dropdown
-                      label="version"
-                      id="currentVersion"
-                      options={dropdownData}
-                      value={selectedVersion}
-                      onChange={handleVersionChange}
-                      className="self-center text-2xl tracking-normal text-textValue"
-                    ></Dropdown>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 pl-10">
-                  <FieldCard
-                    label="Number of Versions"
-                    value={item.versions?.length.toString() ?? '0'}
-                  />
-                </div>
-              </div>
+              <FieldCard
+                label="Number of Versions"
+                value={item.versions?.length.toString() ?? '0'}
+              />
+              <FieldCard label="Current Version" value={selectedVersion} />
 
               <div className="mt-2 flex divide-y divide-gray-200 border-t border-gray-200"></div>
               <FieldCard label="ID" value={fullDescription?.id ?? '—'} />
