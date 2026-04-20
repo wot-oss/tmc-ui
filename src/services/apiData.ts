@@ -1,79 +1,20 @@
 import { type ThingDescription } from 'wot-typescript-definitions';
-import {
-  INVENTORY_TIMEOUT_MS,
-  INVENTORY_ENDPOINT,
-  REPOSITORY_ENDPOINT,
-  MANUFACTURER_ENDPOINT,
-  AUTHOR_ENDPOINT,
-  THING_MODEL_ENDPOINT,
-} from '../utils/constants';
+import { INVENTORY_TIMEOUT_MS, INVENTORY_ENDPOINT, THING_MODEL_ENDPOINT } from '../utils/constants';
 
-export async function fetchApiDataFilters(): Promise<{
-  nextProtocols: FilterData[];
-  nextManufacturers: FilterData[];
-  nextAuthors: FilterData[];
-  nextRepositories: FilterData[];
-}> {
-  let nextProtocols: FilterData[] = [];
-  let nextManufacturers: FilterData[] = [];
-  let nextAuthors: FilterData[] = [];
-  let nextRepositories: FilterData[] = [];
-
-  try {
-    const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
-      fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`),
-      fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`),
-      fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`),
-    ]);
-
-    if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
-      throw new Error('Failed to fetch filter data');
-    }
-
-    const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
-      reposRes.json(),
-      manufacturersRes.json(),
-      authorsRes.json(),
-    ]);
-
-    nextManufacturers = (manufacturersJson.data || []).map((manufacturer: string) => ({
-      value: manufacturer,
-      label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
-      checked: false,
-    }));
-
-    nextAuthors = (authorsJson.data || []).map((author: string) => ({
-      value: author,
-      label: author.charAt(0).toUpperCase() + author.slice(1),
-      checked: false,
-    }));
-
-    nextRepositories = (reposJson.data || []).map((repo: { name: string }) => ({
-      value: repo.name,
-      label: repo.name.charAt(0).toUpperCase() + repo.name.slice(1),
-      checked: false,
-    }));
-
-    if (
-      nextAuthors.length === 0 &&
-      nextManufacturers.length === 0 &&
-      nextRepositories.length === 0
-    ) {
-      throw new Error('No filter data available');
-    }
-  } catch (err: unknown) {
-    throw new Error(err instanceof Error ? err.message : 'fecthApiDataFilters unknown error');
-  }
-  return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
+interface FetchInventoryOptions {
+  readonly signal?: AbortSignal;
+  readonly authorizationHeader?: string | null;
 }
 
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
-  request: Request,
+  options: FetchInventoryOptions = {},
 ): Promise<unknown[]> {
   if (!baseUrl) {
     throw new Response('Catalog URL not configured', { status: 400 });
   }
+
+  const { signal, authorizationHeader } = options;
   const controller = new AbortController();
   let didTimeout = false;
 
@@ -82,14 +23,19 @@ export async function fetchApiDataInventory(
     controller.abort();
   }, INVENTORY_TIMEOUT_MS);
 
-  const abortFromRouter = () => controller.abort();
-  request.signal.addEventListener('abort', abortFromRouter);
+  const abortFromCaller = () => controller.abort();
+  signal?.addEventListener('abort', abortFromCaller);
 
   try {
+    console.log('Fetching inventory from API with authorization header:', authorizationHeader);
     const res = await fetch(`${baseUrl}/${INVENTORY_ENDPOINT}`, {
       signal: controller.signal,
+      headers: {
+        Authorization: authorizationHeader ?? '',
+        'Content-Type': 'application/json',
+      },
     });
-
+    console.log(res);
     if (!res.ok) {
       throw new Response('Failed to fetch inventory', { status: res.status });
     }
@@ -116,7 +62,7 @@ export async function fetchApiDataInventory(
     throw err;
   } finally {
     clearTimeout(timeoutId);
-    request.signal.removeEventListener('abort', abortFromRouter);
+    signal?.removeEventListener('abort', abortFromCaller);
   }
 }
 

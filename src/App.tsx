@@ -1,20 +1,11 @@
 import React from 'react';
-import { createHashRouter, RouterProvider, Outlet, useLoaderData } from 'react-router-dom';
+import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Layout from './pages/Layout';
 import Details from './pages/Details';
 import FourZeroFourNotFound from './components/404NotFound';
-import { FilterProvider } from './context/FilterContext';
-import { dataLoader } from './services/dataLoader';
+import { AuthProvider } from './context/AuthContext';
+import LayoutLoadData from './pages/LayoutLoadData';
 
-function DeploymentTypeConfiguration() {
-  const { deploymentType, inventory } = useLoaderData() as IDataLoader;
-  return (
-    <FilterProvider deploymentType={deploymentType}>
-      <Layout deploymentType={deploymentType} loadedItems={inventory as Item[]} />
-    </FilterProvider>
-  );
-}
 const router = createHashRouter(
   [
     {
@@ -33,8 +24,7 @@ const router = createHashRouter(
       children: [
         {
           index: true,
-          element: <DeploymentTypeConfiguration />,
-          loader: dataLoader,
+          element: <LayoutLoadData />,
           errorElement: <FourZeroFourNotFound error={'Catalog not found'} />,
         },
         {
@@ -52,6 +42,41 @@ const router = createHashRouter(
   },
 );
 
-const App = () => <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+const App: React.FC = () => {
+  if (__DEBUG__) {
+    console.warn('Vite globals', {
+      __API_BASE__,
+      __CATALOG_URL__,
+      __DEBUG__,
+      __SERVER_AVAILABLE__,
+      __APP_REPO_URL__,
+      __CATALOG_REPO_URL__,
+      __DEPLOY_TYPE__,
+    });
+  }
+  const authIsEnabled = Boolean(
+    import.meta.env.VITE_TOKEN_URL &&
+      import.meta.env.VITE_CLIENT_ID &&
+      import.meta.env.VITE_CLIENT_SECRET,
+  );
 
+  if (__DEBUG__ && authIsEnabled) {
+    console.warn('Authentication is enabled with the following configuration:', {
+      TOKEN_URL: import.meta.env.VITE_TOKEN_URL,
+      CLIENT_ID: import.meta.env.VITE_CLIENT_ID,
+      CLIENT_SECRET: '********', // Do not log the actual client secret
+    });
+  }
+
+  return (
+    <AuthProvider
+      tokenUrl={(import.meta.env.VITE_TOKEN_URL ?? '') as string}
+      clientId={(import.meta.env.VITE_CLIENT_ID ?? '') as string}
+      clientSecret={(import.meta.env.VITE_CLIENT_SECRET ?? '') as string}
+      enabled={authIsEnabled}
+    >
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+    </AuthProvider>
+  );
+};
 export default App;

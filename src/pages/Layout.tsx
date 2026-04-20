@@ -8,15 +8,15 @@ import Pagination from '../components/Pagination';
 import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
 
 const Layout: React.FC<{
-  deploymentType: DeploymentType;
   loadedItems: Item[];
-}> = ({ deploymentType, loadedItems }) => {
+  inventoryLoading: boolean;
+  inventoryError: string | null;
+}> = ({ loadedItems, inventoryLoading, inventoryError }) => {
   const [items, setItems] = useState<Item[]>(loadedItems ?? []);
 
   const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
+  const isLoading = navigation.state === 'loading' || inventoryLoading;
 
-  const [error] = useState<string | null>(null);
   const [isResetClicked, setIsResetClicked] = useState(false);
 
   const [query, setQuery] = useState('');
@@ -37,6 +37,10 @@ const Layout: React.FC<{
   const [pageSize, setPageSize] = useState<number>(20);
 
   useEffect(() => {
+    setItems(loadedItems ?? []);
+  }, [loadedItems]);
+
+  useEffect(() => {
     if (repositories.length === 0) return;
 
     setRepositoriesState((prev) => (prev.length === 0 ? repositories : prev));
@@ -55,7 +59,7 @@ const Layout: React.FC<{
   }, [authors]);
 
   useEffect(() => {
-    if (deploymentType !== 'SERVER_AVAILABLE') return;
+    if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') return;
 
     if (selectedProtocols.length === 0) {
       setProtocolFilteredItems(null);
@@ -82,7 +86,7 @@ const Layout: React.FC<{
     fetchProtocols();
 
     return () => controller.abort();
-  }, [selectedProtocols, deploymentType]);
+  }, [selectedProtocols]);
 
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
@@ -170,7 +174,7 @@ const Layout: React.FC<{
           >
             <div className="hidden md:block md:w-1/4 lg:w-1/5" />
             <div className="w-full md:w-2/4 lg:w-3/5">
-              {deploymentType === 'SERVER_AVAILABLE' && (
+              {__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && (
                 <Search
                   query={query}
                   onSearch={setQuery}
@@ -189,7 +193,6 @@ const Layout: React.FC<{
               aria-label="Filters"
             >
               {loading && <div style={{ padding: 12 }}>Loading filters…</div>}
-
               {errorFetchData && (
                 <div style={{ padding: 12 }}>
                   <strong>Filters unavailable:</strong> {errorFetchData}
@@ -206,7 +209,6 @@ const Layout: React.FC<{
                   onAddProtocol={(protocol) => {
                     setProtocolsState((prev) => [...prev, protocol]);
                   }}
-                  deploymentType={deploymentType}
                 />
               )}
             </aside>
@@ -250,12 +252,7 @@ const Layout: React.FC<{
                   <span className="text-sm text-textLabel">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList
-                items={paginatedItems}
-                loading={isLoading}
-                error={error}
-                deploymentType={deploymentType}
-              />
+              <GridList items={paginatedItems} loading={isLoading} error={inventoryError} />
 
               <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
             </section>

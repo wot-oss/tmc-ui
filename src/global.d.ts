@@ -10,26 +10,30 @@ declare module '*.svg' {
 
 declare const __API_BASE__: string;
 
-declare const __CATALOG_URL__: string;
+declare const __CATALOG_URL__: string; //TODO
 
 declare const __DEBUG__: boolean;
 
 declare const __SERVER_AVAILABLE__: boolean;
+
+declare const __APP_REPO_URL__: string;
+
+declare const __CATALOG_REPO_URL__: string; //TODO
+
+declare const __DEPLOY_TYPE__: string;
 interface ImportMetaEnv {
-  readonly VITE_REPO_URL?: string;
-  readonly BASE_URL: string;
-  readonly VITE_EDITDOR_URL?: string;
-  readonly VITE_PLAYGROUND_URL?: string;
+  readonly VITE_TOKEN_URL: string;
+  readonly VITE_CLIENT_ID: string;
+  readonly VITE_CLIENT_SECRET: string;
+  readonly VITE_SERVER_URL: string;
+  readonly BASE_URL: string; //TODO
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
 type DeploymentType = 'SERVER_AVAILABLE' | 'TYPE_TMC-UI-CATALOG' | 'TYPE_CATALOG-TMC-UI';
-interface IDataLoader {
-  readonly deploymentType: DeploymentType;
-  readonly inventory: readonly unknown[];
-}
 
 interface ItemExtended extends Item {
   name?: string;

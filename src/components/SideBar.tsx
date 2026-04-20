@@ -10,7 +10,6 @@ interface SideBarProps {
   protocolsState: Array<FilterData>;
   onFilterChange: (sectionId: string, optionValue: string, checked: boolean) => void;
   onAddProtocol?: (protocol: FilterData) => void;
-  deploymentType: DeploymentType;
 }
 
 const SideBar: React.FC<SideBarProps> = ({
@@ -20,7 +19,6 @@ const SideBar: React.FC<SideBarProps> = ({
   protocolsState,
   onFilterChange,
   onAddProtocol,
-  deploymentType,
 }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -32,12 +30,12 @@ const SideBar: React.FC<SideBarProps> = ({
       { id: 'repository', name: 'Repository', options: repositoriesState },
     ];
 
-    if (deploymentType !== 'SERVER_AVAILABLE') {
+    if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') {
       return baseFilters.filter((filter) => filter.id !== 'repository');
     }
 
     return baseFilters;
-  }, [protocolsState, manufacturersState, authorsState, repositoriesState, deploymentType]);
+  }, [protocolsState, manufacturersState, authorsState, repositoriesState]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +78,7 @@ const SideBar: React.FC<SideBarProps> = ({
                   </DisclosureButton>
                 </h3>
                 <DisclosurePanel className="bg-bgBodyPrimary pt-6">
-                  {section.id === 'protocol' && deploymentType !== 'SERVER_AVAILABLE' ? (
+                  {section.id === 'protocol' && __DEPLOY_TYPE__ !== 'SERVER_AVAILABLE' ? (
                     <p className="mb-4 text-sm text-textValue">
                       Protocol filtering is only available when connected to a backend server.
                     </p>

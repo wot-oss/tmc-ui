@@ -36,8 +36,7 @@ const GridList: React.FC<{
   items: ItemExtended[];
   loading: boolean;
   error: string | null;
-  deploymentType: DeploymentType;
-}> = ({ items, loading, error, deploymentType }) => {
+}> = ({ items, loading, error }) => {
   __DEBUG__ &&
     console.warn(
       'Rendering GridList with items:',
@@ -45,7 +44,7 @@ const GridList: React.FC<{
       'loading:',
       loading,
       'deploymenType:',
-      deploymentType,
+      __DEPLOY_TYPE__,
     );
 
   if (loading) return <div className="p-4 text-textValue">Loading...</div>;
@@ -57,13 +56,13 @@ const GridList: React.FC<{
       </div>
     );
 
-  if (deploymentType === 'SERVER_AVAILABLE')
+  if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE')
     return (
       <div>
         <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((itemTM, i) => {
             const key = buildItemKey(itemTM, i);
-            const imageSrc = buildItemImageSrc(itemTM.tmName, deploymentType, itemTM.attachments);
+            const imageSrc = buildItemImageSrc(itemTM.tmName, __DEPLOY_TYPE__, itemTM.attachments);
             return (
               <li
                 key={key}
@@ -74,7 +73,7 @@ const GridList: React.FC<{
                   state={{
                     item: itemTM,
                     imageSrc: imageSrc,
-                    deploymentType: deploymentType,
+                    deploymentType: __DEPLOY_TYPE__,
                   }}
                 >
                   <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
@@ -134,7 +133,7 @@ const GridList: React.FC<{
             const key = buildItemKey(itemTM, i);
             const imageSrc = buildItemImageSrc(
               itemTM.name ?? itemTM.tmName,
-              deploymentType,
+              __DEPLOY_TYPE__,
               itemTM.attachments,
             );
 
@@ -148,7 +147,7 @@ const GridList: React.FC<{
                   state={{
                     item: itemTM,
                     imageSrc: imageSrc,
-                    deploymentType: deploymentType,
+                    deploymentType: __DEPLOY_TYPE__,
                   }}
                 >
                   <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
