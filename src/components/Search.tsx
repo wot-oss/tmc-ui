@@ -9,11 +9,24 @@ interface SearchProps {
   onSearch: (value: string) => void;
   onResultsChange: (items: Item[]) => void;
   baseItems: Item[];
+  authorizationHeader?: string | null;
+  authEnabled: boolean;
+  authLoading: boolean;
+  authError?: string | null;
 }
 
 const DEFAULT_ERROR_MESSAGE = 'An error occurred during the search.';
 
-const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseItems }) => {
+const Search: React.FC<SearchProps> = ({
+  query,
+  onSearch,
+  onResultsChange,
+  baseItems,
+  authorizationHeader,
+  authEnabled,
+  authLoading,
+  authError,
+}) => {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -29,6 +42,19 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
       setError('');
       return;
     }
+
+    if (authEnabled && authLoading && !authorizationHeader) {
+      setLoading(true);
+      return;
+    }
+
+    if (authEnabled && !authorizationHeader) {
+      setLoading(false);
+      setError(authError || DEFAULT_ERROR_MESSAGE);
+      onResultsChange([]);
+      return;
+    }
+
     setLoading(true);
 
     debounceRef.current = window.setTimeout(async () => {
@@ -41,6 +67,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
       try {
         const res = await fetch(`${__API_BASE__}/${SEARCH_ENDPOINT}${qs}`, {
           signal: controller.signal,
+          headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
         });
 
         const json = await res.json();
@@ -70,7 +97,7 @@ const Search: React.FC<SearchProps> = ({ query, onSearch, onResultsChange, baseI
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [query, baseItems, onResultsChange]);
+  }, [authorizationHeader, authEnabled, authError, authLoading, baseItems, onResultsChange, query]);
 
   return (
     <>

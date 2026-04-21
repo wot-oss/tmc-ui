@@ -4,6 +4,7 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
+import { useAuth } from '../context/AuthContext';
 import DialogAction from '../components/DialogAction';
 import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
@@ -53,6 +54,7 @@ const Details = () => {
   const [loading, setLoading] = useState<boolean>(!stateItem);
   const [error, setError] = useState<string | null>(null);
   const [fullDescription, setFullDescription] = useState<ThingDescription | null>(null);
+  const { authorizationHeader, enabled, error: authError, isLoading: authLoading } = useAuth();
 
   const [openWith, setOpenWith] = useState(false);
 
@@ -77,7 +79,9 @@ const Details = () => {
     setError(null);
 
     try {
-      const data = await fetchApiThingModel(__API_BASE__, fetchName);
+      const data = await fetchApiThingModel(__API_BASE__, fetchName, {
+        authorizationHeader,
+      });
       setFullDescription(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load item.');
@@ -124,9 +128,28 @@ const Details = () => {
       const fullPath: string = item.versions?.[0].links.content ?? '';
       fetchLocal(fullPath);
     } else {
+      if (enabled && authLoading && !authorizationHeader) {
+        return;
+      }
+
+      if (enabled && !authorizationHeader) {
+        setError(authError || 'Authentication failed.');
+        setLoading(false);
+        return;
+      }
+
       fetchApi(fetchName);
     }
-  }, [fetchName, stateItem, item, deploymentType]);
+  }, [
+    authorizationHeader,
+    authError,
+    authLoading,
+    deploymentType,
+    enabled,
+    fetchName,
+    item,
+    stateItem,
+  ]);
 
   const handleVersionChange = async (version: string) => {
     setSelectedVersion(version);
@@ -144,7 +167,9 @@ const Details = () => {
     if (deploymentType !== 'SERVER_AVAILABLE') {
       fetchLocal(fullPath);
     } else {
-      const res = await fetch(`${__API_BASE__}/${fullPath}`);
+      const res = await fetch(`${__API_BASE__}/${fullPath}`, {
+        headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
+      });
       if (!res.ok) {
         setError(`Failed to fetch version "${version}".`);
         return;

@@ -10,7 +10,7 @@ export default defineConfig(({ command, mode }) => {
   const port = env.API_PORT || '8080';
   const protocol = env.API_PROTOCOL || 'http';
   const remoteApiBase = env.VITE_SERVER_URL || `${protocol}://${host}:${port}`;
-  const isDevServer = command === 'serve';
+  const isDevServer = command === 'dev'; // TODO needs to be change in production
   const apiBase = isDevServer ? DEV_API_PROXY_PREFIX : remoteApiBase;
 
   const appRepoUrl = env.APP_REPO_URL || '';
@@ -26,7 +26,6 @@ export default defineConfig(({ command, mode }) => {
   } else {
     deployType = 'TYPE_TMC-UI-CATALOG';
   }
-  //console.log('Base url ;D ', import.meta.env.BASE_URL);
 
   return {
     plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],

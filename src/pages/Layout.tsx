@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFilters } from '../context/FilterContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigation } from 'react-router-dom';
 import GridList from '../components/GridList';
 import Search from '../components/Search';
@@ -22,6 +23,7 @@ const Layout: React.FC<{
   const [query, setQuery] = useState('');
 
   const { repositories, manufacturers, authors, protocols, loading, errorFetchData } = useFilters();
+  const { authorizationHeader, enabled, error: authError, isLoading: authLoading } = useAuth();
 
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
@@ -61,19 +63,25 @@ const Layout: React.FC<{
   useEffect(() => {
     if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') return;
 
+    const controller = new AbortController();
+
     if (selectedProtocols.length === 0) {
       setProtocolFilteredItems(null);
       return;
     }
-    const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
 
-    const controller = new AbortController();
+    if (enabled && (authLoading || !authorizationHeader)) {
+      return () => controller.abort();
+    }
+
+    const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
 
     const fetchProtocols = async () => {
       try {
         const fp = encodeURIComponent(filterProtocols);
         const res = await fetch(`${__API_BASE__}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
           signal: controller.signal,
+          headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
         });
         if (!res.ok) throw new Error(`Protocol fetch failed: ${res.status}`);
         const json = await res.json();
@@ -86,7 +94,7 @@ const Layout: React.FC<{
     fetchProtocols();
 
     return () => controller.abort();
-  }, [selectedProtocols]);
+  }, [authorizationHeader, authLoading, enabled, selectedProtocols]);
 
   const filteredItems = useMemo<Item[]>(() => {
     const checkedRepositories = repositoriesState
@@ -180,6 +188,10 @@ const Layout: React.FC<{
                   onSearch={setQuery}
                   onResultsChange={handleSearchResults}
                   baseItems={loadedItems}
+                  authorizationHeader={authorizationHeader}
+                  authEnabled={enabled}
+                  authLoading={authLoading}
+                  authError={authError}
                 />
               )}
             </div>

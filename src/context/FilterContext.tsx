@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
   AUTHOR_ENDPOINT,
   MANUFACTURER_ENDPOINT,
@@ -22,16 +22,55 @@ interface FilterProviderProps {
   readonly children: React.ReactNode;
 }
 
+interface FetchFailure {
+  instance: string;
+  status: number;
+  detail: string;
+}
+
 const normalizeAuthor = (raw: string): string => {
   const firstSegment = raw.split('/')[0]?.trim() ?? '';
   if (!firstSegment) return '';
   return firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
 };
 
+const parseFailedResponse = async (
+  response: Response,
+  fallbackInstance: string,
+): Promise<FetchFailure> => {
+  let instance = fallbackInstance;
+  let detail = response.statusText || 'Request failed';
+
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (contentType.includes('application/json')) {
+    const body = (await response.json().catch(() => null)) as {
+      instance?: string;
+      detail?: string;
+      message?: string;
+      title?: string;
+    } | null;
+
+    instance = body?.instance ?? fallbackInstance;
+    detail = body?.detail ?? body?.message ?? body?.title ?? detail;
+  } else {
+    const text = await response.text().catch(() => '');
+    if (text.trim()) {
+      detail = text.trim();
+    }
+  }
+
+  return {
+    instance,
+    status: response.status,
+    detail,
+  };
+};
+
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
 export const FilterProvider: React.FC<FilterProviderProps> = ({ children }) => {
-  const { accessToken } = useAuth();
+  const { authorizationHeader, enabled, error, isLoading } = useAuth();
 
   const [repositories, setRepositories] = useState<FilterData[]>([]);
   const [manufacturers, setManufacturers] = useState<FilterData[]>([]);
@@ -40,80 +79,107 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [errorFetchData, setErrorFetchData] = useState<string | null>(null);
 
-  async function fetchApiDataFilters(): Promise<{
-    nextProtocols: FilterData[];
-    nextManufacturers: FilterData[];
-    nextAuthors: FilterData[];
-    nextRepositories: FilterData[];
-  }> {
-    let nextProtocols: FilterData[] = [];
-    let nextManufacturers: FilterData[] = [];
-    let nextAuthors: FilterData[] = [];
-    let nextRepositories: FilterData[] = [];
+  const fetchApiDataFilters = useCallback(
+    async (
+      nextAuthorizationHeader: string,
+      signal?: AbortSignal,
+    ): Promise<{
+      nextProtocols: FilterData[];
+      nextManufacturers: FilterData[];
+      nextAuthors: FilterData[];
+      nextRepositories: FilterData[];
+    }> => {
+      let nextProtocols: FilterData[] = [];
+      let nextManufacturers: FilterData[] = [];
+      let nextAuthors: FilterData[] = [];
+      let nextRepositories: FilterData[] = [];
 
-    try {
-      console.log('Fetching filter data from API with access token:', accessToken);
-      const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
-        fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-      ]);
+      try {
+        const headers = {
+          Authorization: nextAuthorizationHeader,
+        };
 
-      if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
-        throw new Error('Failed to fetch filter data');
+        const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
+          fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`, {
+            headers,
+            signal,
+          }),
+          fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`, {
+            headers,
+            signal,
+          }),
+          fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`, {
+            headers,
+            signal,
+          }),
+        ]);
+
+        const failures: FetchFailure[] = [];
+
+        if (!reposRes.ok) {
+          failures.push(await parseFailedResponse(reposRes, REPOSITORY_ENDPOINT));
+        }
+
+        if (!manufacturersRes.ok) {
+          failures.push(await parseFailedResponse(manufacturersRes, MANUFACTURER_ENDPOINT));
+        }
+
+        if (!authorsRes.ok) {
+          failures.push(await parseFailedResponse(authorsRes, AUTHOR_ENDPOINT));
+        }
+
+        if (failures.length > 0) {
+          const message = failures
+            .map(
+              (failure) =>
+                `instance: ${failure.instance} | status: ${failure.status} | detail: ${failure.detail}`,
+            )
+            .join(' ; ');
+
+          throw new Error(`Failed to fetch the following: ${message}`);
+        }
+
+        const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
+          reposRes.json(),
+          manufacturersRes.json(),
+          authorsRes.json(),
+        ]);
+
+        nextManufacturers = (manufacturersJson.data || []).map((manufacturer: string) => ({
+          value: manufacturer,
+          label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
+          checked: false,
+        }));
+
+        nextAuthors = (authorsJson.data || []).map((author: string) => ({
+          value: author,
+          label: author.charAt(0).toUpperCase() + author.slice(1),
+          checked: false,
+        }));
+
+        nextRepositories = (reposJson.data || []).map((repo: { name: string }) => ({
+          value: repo.name,
+          label: repo.name.charAt(0).toUpperCase() + repo.name.slice(1),
+          checked: false,
+        }));
+
+        if (
+          nextAuthors.length === 0 &&
+          nextManufacturers.length === 0 &&
+          nextRepositories.length === 0
+        ) {
+          throw new Error('No filter data available');
+        }
+      } catch (err: unknown) {
+        throw new Error(
+          err instanceof Error ? err.message : 'Fetch Api Data Filters unknown error',
+        );
       }
 
-      const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
-        reposRes.json(),
-        manufacturersRes.json(),
-        authorsRes.json(),
-      ]);
-
-      nextManufacturers = (manufacturersJson.data || []).map((manufacturer: string) => ({
-        value: manufacturer,
-        label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
-        checked: false,
-      }));
-
-      nextAuthors = (authorsJson.data || []).map((author: string) => ({
-        value: author,
-        label: author.charAt(0).toUpperCase() + author.slice(1),
-        checked: false,
-      }));
-
-      nextRepositories = (reposJson.data || []).map((repo: { name: string }) => ({
-        value: repo.name,
-        label: repo.name.charAt(0).toUpperCase() + repo.name.slice(1),
-        checked: false,
-      }));
-
-      if (
-        nextAuthors.length === 0 &&
-        nextManufacturers.length === 0 &&
-        nextRepositories.length === 0
-      ) {
-        throw new Error('No filter data available');
-      }
-    } catch (err: unknown) {
-      throw new Error(err instanceof Error ? err.message : 'fecthApiDataFilters unknown error');
-    }
-    return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
-  }
+      return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
+    },
+    [],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -155,8 +221,31 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children }) => {
 
         setLoading(false);
       } else {
+        if (enabled && isLoading && !authorizationHeader) {
+          console.error('0001');
+          return;
+        }
+
+        if (enabled && !authorizationHeader) {
+          console.error('0002');
+
+          setLoading(true);
+          return;
+        }
+
+        if (error) {
+          console.error('0003');
+          setErrorFetchData(error);
+          setLoading(false);
+          return;
+        }
+
+        console.error('0004');
         setLoading(true);
-        const result = await fetchApiDataFilters().catch((err: unknown) => {
+        const result = await fetchApiDataFilters(
+          authorizationHeader ?? '',
+          controller.signal,
+        ).catch((err: unknown) => {
           if (!isAbortError(err)) {
             setErrorFetchData(err instanceof Error ? err.message : 'Unknown error');
             setLoading(false);
@@ -176,7 +265,7 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children }) => {
     }
     loadData();
     return () => controller.abort();
-  }, []);
+  }, [authorizationHeader, enabled, error, fetchApiDataFilters, isLoading]);
 
   return (
     <FilterContext.Provider

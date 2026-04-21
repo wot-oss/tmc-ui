@@ -6,7 +6,7 @@ import { fetchApiDataInventory } from '../services/apiData';
 import { fetchLocalDataInventory } from '../services/localData';
 
 export default function LayoutLoadData() {
-  const { accessToken, authorizationHeader, isAuthenticated, error, requestToken } = useAuth();
+  const { authorizationHeader, enabled, error, isLoading } = useAuth();
 
   const [inventory, setInventory] = useState<Item[]>([]);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export default function LayoutLoadData() {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && isAuthenticated && !authorizationHeader) {
+    if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && enabled && isLoading && !authorizationHeader) {
       return () => controller.abort();
     }
 
@@ -26,16 +26,13 @@ export default function LayoutLoadData() {
       try {
         switch (__DEPLOY_TYPE__) {
           case 'SERVER_AVAILABLE': {
-            let nextAuthorizationHeader = authorizationHeader;
-
-            if (isAuthenticated && !nextAuthorizationHeader) {
-              await requestToken();
-              nextAuthorizationHeader = `Bearer ${accessToken}`;
+            if (enabled && !authorizationHeader) {
+              return;
             }
 
             const nextInventory = await fetchApiDataInventory(__API_BASE__, {
               signal: controller.signal,
-              authorizationHeader: nextAuthorizationHeader,
+              authorizationHeader,
             });
 
             setInventory(nextInventory as Item[]);
@@ -73,10 +70,15 @@ export default function LayoutLoadData() {
       return () => controller.abort();
     }
 
+    if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && enabled && !authorizationHeader) {
+      setInventoryLoading(true);
+      return () => controller.abort();
+    }
+
     void loadInventory();
 
     return () => controller.abort();
-  }, [authorizationHeader, error, isAuthenticated, requestToken]);
+  }, [authorizationHeader, enabled, error, isLoading]);
 
   return (
     <FilterProvider>

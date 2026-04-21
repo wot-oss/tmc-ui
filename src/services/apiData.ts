@@ -6,6 +6,18 @@ interface FetchInventoryOptions {
   readonly authorizationHeader?: string | null;
 }
 
+interface FetchThingModelOptions {
+  readonly signal?: AbortSignal;
+  readonly authorizationHeader?: string | null;
+}
+
+function buildRequestHeaders(authorizationHeader?: string | null): HeadersInit {
+  return {
+    ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+    'Content-Type': 'application/json',
+  };
+}
+
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
   options: FetchInventoryOptions = {},
@@ -27,15 +39,11 @@ export async function fetchApiDataInventory(
   signal?.addEventListener('abort', abortFromCaller);
 
   try {
-    console.log('Fetching inventory from API with authorization header:', authorizationHeader);
     const res = await fetch(`${baseUrl}/${INVENTORY_ENDPOINT}`, {
       signal: controller.signal,
-      headers: {
-        Authorization: authorizationHeader ?? '',
-        'Content-Type': 'application/json',
-      },
+      headers: buildRequestHeaders(authorizationHeader),
     });
-    console.log(res);
+
     if (!res.ok) {
       throw new Response('Failed to fetch inventory', { status: res.status });
     }
@@ -69,6 +77,7 @@ export async function fetchApiDataInventory(
 export async function fetchApiThingModel(
   baseUrl: string | undefined,
   itemName: string,
+  options: FetchThingModelOptions = {},
 ): Promise<ThingDescription> {
   if (!baseUrl) {
     throw new Error('Catalog URL not configured');
@@ -79,7 +88,10 @@ export async function fetchApiThingModel(
   }
 
   try {
-    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`);
+    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`, {
+      signal: options.signal,
+      headers: buildRequestHeaders(options.authorizationHeader),
+    });
 
     if (!res.ok) {
       throw new Error('Item not found');

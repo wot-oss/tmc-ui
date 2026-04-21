@@ -11,6 +11,7 @@ interface AuthProviderProps {
 }
 
 interface AuthContextType {
+  readonly enabled: boolean;
   readonly accessToken: string | null;
   readonly authorizationHeader: string | null;
   readonly expiresAt: number | null;
@@ -42,6 +43,7 @@ export const AuthProvider = ({
   return (
     <AuthContext.Provider
       value={{
+        enabled,
         accessToken: tokenState.accessToken,
         authorizationHeader: tokenState.authorizationHeader,
         expiresAt: tokenState.expiresAt,
