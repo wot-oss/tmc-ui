@@ -180,6 +180,44 @@ The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready messa
 
 
 
+### Support Authentication 0AUTH2
+
+This UI supports OAuth2 client-credentials authentication for protected catalog backends.
+
+Use this mode when the backend requires an access token before serving catalog or Thing Model data.
+
+#### When authentication is used
+
+Authentication is enabled automatically when all of the following variables are defined:
+
+- `VITE_TOKEN_URL`
+- `VITE_CLIENT_ID`
+- `VITE_CLIENT_SECRET`
+
+If these variables are not provided, the UI runs without requesting an access token.
+
+#### How it works
+
+When authentication is enabled, the UI sends a client-credentials token request to the configured OAuth token endpoint.
+The returned access token is kept in memory and attached to backend requests as a `Bearer` authorization header.
+
+#### Required environment variables
+
+- `VITE_TOKEN_URL`: OAuth token endpoint used to request an access token.
+- `VITE_CLIENT_ID`: OAuth client identifier used for the client-credentials flow.
+- `VITE_CLIENT_SECRET`: OAuth client secret used to authenticate the client.
+- `VITE_SERVER_URL`: Base URL of the protected backend server.
+
+#### Example local configuration
+
+Create a local `.env` file with the following keys:
+
+    VITE_TOKEN_URL=https://auth.example.local/oauth/token
+    VITE_CLIENT_ID=example-client-id
+    VITE_CLIENT_SECRET=example-client-secret
+    VITE_SERVER_URL=https://api.example.local
+
+
 ## Formatting
 
 Run to check the code style for errors:
