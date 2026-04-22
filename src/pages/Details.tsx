@@ -4,8 +4,8 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
-import { useAuth } from '../context/AuthContext';
-import DialogAction from '../components/DialogAction';
+import DialogAction from '../components/Dialog';
+import { useAuth } from '../hooks/useAuth';
 import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
 import { fetchLocalThingModel } from '../services/localData';
@@ -140,6 +140,16 @@ const Details = () => {
 
       fetchApi(fetchName);
     }
+  }, [
+    authorizationHeader,
+    authError,
+    authLoading,
+    deploymentType,
+    enabled,
+    fetchName,
+    item,
+    stateItem,
+  ]);
   }, [
     authorizationHeader,
     authError,

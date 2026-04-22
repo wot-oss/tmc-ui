@@ -60,14 +60,6 @@ const App: React.FC = () => {
       import.meta.env.VITE_CLIENT_SECRET,
   );
 
-  if (__DEBUG__ && authIsEnabled) {
-    console.warn('Authentication is enabled with the following configuration:', {
-      TOKEN_URL: import.meta.env.VITE_TOKEN_URL,
-      CLIENT_ID: import.meta.env.VITE_CLIENT_ID,
-      CLIENT_SECRET: '********', // Do not log the actual client secret
-    });
-  }
-
   return (
     <AuthProvider
       tokenUrl={(import.meta.env.VITE_TOKEN_URL ?? '') as string}

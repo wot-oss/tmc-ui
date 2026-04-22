@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useFilters } from '../context/FilterContext';
-import { useAuth } from '../context/AuthContext';
+import { useFilters } from '../hooks/useFilters';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from 'react-router-dom';
 import GridList from '../components/GridList';
 import Search from '../components/Search';

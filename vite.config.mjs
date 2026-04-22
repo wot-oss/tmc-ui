@@ -10,7 +10,7 @@ export default defineConfig(({ command, mode }) => {
   const port = env.API_PORT || '8080';
   const protocol = env.API_PROTOCOL || 'http';
   const remoteApiBase = env.VITE_SERVER_URL || `${protocol}://${host}:${port}`;
-  const isDevServer = command === 'dev'; // TODO needs to be change in production
+  const isDevServer = 'true'; // TODO needs to be change in production
   const apiBase = isDevServer ? DEV_API_PROXY_PREFIX : remoteApiBase;
 
   const appRepoUrl = env.APP_REPO_URL || '';
