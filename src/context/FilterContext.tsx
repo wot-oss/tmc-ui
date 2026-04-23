@@ -257,14 +257,13 @@ export const FilterProvider: React.FC<FilterProviderProps> = ({ children }) => {
           return;
         }
 
-        if (enabled && !authorizationHeader) {
-          setLoading(true);
-          return;
-        }
-
         if (error) {
           setErrorFetchData(error);
           setLoading(false);
+          return;
+        }
+        if (enabled && !authorizationHeader) {
+          setLoading(true);
           return;
         }
 

@@ -74,22 +74,6 @@ const Details = () => {
     ];
   }
 
-  const fetchApi = async (fetchName: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchApiThingModel(__API_BASE__, fetchName, {
-        authorizationHeader,
-      });
-      setFullDescription(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load item.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchLocal = async (path: string) => {
     setLoading(true);
     setError(null);
@@ -105,6 +89,22 @@ const Details = () => {
   };
 
   useEffect(() => {
+    const fetchApi = async (fetchName: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await fetchApiThingModel(__API_BASE__, fetchName, {
+          authorizationHeader,
+        });
+        setFullDescription(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load item.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     setLoading(true);
 
     if (!fetchName) {
