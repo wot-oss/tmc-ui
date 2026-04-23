@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid';
+import { ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import React, { useState, useEffect, useRef } from 'react';
 import { SEARCH_ENDPOINT } from '../utils/constants';
 
@@ -28,13 +28,56 @@ const Search: React.FC<SearchProps> = ({
   authError,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [progressVisible, setProgressVisible] = useState(false);
+  const [progressWidth, setProgressWidth] = useState('0%');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const progressHideTimeoutRef = useRef<number | null>(null);
+  const requestIdRef = useRef(0);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
+    if (progressHideTimeoutRef.current) {
+      window.clearTimeout(progressHideTimeoutRef.current);
+      progressHideTimeoutRef.current = null;
+    }
+
+    if (!loading) {
+      if (!progressVisible) {
+        setProgressWidth('0%');
+        return;
+      }
+
+      setProgressWidth('100%');
+      progressHideTimeoutRef.current = window.setTimeout(() => {
+        setProgressVisible(false);
+        setProgressWidth('0%');
+        progressHideTimeoutRef.current = null;
+      }, 1000);
+
+      return () => {
+        if (progressHideTimeoutRef.current) {
+          window.clearTimeout(progressHideTimeoutRef.current);
+          progressHideTimeoutRef.current = null;
+        }
+      };
+    }
+
+    setProgressVisible(true);
+    setProgressWidth('0%');
+    const frameId = window.requestAnimationFrame(() => {
+      setProgressWidth('90%');
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [loading, progressVisible]);
+
+  useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    abortRef.current?.abort();
 
     if (!query.trim()) {
       onResultsChange(baseItems);
@@ -56,9 +99,12 @@ const Search: React.FC<SearchProps> = ({
     }
 
     setLoading(true);
+    setError('');
+
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
 
     debounceRef.current = window.setTimeout(async () => {
-      if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -80,22 +126,34 @@ const Search: React.FC<SearchProps> = ({
             status: number;
             title: string;
           };
-          setError(json.detail || DEFAULT_ERROR_MESSAGE);
-          onResultsChange([]);
+          if (requestIdRef.current === requestId) {
+            setError(json.detail || DEFAULT_ERROR_MESSAGE);
+            onResultsChange([]);
+          }
           return;
         }
 
         const results = Array.isArray(json.data) ? json.data : [];
-        onResultsChange(results);
+        if (requestIdRef.current === requestId) {
+          onResultsChange(results);
+        }
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') return;
+
+        if (requestIdRef.current === requestId) {
+          setError(DEFAULT_ERROR_MESSAGE);
+          onResultsChange([]);
+        }
       } finally {
-        setLoading(false);
+        if (requestIdRef.current === requestId) {
+          setLoading(false);
+        }
       }
     }, DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
     };
   }, [authorizationHeader, authEnabled, authError, authLoading, baseItems, onResultsChange, query]);
 
@@ -107,15 +165,24 @@ const Search: React.FC<SearchProps> = ({
           type="text"
           autoFocus
           value={query}
-          className="h-12 w-full rounded-md bg-inputBg pl-11 pr-10 text-base text-inputText placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm"
+          className={`h-12 w-full rounded-md bg-inputBg pr-10 text-base text-inputText placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm ${loading ? 'pl-32' : 'pl-11'}`}
           placeholder="Search..."
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Search inventory"
         />
-        <MagnifyingGlassIcon
-          className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-textLabel"
-          aria-hidden="true"
-        />
+        {loading ? (
+          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-2 text-textLabel">
+            <span aria-hidden="true">
+              <ArrowPathIcon className="size-5 animate-spin text-textLabel" />
+            </span>
+            <span className="text-sm">Searching</span>
+          </div>
+        ) : (
+          <MagnifyingGlassIcon
+            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-textLabel"
+            aria-hidden="true"
+          />
+        )}
 
         {query && (
           <button
@@ -131,10 +198,18 @@ const Search: React.FC<SearchProps> = ({
           </button>
         )}
       </div>
+      {progressVisible && (
+        <div className="h-1.5 w-full overflow-hidden rounded-full border border-border bg-bgBodyPrimary">
+          <div
+            className="h-full rounded-full bg-success"
+            style={{
+              width: progressWidth,
+              transition: loading ? 'width 9s linear' : 'width 150ms ease-out',
+            }}
+          />
+        </div>
+      )}
       <>{error && <div className="mt-2 h-5 text-sm text-error">{error}</div>}</>
-      <div className="mt-2 h-5 text-sm text-textGray" aria-live="polite" aria-atomic="true">
-        {loading && 'Searching...'}
-      </div>
     </>
   );
 };
