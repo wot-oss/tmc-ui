@@ -186,6 +186,15 @@ This UI supports OAuth2 client-credentials authentication for protected catalog 
 
 Use this mode when the backend requires an access token before serving catalog or Thing Model data.
 
+#### Security warning
+
+This authentication mode uses OAuth2 client credentials from a browser-based application.
+If `VITE_CLIENT_ID` and `VITE_CLIENT_SECRET` are configured in this UI, those values are delivered to the browser at runtime and must be treated as exposed to any user who can load the application.
+
+For that reason, this mode should only be used when the UI is deployed behind restricted access and the operational risk is explicitly accepted, for example inside a trusted internal environment, VPN, or authenticated enterprise portal with additional network and access controls.
+
+Do not use this mode for a publicly reachable deployment or any environment where the client secret must remain confidential.
+
 #### When authentication is used
 
 Authentication is enabled automatically when all of the following variables are defined:
