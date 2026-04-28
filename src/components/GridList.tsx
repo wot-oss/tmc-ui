@@ -2,6 +2,7 @@ import React from 'react';
 import defaultImage from '../assets/default-image.png';
 import FourZeroFourNotFound from './404NotFound';
 import { Link } from 'react-router-dom';
+import Loader from './base/Loader';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -37,7 +38,7 @@ const GridList: React.FC<{
   loading: boolean;
   error: string | null;
 }> = ({ items, loading, error }) => {
-  if (loading) return <div className="p-4 text-textValue">Loading...</div>;
+  if (loading) return <Loader text="Loading catalog..." />;
 
   if (error)
     return (

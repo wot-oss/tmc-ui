@@ -6,6 +6,7 @@ import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
+import Loader from '../components/base/Loader';
 import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
 
 const Layout: React.FC<{
@@ -204,7 +205,6 @@ const Layout: React.FC<{
               className="w-full rounded-lg p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
               aria-label="Filters"
             >
-              {loading && <div style={{ padding: 12 }}>Loading filters…</div>}
               {errorFetchData && (
                 <div style={{ padding: 12 }}>
                   <strong>Filters unavailable:</strong> {errorFetchData}
@@ -264,7 +264,10 @@ const Layout: React.FC<{
                   <span className="text-sm text-textLabel">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList items={paginatedItems} loading={isLoading} error={inventoryError} />
+              {loading && <Loader text="Loading catalog..." />}
+              {!loading && (
+                <GridList items={paginatedItems} loading={isLoading} error={inventoryError} />
+              )}
 
               <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
             </section>

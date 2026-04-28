@@ -1,11 +1,32 @@
 /** @type {import('tailwindcss').Config} */
 
-const { BugAntIcon } = require('@heroicons/react/24/solid');
-
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      keyframes: {
+        'loader-slide-fade': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(-300px)',
+          },
+          '33%': {
+            opacity: '1',
+            transform: 'translateX(0px)',
+          },
+          '66%': {
+            opacity: '1',
+            transform: 'translateX(0px)',
+          },
+          '100%': {
+            opacity: '0',
+            transform: 'translateX(300px)',
+          },
+        },
+      },
+      animation: {
+        'loader-slide-fade': 'loader-slide-fade 3s infinite ease-in-out',
+      },
       colors: {
         primaryNavbar: 'var(--background-primary-navbar)',
         bgBodyPrimary: 'var(--background-body-primary)',
