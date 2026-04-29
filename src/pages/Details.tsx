@@ -3,6 +3,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
+import ErrorAlert from '../alerts/Error';
 import FieldCard from '../components/base/FieldCard';
 import DialogAction from '../components/Dialog';
 import { useAuth } from '../hooks/useAuth';
@@ -10,6 +11,7 @@ import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
 import { fetchLocalThingModel } from '../services/localData';
 import Dropdown from '../components/base/Dropdown';
+import Loader from '../components/base/Loader';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -210,14 +212,35 @@ const Details = () => {
       return;
     }
 
-    const url = `${__API_BASE__}/${fullPath}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const response = await fetch(`${__API_BASE__}/${fullPath}`, {
+      headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
+    });
+
+    if (!response.ok) {
+      setError('Failed to open full details.');
+      return;
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
   };
 
   const sections = useThingDetailsSections(fullDescription);
 
-  if (loading) return <div className="p-6 text-sm text-gray-600">Loading...</div>;
-  if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
+  if (loading)
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-bgBodyPrimary">
+        <Loader text="Loading Thing Description..." />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="mx-auto w-full max-w-3xl p-6 sm:px-6 sm:pt-16 lg:px-8">
+        <ErrorAlert mainMessage={error} redirectAfterMs={5000} fallbackRedirectTo="/" />
+      </div>
+    );
   if (!item) return null;
 
   return (

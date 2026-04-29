@@ -8,12 +8,8 @@ interface LoaderProps {
 
 const LOADER_DOTS = Array.from({ length: 6 }, (_, index) => index);
 
-const Loader: React.FC<LoaderProps> = ({ text, className = '', compact = false }: LoaderProps) => {
-  const containerClassName = [
-    'flex items-center justify-center',
-    compact ? 'gap-3' : 'flex-col gap-3 py-3',
-    className,
-  ]
+const Loader: React.FC<LoaderProps> = ({ text, className = '' }: LoaderProps) => {
+  const containerClassName = ['flex items-center justify-center flex-col gap-3 py-3', className]
     .join(' ')
     .trim();
 
@@ -23,7 +19,7 @@ const Loader: React.FC<LoaderProps> = ({ text, className = '', compact = false }
         {LOADER_DOTS.map((dotIndex) => (
           <span
             key={dotIndex}
-            className="animate-loader-slide-fade inline-block text-xl opacity-0"
+            className="inline-block animate-loader-slide-fade text-xl opacity-0"
             style={{ animationDelay: `${(LOADER_DOTS.length - 1 - dotIndex) * 100}ms` }}
             aria-hidden="true"
           >
