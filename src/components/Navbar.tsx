@@ -17,7 +17,10 @@ export interface UserNavItem {
   href: string;
 }
 
-const navigation = [{ name: 'Dashboard', href: '/', current: true }];
+const navigation = [
+  { name: 'Dashboard', href: '/', current: true },
+  { name: 'Settings', href: '/settings', current: false },
+];
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -54,28 +57,30 @@ const Navbar: React.FC = () => {
                 src={theme === 'dark' ? logoDark : logoLight}
               />
             </div>
-            <div className="flex sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
-              {navigation.map((item) => {
-                const isActive =
-                  item.href === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.startsWith(item.href);
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    className={classNames(
-                      isActive
-                        ? 'border-buttonBorder text-textWhite'
-                        : 'border-transparent text-textGray hover:border-borderOnHover hover:text-textOnHover',
-                      'inline-flex items-center border-b-8 px-1 pt-1 text-sm font-medium',
-                    )}
-                    end={item.href === '/'}
-                  >
-                    {item.name}
-                  </NavLink>
-                );
-              })}
+            <div className="flex flex-1 sm:-my-px sm:ml-6">
+              <div className="flex w-full max-w-sm">
+                {navigation.map((item) => {
+                  const isActive =
+                    item.href === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.href);
+                  return (
+                    <NavLink
+                      key={item.name}
+                      to={item.href}
+                      className={classNames(
+                        isActive
+                          ? 'border-buttonBorder text-textWhite'
+                          : 'border-transparent text-textGray hover:border-borderOnHover hover:text-textOnHover',
+                        'flex flex-1 items-center justify-center border-b-8 px-4 pt-1 text-sm font-medium',
+                      )}
+                      end={item.href === '/'}
+                    >
+                      {item.name}
+                    </NavLink>
+                  );
+                })}
+              </div>
             </div>
             <div className="flex px-2 py-2 sm:ml-6 sm:flex sm:items-center sm:space-x-8">
               <button

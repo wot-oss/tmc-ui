@@ -71,7 +71,7 @@ export function CredentialsPrompt({
 
             <div className="flex items-center justify-between gap-4">
               <p className="text-sm text-textLabel">
-                Credentials are kept in memory for this session.
+                Credentials stay available for this browser tab until it is closed.
               </p>
               <Button disabled={isSubmitDisabled} text="Continue" type="submit" />
             </div>
