@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createHashRouter, Outlet, RouterProvider } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import { CredentialsPrompt } from './components/CredentialsPrompt';
+import CredentialsPrompt from './components/SetupCredentials';
+import Loader from './components/base/Loader';
 import Details from './pages/Details';
 import FourZeroFourNotFound from './components/404NotFound';
 import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './hooks/useAuth';
 import LayoutLoadData from './pages/LayoutLoadData';
-
-const CLIENT_ID_SESSION_KEY = 'tmc-ui.client-id';
-const CLIENT_SECRET_SESSION_KEY = 'tmc-ui.client-secret';
-const CREDENTIALS_SUBMITTED_SESSION_KEY = 'tmc-ui.credentials-submitted';
+import Settings from './pages/Settings';
+import {
+  requestClientCredentialsToken,
+  type RequestClientCredentialsTokenResult,
+} from './services/auth';
+import {
+  CLIENT_ID_SESSION_KEY,
+  CLIENT_SECRET_SESSION_KEY,
+  CREDENTIALS_SUBMITTED_SESSION_KEY,
+} from './utils/constants';
 
 const getSessionStorage = (): Storage | null => {
   if (typeof window === 'undefined') {
@@ -83,44 +89,25 @@ const clearStoredCredentialsSession = (): void => {
   storage.removeItem(CREDENTIALS_SUBMITTED_SESSION_KEY);
 };
 
-function AppShell() {
+const AppShell: React.FC = () => {
   return (
     <>
       <Navbar />
       <Outlet />
     </>
   );
-}
+};
 
-function AppShellError() {
+const AppShellError: React.FC = () => {
   return (
     <>
       <Navbar />
       <FourZeroFourNotFound error={'Settings not defined'} />
     </>
   );
-}
+};
 
-interface AuthenticatedRouterProps {
-  readonly router: ReturnType<typeof createHashRouter>;
-  readonly onAuthenticationError: () => void;
-}
-
-function AuthenticatedRouter({ router, onAuthenticationError }: AuthenticatedRouterProps) {
-  const { error, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (isLoading || !error) {
-      return;
-    }
-
-    onAuthenticationError();
-  }, [error, isLoading, onAuthenticationError]);
-
-  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
-}
-
-function App() {
+const App: React.FC = () => {
   if (__DEBUG__) {
     console.warn('Vite globals', {
       __API_BASE__,
@@ -140,18 +127,28 @@ function App() {
   const [credentialsSubmitted, setCredentialsSubmitted] = useState(() =>
     getStoredCredentialsSubmitted(),
   );
+  const [seedToken, setSeedToken] = useState<RequestClientCredentialsTokenResult | null>(null);
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [isValidatingStartupCredentials, setIsValidatingStartupCredentials] = useState(false);
 
   const tokenUrl = (import.meta.env.VITE_TOKEN_URL ?? '') as string;
   const credentialsReady =
     credentialsSubmitted && clientId.trim().length > 0 && clientSecret.trim().length > 0;
-  const shouldPromptForCredentials =
+  const showSetupCredentials =
     __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && Boolean(tokenUrl) && !credentialsReady;
-  const authIsEnabled = Boolean(tokenUrl) && !shouldPromptForCredentials;
+  const shouldValidateStoredCredentials =
+    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
+    Boolean(tokenUrl) &&
+    credentialsReady &&
+    seedToken === null;
+  const authIsEnabled =
+    Boolean(tokenUrl) && !showSetupCredentials && !shouldValidateStoredCredentials;
 
   const handleClientIdChange = useCallback((value: string) => {
     setStoredSessionValue(CLIENT_ID_SESSION_KEY, value);
     setStoredCredentialsSubmitted(false);
     setCredentialsSubmitted(false);
+    setStartupError(null);
     setClientId(value);
   }, []);
 
@@ -159,20 +156,103 @@ function App() {
     setStoredSessionValue(CLIENT_SECRET_SESSION_KEY, value);
     setStoredCredentialsSubmitted(false);
     setCredentialsSubmitted(false);
+    setStartupError(null);
     setClientSecret(value);
   }, []);
 
-  const handleCredentialsSubmit = useCallback(() => {
-    setStoredCredentialsSubmitted(true);
-    setCredentialsSubmitted(true);
-  }, []);
+  const handleCredentialsCommit = useCallback(
+    (
+      nextClientId: string,
+      nextClientSecret: string,
+      validatedToken: RequestClientCredentialsTokenResult,
+    ) => {
+      setStoredSessionValue(CLIENT_ID_SESSION_KEY, nextClientId);
+      setStoredSessionValue(CLIENT_SECRET_SESSION_KEY, nextClientSecret);
+      setStoredCredentialsSubmitted(true);
+      setSeedToken(validatedToken);
+      setStartupError(null);
+      setClientId(nextClientId);
+      setClientSecret(nextClientSecret);
+      setCredentialsSubmitted(true);
+    },
+    [],
+  );
 
-  const handleAuthenticationError = useCallback(() => {
-    clearStoredCredentialsSession();
-    setClientId('');
-    setClientSecret('');
-    setCredentialsSubmitted(false);
-  }, []);
+  const handleCredentialsSubmit = useCallback(async () => {
+    setIsValidatingStartupCredentials(true);
+    setStartupError(null);
+
+    try {
+      const validatedToken = await requestClientCredentialsToken({
+        tokenUrl,
+        clientId,
+        clientSecret,
+      });
+
+      handleCredentialsCommit(clientId, clientSecret, validatedToken);
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+
+      setStartupError(err instanceof Error ? err.message : 'Failed to validate credentials.');
+    } finally {
+      setIsValidatingStartupCredentials(false);
+    }
+  }, [clientId, clientSecret, handleCredentialsCommit, tokenUrl]);
+
+  useEffect(() => {
+    if (!shouldValidateStoredCredentials) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let isActive = true;
+
+    setIsValidatingStartupCredentials(true);
+    setStartupError(null);
+
+    void requestClientCredentialsToken({
+      tokenUrl,
+      clientId,
+      clientSecret,
+      signal: controller.signal,
+    })
+      .then((validatedToken) => {
+        if (!isActive) {
+          return;
+        }
+
+        setSeedToken(validatedToken);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        clearStoredCredentialsSession();
+        setClientId('');
+        setClientSecret('');
+        setCredentialsSubmitted(false);
+        setStartupError(err instanceof Error ? err.message : 'Failed to validate credentials.');
+      })
+      .finally(() => {
+        if (!isActive) {
+          return;
+        }
+
+        setIsValidatingStartupCredentials(false);
+      });
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [clientId, clientSecret, shouldValidateStoredCredentials, tokenUrl]);
 
   const router = useMemo(
     () =>
@@ -181,7 +261,7 @@ function App() {
           {
             element: <AppShell />,
             errorElement: <AppShellError />,
-            children: shouldPromptForCredentials
+            children: showSetupCredentials
               ? [
                   {
                     index: true,
@@ -192,6 +272,8 @@ function App() {
                         onClientIdChange={handleClientIdChange}
                         onClientSecretChange={handleClientSecretChange}
                         onSubmit={handleCredentialsSubmit}
+                        errorMessage={startupError}
+                        isSubmitting={isValidatingStartupCredentials}
                       />
                     ),
                   },
@@ -204,6 +286,8 @@ function App() {
                         onClientIdChange={handleClientIdChange}
                         onClientSecretChange={handleClientSecretChange}
                         onSubmit={handleCredentialsSubmit}
+                        errorMessage={startupError}
+                        isSubmitting={isValidatingStartupCredentials}
                       />
                     ),
                   },
@@ -219,6 +303,18 @@ function App() {
                     element: <Details />,
                     errorElement: <FourZeroFourNotFound error={'Details not found'} />,
                   },
+                  {
+                    path: 'settings',
+                    element: (
+                      <Settings
+                        clientId={clientId}
+                        clientSecret={clientSecret}
+                        tokenUrl={tokenUrl}
+                        onCommitCredentials={handleCredentialsCommit}
+                      />
+                    ),
+                    errorElement: <FourZeroFourNotFound error={'Settings not found'} />,
+                  },
                 ],
           },
         ],
@@ -233,13 +329,27 @@ function App() {
       clientSecret,
       handleClientIdChange,
       handleClientSecretChange,
+      handleCredentialsCommit,
       handleCredentialsSubmit,
-      shouldPromptForCredentials,
+      isValidatingStartupCredentials,
+      startupError,
+      tokenUrl,
+      showSetupCredentials,
     ],
   );
 
-  if (shouldPromptForCredentials) {
+  if (showSetupCredentials) {
     return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+  }
+
+  if (shouldValidateStoredCredentials) {
+    return (
+      <main className="min-h-dvh bg-bgBodyPrimary px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-6xl items-center justify-center">
+          <Loader text="Validating saved credentials..." />
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -248,10 +358,11 @@ function App() {
       clientId={clientId}
       clientSecret={clientSecret}
       enabled={authIsEnabled}
+      seedToken={seedToken}
     >
-      <AuthenticatedRouter router={router} onAuthenticationError={handleAuthenticationError} />
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </AuthProvider>
   );
-}
+};
 
 export default App;

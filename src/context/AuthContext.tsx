@@ -7,12 +7,14 @@ export const AuthProvider = ({
   clientId,
   clientSecret,
   enabled = true,
+  seedToken = null,
 }: AuthProviderProps) => {
   const tokenState = useClientCredentialsToken({
     tokenUrl: tokenUrl ?? '',
     clientId: clientId ?? '',
     clientSecret: clientSecret ?? '',
     enabled: enabled,
+    seedToken,
   });
 
   return (
