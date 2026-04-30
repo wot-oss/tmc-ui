@@ -40,3 +40,9 @@ export const PROTOCOLS_FILENAME = 'protocols.txt';
 export const MANUFACTURERS_FILENAME = 'manufacturers.txt';
 
 export const INVENTORY_FILENAME = 'tm-catalog.toc.json';
+
+export const CLIENT_ID_SESSION_KEY = 'tmc-ui.client-id';
+
+export const CLIENT_SECRET_SESSION_KEY = 'tmc-ui.client-secret';
+
+export const CREDENTIALS_SUBMITTED_SESSION_KEY = 'tmc-ui.credentials-submitted';
