@@ -23,10 +23,9 @@ declare const __CATALOG_REPO_URL__: string; //TODO
 declare const __DEPLOY_TYPE__: string;
 interface ImportMetaEnv {
   readonly VITE_TOKEN_URL: string;
-  readonly VITE_CLIENT_ID: string;
-  readonly VITE_CLIENT_SECRET: string;
   readonly VITE_SERVER_URL: string;
   readonly BASE_URL: string; //TODO
+  readonly VITE_SETUP_CREDENTIALS_MESSAGE: string;
 }
 
 interface ImportMeta {

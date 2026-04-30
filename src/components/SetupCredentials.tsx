@@ -19,6 +19,15 @@ const CredentialsPrompt: React.FC<CredentialsPromptProps> = ({
   errorMessage = null,
   isSubmitting = false,
 }: CredentialsPromptProps) => {
+  let description =
+    'Provide the client ID and client secret to start the authenticated catalog session.';
+
+  const setupCredentialsMessage =
+    description +
+    (import.meta.env.VITE_SETUP_CREDENTIALS_MESSAGE === ''
+      ? ' If you do not have credentials, contact the administrator.'
+      : import.meta.env.VITE_SETUP_CREDENTIALS_MESSAGE);
+
   return (
     <main className="min-h-[calc(100dvh-4rem)] bg-bgBodyPrimary px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100dvh-9rem)] max-w-6xl items-center justify-center">
@@ -26,7 +35,7 @@ const CredentialsPrompt: React.FC<CredentialsPromptProps> = ({
           <CredentialsForm
             eyebrow="Startup authentication"
             title="Enter API credentials"
-            description="Provide the client ID and client secret to start the authenticated catalog session."
+            description={setupCredentialsMessage}
             clientId={clientId}
             clientSecret={clientSecret}
             onClientIdChange={onClientIdChange}
