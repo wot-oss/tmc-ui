@@ -248,17 +248,7 @@ const Details = () => {
               <FieldCard label="MPN" value={(fullDescription?.['schema:mpn'] as string) ?? '—'} />
               <div className="mt-2 flex items-center gap-10 divide-gray-200 border-t border-gray-200 pt-2">
                 <div className="flex items-center gap-4">
-                  <FieldCard label="Current Version" value=""></FieldCard>
-                  <div className="flex items-center">
-                    <Dropdown
-                      label="version"
-                      id="currentVersion"
-                      options={dropdownData}
-                      value={selectedVersion}
-                      onChange={handleVersionChange}
-                      className="self-center text-2xl font-normal tracking-normal text-textValue"
-                    ></Dropdown>
-                  </div>
+                  <FieldCard label="Current Version" value={selectedVersion}></FieldCard>
                 </div>
                 <div className="flex items-center pl-10">
                   <FieldCard

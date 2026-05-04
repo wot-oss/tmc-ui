@@ -10,8 +10,9 @@ interface DialogActionProps {
   onClose: () => void;
 }
 
-const EDITDOR_URL = 'http://localhost:5173';
-const PLAYGROUND_URL = 'https://playground.thingweb.io/';
+const EDITDOR_URL =
+  import.meta.env.VITE_EDITDOR_URL || 'https://eclipse-editdor.github.io/editdor/';
+const PLAYGROUND_URL = import.meta.env.VITE_PLAYGROUND_URL || 'https://playground.thingweb.io/';
 const EDITDOR_READY_TIMEOUT_MS = 10000;
 const INITIAL_STATUSES = {
   editdor: 'idle' as ItemStatus,

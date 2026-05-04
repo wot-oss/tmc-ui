@@ -18,6 +18,8 @@ declare const __SERVER_AVAILABLE__: boolean;
 interface ImportMetaEnv {
   readonly VITE_REPO_URL?: string;
   readonly BASE_URL: string;
+  readonly VITE_EDITDOR_URL?: string;
+  readonly VITE_PLAYGROUND_URL?: string;
 }
 
 interface ImportMeta {
