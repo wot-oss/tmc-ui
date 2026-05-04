@@ -49,8 +49,9 @@ if [ ! -d "public" ]; then
 	exit 1
 fi
 
+log_info "Current value: SERVER_AVAILABLE=[$SERVER_AVAILABLE]"
 # Check if .tmc folder already exists inside public
-if [ -d "public/.tmc" ]; then
+if [ "$SERVER_AVAILABLE" = "false" ] && [ -d "public/.tmc" ]; then
 	log_info "Catalog already exists (public/.tmc found). Skipping catalog download."
 	run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
 else
@@ -68,8 +69,10 @@ else
 	rm -rf "$TEMP_APP_DIR_CATALOG"
 fi
 
-log_info "Validating required catalog files..."
-run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
+if [ "$SERVER_AVAILABLE" = "false" ]; then
+	log_info "Validating required catalog files..."
+	run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
+fi
 
 log_info "Editing configuration file:  vite.config.mjs"
 run_or_exit sh ci-cd/editConfig.sh "$SERVER_AVAILABLE"
