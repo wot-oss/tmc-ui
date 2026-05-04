@@ -186,45 +186,59 @@ This UI supports OAuth2 client-credentials authentication for protected catalog 
 
 Use this mode when the backend requires an access token before serving catalog or Thing Model data.
 
-#### Security warning
-
-This authentication mode uses OAuth2 client credentials from a browser-based application.
-If `VITE_CLIENT_ID` and `VITE_CLIENT_SECRET` are configured in this UI, those values are delivered to the browser at runtime and must be treated as exposed to any user who can load the application.
-
-For that reason, this mode should only be used when the UI is deployed behind restricted access and the operational risk is explicitly accepted, for example inside a trusted internal environment, VPN, or authenticated enterprise portal with additional network and access controls.
-
-Do not use this mode for a publicly reachable deployment or any environment where the client secret must remain confidential.
-
 #### When authentication is used
 
-Authentication is enabled automatically when all of the following variables are defined:
+Authentication is enabled when the UI is running against a backend server deployment and a token endpoint is configured.
 
-- `VITE_TOKEN_URL`
-- `VITE_CLIENT_ID`
-- `VITE_CLIENT_SECRET`
+In practice, this means:
 
-If these variables are not provided, the UI runs without requesting an access token.
+- `SERVER_AVAILABLE=true`
+- `VITE_TOKEN_URL` is defined
 
-#### How it works
+If those conditions are not met, the UI runs without requesting an access token.
 
-When authentication is enabled, the UI sends a client-credentials token request to the configured OAuth token endpoint.
-The returned access token is kept in memory and attached to backend requests as a `Bearer` authorization header.
-
-#### Required environment variables
-
-- `VITE_TOKEN_URL`: OAuth token endpoint used to request an access token.
-- `VITE_CLIENT_ID`: OAuth client identifier used for the client-credentials flow.
-- `VITE_CLIENT_SECRET`: OAuth client secret used to authenticate the client.
+- `VITE_TOKEN_URL`: OAuth token endpoint used to validate credentials and request an access token.
 - `VITE_SERVER_URL`: Base URL of the protected backend server.
+
+
+#### Startup flow
+
+When authentication is enabled, the UI validates credentials before granting access to the catalog.
+
+On startup, the UI behaves as follows:
+
+1. If valid credentials are already stored for the current browser tab, the UI validates them against the configured token endpoint before loading the catalog.
+2. If no stored credentials are available, or if validation fails, the UI shows the setup screen and blocks access until the user provides valid credentials.
+3. A failed validation keeps the user on the setup form and shows the returned error message.
+
+#### Credential persistence and token handling
+
+- Client ID and client secret are stored in browser `sessionStorage` for the current tab session only.
+- Closing the tab clears the stored credential session.
+- The access token is kept in memory and is not persisted in browser storage.
+
+#### Validation and settings flow
+
+- Credentials entered in the setup screen are validated against `VITE_TOKEN_URL` before they are committed.
+- The Settings page allows users to review and replace the current credentials during the session.
+- Settings changes are also validated before they replace the active credential session.
+- Invalid credentials are not committed to the active session.
+
+
+
+
+#### Optional environment variables
+
+- `VITE_SETUP_CREDENTIALS_MESSAGE`: Additional text shown in the setup credentials screen. This can be used to provide operator instructions such as who to contact for access.
 
 #### Example local configuration
 
 Create a local `.env` file with the following keys:
 
+    SERVER_AVAILABLE=true
     VITE_TOKEN_URL=https://auth.example.local/oauth/token
-    VITE_CLIENT_ID=example-client-id
-    VITE_CLIENT_SECRET=example-client-secret
     VITE_SERVER_URL=https://api.example.local
+    VITE_SETUP_CREDENTIALS_MESSAGE="If you do not have credentials, contact the administrator."
 
 
 ## Formatting

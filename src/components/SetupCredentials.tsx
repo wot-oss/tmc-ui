@@ -33,7 +33,7 @@ const CredentialsPrompt: React.FC<CredentialsPromptProps> = ({
       <div className="mx-auto flex min-h-[calc(100dvh-9rem)] max-w-6xl items-center justify-center">
         <div className="w-full max-w-xl">
           <CredentialsForm
-            eyebrow="Startup authentication"
+            eyebrow="Setup API authentication"
             title="Enter API credentials"
             description={setupCredentialsMessage}
             clientId={clientId}
