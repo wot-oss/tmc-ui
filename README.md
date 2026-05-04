@@ -138,7 +138,46 @@ From the previous instructions the global structure of the `.env` file can be:
 
 `VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
 
-Also, when the user chooses to edit a Thing Description, the application sends the full JSON Thing Description to the selected destination URL. Currently, this behavior only works on the option Editdor.
+
+These two option for the user are display in the Details page. 
+
+The `Open with` action can integrate with an external editor by using `window.postMessage`.
+
+#### `postMessage` integration for external applications
+
+When the user clicks **Open with** and chooses the application configured through `VITE_EDITDOR_URL`, the UI opens that application in a new window and waits for a ready message from it.
+
+To support this flow, the receiving application must implement the following handshake:
+
+1. After the external application finishes loading, it must send a message to the opener window:
+
+    window.opener?.postMessage({ type: 'EDITDOR_READY' }, '<tmc-ui-origin>');
+
+2. After that message is received, this UI sends a second message back to the external application window with the Thing Description content:
+
+    {
+      type: 'LOAD_TD',
+      description: '<thing-title-or-id>',
+      payload: '<thing-description-json>'
+    }
+
+Message fields:
+
+- `type`: message identifier.
+- `description`: Thing Description title when available, otherwise the Thing Description `id`.
+- `payload`: the full Thing Description serialized as formatted JSON.
+
+The receiving application must listen for the `LOAD_TD` message and parse `payload` as JSON before loading it into its editor.
+
+Security recommendations:
+
+- Validate `event.origin` before accepting messages.
+- Reply only to the opener window that created the external application window.
+- Use the origin part of the configured URLs when calling `postMessage`, not the full URL including the path.
+
+The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready message is received within that time, the action is marked as failed.
+
+
 
 
 ## Formatting

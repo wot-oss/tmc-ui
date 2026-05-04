@@ -13,6 +13,7 @@ interface DialogActionProps {
 const EDITDOR_URL =
   import.meta.env.VITE_EDITDOR_URL || 'https://eclipse-editdor.github.io/editdor/';
 const PLAYGROUND_URL = import.meta.env.VITE_PLAYGROUND_URL || 'https://playground.thingweb.io/';
+const EDITDOR_ORIGIN = new URL(EDITDOR_URL).origin;
 const EDITDOR_READY_TIMEOUT_MS = 10000;
 const INITIAL_STATUSES = {
   editdor: 'idle' as ItemStatus,
@@ -46,7 +47,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
 
   useEffect(() => {
     function handleEditdorMessage(event: MessageEvent) {
-      if (event.origin !== EDITDOR_URL) {
+      if (event.origin !== EDITDOR_ORIGIN) {
         return;
       }
 
@@ -68,7 +69,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
           description: pendingEditdorMessageRef.current.description,
           payload: pendingEditdorMessageRef.current.payload,
         },
-        EDITDOR_URL,
+        EDITDOR_ORIGIN,
       );
 
       if (editdorReadyTimeoutRef.current !== null) {
