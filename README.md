@@ -213,18 +213,9 @@ On startup, the UI behaves as follows:
 
 #### Credential persistence and token handling
 
-- Client ID and client secret are stored in browser `sessionStorage` for the current tab session only.
 - Closing the tab clears the stored credential session.
 - The access token is kept in memory and is not persisted in browser storage.
-
-#### Validation and settings flow
-
-- Credentials entered in the setup screen are validated against `VITE_TOKEN_URL` before they are committed.
 - The Settings page allows users to review and replace the current credentials during the session.
-- Settings changes are also validated before they replace the active credential session.
-- Invalid credentials are not committed to the active session.
-
-
 
 
 #### Optional environment variables
