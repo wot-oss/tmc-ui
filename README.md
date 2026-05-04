@@ -1,6 +1,6 @@
 # TMC User Interface
 
-Open-source Web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
+Open-source web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
 The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
 
 # Development
@@ -12,20 +12,20 @@ The initial goal is to support only GET requests in the UI; this is not a CLI re
 
 ## Local Setup
 
-If you wish to have a local setup, you only need to have the `setup-local.sh`. file, `deploy.sh` file, a `.env` file and the `ci-cd` folder int he current folder.
+If you wish to have a local setup, you only need to have the `setup-local.sh`. file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
 
-Edit the `.env file, and the run:
+Edit the `.env` file, and then run:
 
-    sh setup-loca.sh
+    sh setup-local.sh
 
 It will automatically install, build and give a preview of the current application.
 
-What the script does:
+What the `setup-local.sh` does:
 
 1. Checks that Node.js `>= 22.20.0` is installed.
 2. Checks whether Yarn is available.
-4. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
-5. Runs `yarn install && yarn build && yarn preview`.
+3. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
+4. Runs `yarn install && yarn build && yarn preview`.
 
 # Deploy
 
@@ -76,8 +76,8 @@ The script performs the following steps:
 
 If `.env` is not present, `deploy.sh` falls back to these defaults:
 
-    APP_REPO_URL=https://github.com/TejInaco/test-tmc-ui.git
-    CATALOG_REPO_URL=https://github.com/TejInaco/example-catalog.git
+    APP_REPO_URL=https://github.com/wot-oss/tmc-ui.git
+    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
     SERVER_AVAILABLE=false
 
 #### GitHub Pages configuration
@@ -106,9 +106,10 @@ Notes:
 - The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
 
+
 ### Connection to a backend server
 
-The connection to a backend server that provides the catalog can be configured adding by adding the following variables to the `.env` file:
+The connection to a backend server that provides the catalog can be configured by adding the following variables to the `.env` file:
 
     VITE_API_HOST=
     VITE_API_PORT=
@@ -121,6 +122,24 @@ Or you can use the **export** command before running the application:
 If no `.env` file is defined, the default value will be:
 
     http://localhost:8080
+
+### Other variables supported in the `.env` file
+
+From the previous instructions the global structure of the `.env` file can be:
+
+    VITE_API_HOST=
+    VITE_API_PORT=
+    VITE_API_PROTOCOL=
+    APP_REPO_URL=
+    CATALOG_REPO_URL=
+    SERVER_AVAILABLE
+    VITE_EDITDOR_URL=https://eclipse-editdor.github.io/editdor/
+    VITE_PLAYGROUND_URL=https://playground.thingweb.io/
+
+`VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
+
+Also, when the user chooses to edit a Thing Description, the application sends the full JSON Thing Description to the selected destination URL. Currently, this behavior only works on the option Editdor.
+
 
 ## Formatting
 
