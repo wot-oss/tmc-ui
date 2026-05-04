@@ -12,7 +12,7 @@ The initial goal is to support only GET requests in the UI; this is not a CLI re
 
 ## Local Setup
 
-If you wish to have a local setup, you only need to have the `setup-local.sh`. file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
+If you wish to have a local setup, you only need to have the `setup-local.sh` file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
 
 Edit the `.env` file, and then run:
 
@@ -20,7 +20,7 @@ Edit the `.env` file, and then run:
 
 It will automatically install, build and give a preview of the current application.
 
-What the `setup-local.sh` does:
+The `setup-local.sh` script does the following:
 
 1. Checks that Node.js `>= 22.20.0` is installed.
 2. Checks whether Yarn is available.
@@ -125,7 +125,7 @@ If no `.env` file is defined, the default value will be:
 
 ### Other variables supported in the `.env` file
 
-From the previous instructions the global structure of the `.env` file can be:
+Based on the previous sections, the .env file can have the following structure:
 
     VITE_API_HOST=
     VITE_API_PORT=
@@ -139,9 +139,9 @@ From the previous instructions the global structure of the `.env` file can be:
 `VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
 
 
-These two option for the user are display in the Details page. 
+These two options are displayed in the Details page. 
 
-The `Open with` action can integrate with an external editor by using `window.postMessage`.
+The `Open with` action can integrate with an external application by using `window.postMessage`.
 
 #### `postMessage` integration for external applications
 
@@ -192,7 +192,7 @@ To format and fix the errors:
 
 ## Custom theme
 
-Customize the colors of the UI by editing CSS variables in `src/theme.css`. The light theme is defined under class `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be used. All color values must be specified in hexadecimal format.
+Customize the colors of the UI by editing CSS variables in `src/theme.css`. The light theme is defined under selector `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be used. All color values must be specified in hexadecimal format.
 
 Variables (edit in `src/theme.css`):
 
