@@ -1,7 +1,7 @@
 # TMC User Interface
 
 Open-source Web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
-The initial goal is to support only GET requests in the UI, i.e. this is not a CLI replicated in the browser.
+The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
 
 # Development
 
@@ -10,56 +10,105 @@ The initial goal is to support only GET requests in the UI, i.e. this is not a C
 - Node.js >= 22.20.0
 - Yarn
 
-## Setup
+## Local Setup
 
-Install dependencies:
+If you wish to have a local setup, you only need to have the `setup-local.sh`. file, `deploy.sh` file, a `.env` file and the `ci-cd` folder int he current folder.
 
-    yarn install
+Edit the `.env file, and the run:
 
-Start the development server:
+    sh setup-loca.sh
 
-    yarn dev
+It will automatically install, build and give a preview of the current application.
 
-The app will be available at http://localhost:5173 by default.
+What the script does:
+
+1. Checks that Node.js `>= 22.20.0` is installed.
+2. Checks whether Yarn is available.
+4. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
+5. Runs `yarn install && yarn build && yarn preview`.
 
 # Deploy
 
-This UI can be deployed as a static site or with a backend server using GitHub Pages (and/or GitLab Pages).
+This UI can be deployed as a static site or with a backend server using GitHub Pages or GitLab Pages.
 
-### Instructions - Deploy
+The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
-To deploy the application, create a `.env` file that reflects your deployment type.
+Inside the `ci-cd` folder are the files used by `deploy.sh`.
+ - `editConfig.sh`
+ - `fetchRepository.sh`
+ - `validateRequiredFiles.sh`
 
-    APP_REPO_URL= https://github.com/<user_group>/<tmc-ui repository>.git  # The repository TMC-UI
-    CATALOG_REPO_URL=https://github.com/<user_group>/<repository-catalog>.git       # The repository where the catalog and Things Description here
-    SERVER_AVAILABLE=false                                                          # If there is adeploy with a back end available served tby the tool tmc this flag is set to true
+### Workflow of deploy.sh
+<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
 
-In the configuration of the pipeline/workflow invoke the script deploy.sh. This script will call all the scripts in folder **ci-cd/** and perform the necessary validations and configurations.
 
-### GitHub Pages configuration
+### Instructions
 
-- Set up GitHub Pages in the Settings section of the account, under **Settings** -> **Environments** -> **github-pages**
 
-- Under **Deployment branches**, change from **Selected branches** to the branch you wish.
+Create a `.env` file at the repository root before running the script:
 
-Detailed documentation can be found [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+    APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
+    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+    SERVER_AVAILABLE=false
 
-The GitHub Pages workflow is defined in `.github/workflows/deploy.yml`.
+Variables:
 
-### Requirements
+- `APP_REPO_URL`: repository that contains the TMC UI source code. This is only used when the current workspace does not already contain `package.json` and `src`.
+- `CATALOG_REPO_URL`: repository that contains the catalog content to be copied into `public`.
+- `SERVER_AVAILABLE`: must be either `true` or `false`.
+  - `false`: the UI is prepared as a static deployment and reads catalog files from the contents copied into `public`
+  - `true`: the UI is prepared to work with a backend server, and the build configuration is updated accordingly
 
-The repository where the catalog lives must have the following requirements at the repository root:
+Run the deployment preparation step with:
 
-- A folder named `.tmc`
-- Inside the `.tmc` folder, the following files are required:
-  - tm-catalog.toc.json
-  - authors.txt
-  - manufactures.txt
-  - mpns.txt
+    sh deploy.sh
 
-## Connection to a backend server
+The script performs the following steps:
 
-The connection to a backend server that provides the catalog can be made by creating a `.env` file with the following variables:
+1. Loads variables from `.env` if the file exists.
+2. Checks whether the current workspace already contains the UI source.
+3. If the UI source is missing, clones the repository defined in `APP_REPO_URL` into a temporary folder and copies its contents into the working directory.
+4. Verifies that the `public` directory exists.
+5. If `public/.tmc` already exists, skips the catalog download.
+6. Otherwise, clones the repository defined in `CATALOG_REPO_URL` into a temporary folder and copies its contents into `public`.
+7. Validates that the catalog contains all required files under `.tmc`.
+8. Updates `vite.config.mjs` so `SERVER_AVAILABLE` matches the selected deployment mode.
+
+If `.env` is not present, `deploy.sh` falls back to these defaults:
+
+    APP_REPO_URL=https://github.com/TejInaco/test-tmc-ui.git
+    CATALOG_REPO_URL=https://github.com/TejInaco/example-catalog.git
+    SERVER_AVAILABLE=false
+
+#### GitHub Pages configuration
+
+- Set up GitHub Pages under **Settings** -> **Environments** -> **github-pages**
+- Under **Deployment branches**, select the branch that should publish the site
+
+Detailed documentation is available [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+
+The GitHub Pages workflow for this repository is defined in `.github/workflows/fetch-files.yml`.
+
+#### Catalog repository requirements
+
+The catalog repository must contain a `.tmc` directory at its root.
+
+Inside `.tmc`, the following files are required:
+
+- `tm-catalog.toc.json`
+- `tmnames.txt`
+- `mpns.txt`
+- `manufacturers.txt`
+
+Notes:
+
+- The catalog validation step fails if any of the required files are missing.
+- The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
+- `SERVER_AVAILABLE` only accepts the values `true` or `false`.
+
+### Connection to a backend server
+
+The connection to a backend server that provides the catalog can be configured adding by adding the following variables to the `.env` file:
 
     VITE_API_HOST=
     VITE_API_PORT=
@@ -76,7 +125,7 @@ If no `.env` file is defined, the default value will be:
 ## Formatting
 
 Run to check the code style for errors:
-
+                                                                                                                                                
     yarn format:check
 
 To format and fix the errors:
@@ -117,7 +166,7 @@ Variables (edit in `src/theme.css`):
 - `--border-on-hover`: generic border on hover
 - `--border`: generic border
 
-5. Color to give to the letters
+5. Text colors
 
 - `--text-on-hover`: text color on hover
 - `--text-white`: white text
