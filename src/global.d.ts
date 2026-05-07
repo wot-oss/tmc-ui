@@ -26,6 +26,8 @@ interface ImportMetaEnv {
   readonly VITE_SERVER_URL: string;
   readonly BASE_URL: string; //TODO
   readonly VITE_SETUP_CREDENTIALS_MESSAGE: string;
+  readonly VITE_EDITDOR_URL: string;
+  readonly VITE_PLAYGROUND_URL: string;
 }
 
 interface ImportMeta {
