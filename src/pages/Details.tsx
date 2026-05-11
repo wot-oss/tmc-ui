@@ -4,7 +4,7 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
 import FieldCard from '../components/base/FieldCard';
-import DialogAction from '../components/Dialog';
+import DialogAction from '../components/DialogAction';
 import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
 import { fetchLocalThingModel } from '../services/localData';
@@ -246,11 +246,17 @@ const Details = () => {
               />
               <FieldCard label="Title" value={(fullDescription?.title as string) ?? '—'} />
               <FieldCard label="MPN" value={(fullDescription?.['schema:mpn'] as string) ?? '—'} />
-              <FieldCard
-                label="Number of Versions"
-                value={item.versions?.length.toString() ?? '0'}
-              />
-              <FieldCard label="Current Version" value={selectedVersion} />
+              <div className="mt-2 flex items-center gap-10 divide-gray-200 border-t border-gray-200 pt-2">
+                <div className="flex items-center gap-4">
+                  <FieldCard label="Current Version" value={selectedVersion}></FieldCard>
+                </div>
+                <div className="flex items-center pl-10">
+                  <FieldCard
+                    label="Number of Versions"
+                    value={item.versions?.length.toString() ?? '0'}
+                  />
+                </div>
+              </div>
 
               <div className="mt-2 flex divide-y divide-gray-200 border-t border-gray-200"></div>
               <FieldCard label="ID" value={fullDescription?.id ?? '—'} />
