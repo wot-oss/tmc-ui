@@ -167,10 +167,10 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="bg-overlay-backdrop fixed inset-0" aria-hidden="true" />
+      <div className="fixed inset-0 bg-overlay-backdrop" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="bg-surface-modal w-full max-w-md rounded-lg p-6 shadow-lg">
-          <h2 className="text-text-primary mb-4 text-lg font-semibold">Open with …</h2>
+        <DialogPanel className="w-full max-w-md rounded-lg bg-surface-modal p-6 shadow-lg">
+          <h2 className="mb-4 text-lg font-semibold text-text-primary">Open with …</h2>
           <ul className="flex flex-col gap-3">
             {targets.map((t) => (
               <li key={t.name} className="flex items-center gap-3">
@@ -183,7 +183,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                     variant="default"
                   />
                 </div>
-                <span className="text-status-success px-3 text-sm">
+                <span className="px-3 text-sm text-status-success">
                   {t.status === 'copied' && 'Copied!'}
                   {t.status === 'error' && 'Copy failed'}
                   {t.status === 'sent' && 'TD sent to EdiTDor!'}

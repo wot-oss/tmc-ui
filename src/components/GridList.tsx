@@ -85,7 +85,9 @@ const GridList: React.FC<{
                   <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM.repo?.concat(', ') ?? ''}
                   </p>
-                  <p className="mt-1 truncate text-sm text-text-secondary">{itemTM['schema:mpn']}</p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM['schema:mpn']}
+                  </p>
                   <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM['schema:description'] ?? ''}
                   </p>

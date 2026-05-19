@@ -5,7 +5,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import defaultImage from '../assets/default-image.png';
 import ErrorAlert from '../alerts/Error';
 import FieldCard from '../components/base/FieldCard';
-import DialogAction from '../components/Dialog';
+import DialogAction from '../components/DialogAction';
 import { useAuth } from '../hooks/useAuth';
 import { fetchApiThingModel } from '../services/apiData';
 import type { ThingDescription } from 'wot-typescript-definitions';
@@ -143,16 +143,6 @@ const Details = () => {
 
       fetchApi(fetchName);
     }
-  }, [
-    authorizationHeader,
-    authError,
-    authLoading,
-    deploymentType,
-    enabled,
-    fetchName,
-    item,
-    stateItem,
-  ]);
   }, [
     authorizationHeader,
     authError,

@@ -14,7 +14,7 @@ const Success: React.FC = () => {
           <div className="-mx-1.5 -my-1.5">
             <button
               type="button"
-              className="focus-visible:outline-hidden hover:bg-status-success-subtle inline-flex rounded-md p-1.5 text-status-success focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-1 focus-visible:ring-offset-surface-canvas"
+              className="focus-visible:outline-hidden inline-flex rounded-md p-1.5 text-status-success hover:bg-status-success-subtle focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-1 focus-visible:ring-offset-surface-canvas"
             >
               <span className="sr-only">Dismiss</span>
               <XMarkIcon aria-hidden="true" className="size-5" />
