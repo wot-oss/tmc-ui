@@ -68,15 +68,15 @@ const Error: React.FC<ErrorProps> = ({
   }, [handleRedirect, redirectAfterMs]);
 
   return (
-    <div className="rounded-md bg-red-500/15 p-4 outline outline-red-500/25">
+    <div className="rounded-md bg-status-error-soft p-4 outline outline-status-error">
       <div className="flex">
         <div className="shrink-0">
-          <XCircleIcon aria-hidden="true" className="size-5 text-red-400" />
+          <XCircleIcon aria-hidden="true" className="size-5 text-status-error" />
         </div>
         <div className="ml-3">
-          <h3 className="text-sm font-medium text-black">{mainMessage}</h3>
+          <h3 className="text-sm font-medium text-text-inverse">{mainMessage}</h3>
           {secondsRemaining !== null ? (
-            <p className="mt-1 text-sm text-black/80">
+            <p className="mt-1 text-sm text-text-muted-light">
               Returning to {resolvedRedirectLabel} in {secondsRemaining} second
               {secondsRemaining === 1 ? '' : 's'}.
             </p>
@@ -84,7 +84,7 @@ const Error: React.FC<ErrorProps> = ({
           <button
             type="button"
             onClick={navigateBack}
-            className="mt-3 inline-flex rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm font-medium text-black transition hover:bg-red-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+            className="mt-3 inline-flex rounded-md border border-status-error bg-status-error-soft px-3 py-1.5 text-sm font-medium text-text-inverse transition hover:bg-status-error-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-error"
           >
             Go back
           </button>

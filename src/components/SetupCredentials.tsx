@@ -29,7 +29,7 @@ const CredentialsPrompt: React.FC<CredentialsPromptProps> = ({
       : import.meta.env.VITE_SETUP_CREDENTIALS_MESSAGE);
 
   return (
-    <main className="min-h-[calc(100dvh-4rem)] bg-bgBodyPrimary px-4 py-10 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100dvh-4rem)] bg-surface-canvas px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100dvh-9rem)] max-w-6xl items-center justify-center">
         <div className="w-full max-w-xl">
           <CredentialsForm

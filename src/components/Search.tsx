@@ -1,5 +1,6 @@
 import { ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import React, { useState, useEffect, useRef } from 'react';
+import Input from './base/Input';
 import { SEARCH_ENDPOINT } from '../utils/constants';
 
 const DEBOUNCE_MS = 350;
@@ -160,26 +161,26 @@ const Search: React.FC<SearchProps> = ({
   return (
     <>
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           type="text"
           autoFocus
           value={query}
-          className={`h-12 w-full rounded-md bg-inputBg pr-10 text-base text-inputText placeholder:text-gray-500 focus:outline-inputOnFocus sm:text-sm ${loading ? 'pl-32' : 'pl-11'}`}
+          className={`h-12 pr-10 text-base sm:text-sm ${loading ? 'pl-32' : 'pl-11'}`}
           placeholder="Search..."
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Search inventory"
         />
         {loading ? (
-          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-2 text-textLabel">
+          <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center gap-2 text-text-secondary">
             <span aria-hidden="true">
-              <ArrowPathIcon className="size-5 animate-spin text-textLabel" />
+              <ArrowPathIcon className="size-5 animate-spin text-text-secondary" />
             </span>
             <span className="text-sm">Searching</span>
           </div>
         ) : (
           <MagnifyingGlassIcon
-            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-textLabel"
+            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-text-secondary"
             aria-hidden="true"
           />
         )}
@@ -192,16 +193,16 @@ const Search: React.FC<SearchProps> = ({
               onSearch('');
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-buttonPrimary hover:bg-buttonPrimary hover:text-white"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-interactive-support hover:bg-interactive-support hover:text-text-primary"
           >
             <XMarkIcon className="size-5" aria-hidden="true" />
           </button>
         )}
       </div>
       {progressVisible && (
-        <div className="h-1.5 w-full overflow-hidden rounded-full border border-border bg-bgBodyPrimary">
+        <div className="h-1.5 w-full overflow-hidden rounded-full border border-text-primary bg-surface-canvas">
           <div
-            className="h-full rounded-full bg-success"
+            className="h-full rounded-full bg-status-success"
             style={{
               width: progressWidth,
               transition: loading ? 'width 9s linear' : 'width 150ms ease-out',
@@ -209,7 +210,7 @@ const Search: React.FC<SearchProps> = ({
           />
         </div>
       )}
-      <>{error && <div className="mt-2 h-5 text-sm text-error">{error}</div>}</>
+      <>{error && <div className="mt-2 h-5 text-sm text-status-error">{error}</div>}</>
     </>
   );
 };

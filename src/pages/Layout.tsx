@@ -7,6 +7,8 @@ import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
 import Loader from '../components/base/Loader';
+import Button from '../components/base/Button';
+import Dropdown from '../components/base/Dropdown';
 import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
 
 const Layout: React.FC<{
@@ -18,8 +20,6 @@ const Layout: React.FC<{
 
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading' || inventoryLoading;
-
-  const [isResetClicked, setIsResetClicked] = useState(false);
 
   const [query, setQuery] = useState('');
 
@@ -168,14 +168,12 @@ const Layout: React.FC<{
     setManufacturersState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setProtocolsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
-    setIsResetClicked(true);
-    setTimeout(() => setIsResetClicked(false), 150);
     setPage(1);
   };
 
   return (
     <>
-      <div className="min-h-[100dvh] bg-bgBodyPrimary py-10">
+      <div className="min-h-[100dvh] bg-surface-canvas py-10">
         <main>
           <div
             id="search-bar"
@@ -201,10 +199,7 @@ const Layout: React.FC<{
 
           <div className="max-w-screen-3xl flex flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:px-8">
             {/* Sidebar */}
-            <aside
-              className="w-full rounded-lg p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
-              aria-label="Filters"
-            >
+            <aside className="w-full rounded-lg p-4 lg:w-1/4" aria-label="Filters">
               {errorFetchData && (
                 <div style={{ padding: 12 }}>
                   <strong>Filters unavailable:</strong> {errorFetchData}
@@ -227,41 +222,37 @@ const Layout: React.FC<{
 
             {/* Results */}
             <section className="w-3/4 flex-1">
-              <div className="mb-4 flex flex-wrap items-center gap-4 text-inputText">
+              <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
                 <p className="text-lg">
                   {filteredItems.length} result
                   {filteredItems.length !== 1 ? 's' : ''} found
                 </p>
-                <button
-                  type="button"
+                <Button
+                  text="Reset filters"
                   onClick={resetFilters}
-                  className={`w-64 rounded bg-buttonPrimary px-3 py-2 text-sm text-textWhite disabled:opacity-40 ${
-                    isResetClicked
-                      ? 'bg-buttonOnClick hover:bg-buttonOnClick'
-                      : 'bg-buttonPrimary hover:bg-buttonOnHover'
-                  }`}
-                >
-                  Reset filters
-                </button>
-                <label className="flex items-center gap-2 text-sm text-textValue">
+                  className="w-64 justify-center rounded border"
+                  variant="default"
+                />
+                <label className="flex items-center gap-2 text-sm text-text-primary">
                   TMs per page:
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
+                  <Dropdown
+                    id="page-size"
+                    label="TMs per page"
+                    value={String(pageSize)}
+                    onChange={(value) => {
+                      setPageSize(Number(value));
                       setPage(1);
                     }}
-                    className="rounded border border-buttonBorder bg-bgBodyPrimary px-2 py-1 text-sm hover:border-buttonOnHover"
-                  >
-                    {[10, 20, 50, 100].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                    options={[10, 20, 50, 100].map((n) => ({
+                      key: String(n),
+                      value: String(n),
+                    }))}
+                    showChevron={true}
+                    className="rounded bg-surface-canvas px-2 py-1 pr-10 text-sm"
+                  />
                 </label>
                 {query && filteredItems.length === 0 && (
-                  <span className="text-sm text-textLabel">(No matches for "{query}")</span>
+                  <span className="text-sm text-text-secondary">(No matches for "{query}")</span>
                 )}
               </div>
               {loading && <Loader text="Loading catalog..." />}

@@ -244,45 +244,84 @@ To format and fix the errors:
 
 ## Custom theme
 
-Customize the colors of the UI by editing CSS variables in `src/theme.css`. The light theme is defined under selector `:root`, and the dark theme under `.dark`. If you delete any of the defined variables, the default values will be used. All color values must be specified in hexadecimal format.
+Customize the colors of the UI by editing the CSS variables in `src/theme.css`.
+
+Theme structure:
+
+- Shared values used by both themes live in `:root`
+- Dark theme defaults live in `:root, html.dark`
+- Light theme overrides live in `html.light`
+
+All color values must be specified in hexadecimal format. Shared variables declared in `:root` are inherited by both themes unless they are overridden in `html.dark` or `html.light`.
 
 Variables (edit in `src/theme.css`):
 
-1. Background
+1. Surface
 
-- `--background-primary-navbar`: navbar background (logo + page title area)
-- `--background-secondary-navbar`: navbar shadow/accent
-- `--background-body-primary`: page background of the page body shared by all the pages
-- `--background-body-secondary`: panels/cards background
+- `--color-surface-canvas`: page background
+- `--color-surface-panel`: panel and card background
+- `--color-surface-panel-hover`: panel hover background
+- `--color-surface-panel-active`: active panel background
+- `--color-surface-modal`: modal and dialog background
+- `--color-surface-input`: input background
+- `--color-surface-input-hover`: input hover background
 
-2. Inputs are all areas that can receive user inputs such as text.
+2. Media
 
-- `--input-background`: input field background
-- `--input-main`: input main color
-- `--input-on-hover`: input background on hover
-- `--input-text`: input text color
-- `--input-on-focus`: input ring/background on focus
+- `--color-media`: neutral media/background fill
 
-3. Buttons are all areas that have an action
+3. Text
 
-- `--button-primary`: primary button background
-- `--button-on-hover`: button background on hover
-- `--button-on-click`: button background on click
-- `--button-border`: button border color
-- `--button-focus`: focus outline color
+- `--color-text-primary`: primary text color
+- `--color-text-secondary`: secondary text color
+- `--color-text-tertiary`: tertiary text color
+- `--color-text-inverse`: text color for inverse surfaces
+- `--color-text-inverse-strong`: stronger inverse text color
+- `--color-text-muted-light`: muted light text
+- `--color-text-marker`: marker and disabled indicator text
 
-4. Border of elements
+4. Border
 
-- `--border-on-hover`: generic border on hover
-- `--border`: generic border
+- `--color-border-default`: default border color
+- `--color-border-subtle`: subtle divider and border color
+- `--color-border-focus`: focus border color
+- `--color-border-accent`: accent border color
+- `--color-border-interactive`: default interactive border color
+- `--color-border-interactive-hover`: interactive border hover color
+- `--color-border-interactive-pressed`: interactive border pressed color
 
-5. Text colors
+5. Interactive
 
-- `--text-on-hover`: text color on hover
-- `--text-white`: white text
-- `--text-gray`: gray text
-- `--text-label`: label text
-- `--text-value`: value text
-- `--text-highlight`: highlight background (e.g., badges)
-- `--success`: success color
-- `--error`: error color
+- `--color-interactive-primary`: primary interactive color
+- `--color-interactive-hover`: interactive hover color
+- `--color-interactive-pressed`: interactive pressed color
+- `--color-interactive-support`: supporting interactive color
+- `--color-interactive-support-hover`: supporting interactive hover color
+- `--color-interactive-accent`: accent interactive color
+
+6. Focus
+
+- `--color-focus-ring`: focus ring color
+- `--color-focus-soft`: softer focus accent color
+
+7. Status
+
+- `--color-status-success`: success color
+- `--color-status-success-subtle`: subtle success background/tint
+- `--color-status-success-outline`: success outline color
+- `--color-status-error`: error color
+- `--color-status-error-subtle`: subtle error background/tint
+- `--color-status-error-hover`: error hover color
+- `--color-status-error-outline`: error outline color
+- `--color-status-error-strong`: stronger error background/accent
+- `--color-status-error-soft`: softer error background/accent
+
+8. Overlay
+
+- `--color-overlay-backdrop`: overlay and modal backdrop color
+- `--color-overlay-success-tint`: success overlay tint
+- `--color-overlay-scroll-thumb`: scrollbar thumb color
+
+9. Icon
+
+- `--color-icon-brand`: brand icon color

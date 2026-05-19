@@ -15,7 +15,7 @@ const Loader: React.FC<LoaderProps> = ({ text, className = '' }: LoaderProps) =>
 
   return (
     <div className={containerClassName} role="status" aria-live="polite">
-      <div className="flex items-center justify-center px-4 text-textValue">
+      <div className="flex items-center justify-center px-4 text-text-primary">
         {LOADER_DOTS.map((dotIndex) => (
           <span
             key={dotIndex}
@@ -27,7 +27,7 @@ const Loader: React.FC<LoaderProps> = ({ text, className = '' }: LoaderProps) =>
           </span>
         ))}
       </div>
-      {text ? <span className="text-sm text-textLabel">{text}</span> : null}
+      {text ? <span className="text-sm text-text-secondary">{text}</span> : null}
       <span className="sr-only">{text ?? 'Loading'}</span>
     </div>
   );

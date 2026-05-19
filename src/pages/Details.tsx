@@ -12,6 +12,7 @@ import type { ThingDescription } from 'wot-typescript-definitions';
 import { fetchLocalThingModel } from '../services/localData';
 import Dropdown from '../components/base/Dropdown';
 import Loader from '../components/base/Loader';
+import Button from '../components/base/Button';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -230,7 +231,7 @@ const Details = () => {
 
   if (loading)
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-bgBodyPrimary">
+      <div className="flex min-h-dvh items-center justify-center bg-surface-canvas">
         <Loader text="Loading Thing Description..." />
       </div>
     );
@@ -244,12 +245,12 @@ const Details = () => {
   if (!item) return null;
 
   return (
-    <div className="min-h-dvh bg-bgBodyPrimary">
+    <div className="min-h-dvh bg-surface-canvas">
       <main className="mx-auto max-w-7xl sm:px-6 sm:pt-16 lg:px-8">
         <div className="mx-auto max-w-2xl lg:max-w-none">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
             <div className="flex-shrink-0 md:w-80">
-              <div className="rounded-lg bg-imageBackground">
+              <div className="rounded-lg bg-media">
                 <img
                   alt={`Product image of ${(item as ItemExtended).name ?? item.tmName}`}
                   src={imageSrc}
@@ -257,7 +258,7 @@ const Details = () => {
                 />
               </div>
               <div className="mt-5 flex w-full items-center justify-between gap-4">
-                <h1 className="shrink-0 text-sm font-medium uppercase tracking-[0.18em] text-textLabel">
+                <h1 className="shrink-0 text-sm font-medium uppercase tracking-[0.18em] text-text-secondary">
                   Version:
                 </h1>
                 <Dropdown
@@ -266,34 +267,37 @@ const Details = () => {
                   options={dropdownData}
                   value={selectedVersion}
                   onChange={handleVersionChange}
-                  showChevron
+                  showChevron={true}
                   wrapperClassName="ml-auto w-full max-w-[13rem]"
-                  chevronClassName="h-5 w-5 text-textWhite"
-                  className="block h-10 w-full rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite shadow-sm transition hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
+                  className="block h-10 w-full px-3"
                 ></Dropdown>
               </div>
-              <div className="mt-4 divide-y divide-gray-200 border-t border-gray-200"></div>
+              <div className="mt-4 divide-y divide-border-subtle border-t border-border-subtle"></div>
               <div className="mt-4 flex w-full items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => openFullDetails(selectedVersion)}
-                  disabled={!fullDescription}
-                  className="inline-flex flex-1 items-center justify-center rounded-md bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Open full details
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOpenWith(true)}
-                  className="inline-flex flex-1 items-center justify-center rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-semibold text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
-                >
-                  Open with …
-                </button>
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    onClick={() => openFullDetails(selectedVersion)}
+                    disabled={!fullDescription}
+                    text="Open full details"
+                    className="border p-4"
+                    variant="default"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    onClick={() => setOpenWith(true)}
+                    text="Open with …"
+                    className="border p-4"
+                    variant="default"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Right: flexible content */}
-            <div className="mt-0 flex-1 px-4 text-textGray sm:px-0">
+            <div className="mt-0 flex-1 px-4 text-text-secondary sm:px-0">
               <FieldCard
                 label="Manufacturer"
                 value={fullDescription?.['schema:manufacturer']?.['schema:name'] ?? item.tmName}
@@ -316,40 +320,40 @@ const Details = () => {
                 </div>
               </div>
 
-              <div className="mt-2 flex divide-y divide-gray-200 border-t border-gray-200"></div>
+              <div className="mt-2 flex divide-y divide-border-subtle border-t border-border-subtle"></div>
               <FieldCard label="ID" value={fullDescription?.id ?? '—'} />
               <section aria-labelledby="details-heading" className="mt-12">
                 <h2 id="details-heading" className="">
                   Additional details
                 </h2>
 
-                <div className="divide-y divide-gray-200 border-t border-gray-200">
+                <div className="divide-y divide-border-subtle border-t border-border-subtle">
                   {sections.map((detail) => (
                     <Disclosure key={detail.name} as="div" className="group">
                       <h3>
                         <DisclosureButton className="group relative flex w-full items-center justify-between py-6 text-left">
-                          <span className="group-data-open:text-indigo-600 text-sm font-medium text-textLabel">
+                          <span className="group-data-open:text-interactive-accent text-sm font-medium text-text-secondary">
                             {detail.name}
                           </span>
                           <span className="ml-6 flex items-center">
                             <PlusIcon
                               aria-hidden="true"
-                              className="group-hover:buttonOnHover block h-6 w-6 text-buttonPrimary group-data-[open]:hidden"
+                              className="block h-6 w-6 text-icon-brand group-hover:text-interactive-hover group-data-[open]:hidden"
                             />
                             <MinusIcon
                               aria-hidden="true"
-                              className="group-hover:buttonOnHover hidden h-6 w-6 text-buttonPrimary group-data-[open]:block"
+                              className="hidden h-6 w-6 text-icon-brand group-hover:text-interactive-hover group-data-[open]:block"
                             />
                           </span>
                         </DisclosureButton>
                       </h3>
                       <DisclosurePanel className="pb-6">
                         {detail.items.length === 0 ? (
-                          <p className="pl-5 text-sm text-textLabel">No data to display</p>
+                          <p className="pl-5 text-sm text-text-secondary">No data to display</p>
                         ) : (
                           <ul
                             role="list"
-                            className="list-disc space-y-1 pl-5 text-sm text-textValue marker:text-gray-300"
+                            className="list-disc space-y-1 pl-5 text-sm text-text-primary marker:text-text-marker"
                           >
                             {detail.items.map((d) => (
                               <li key={d} className="pl-2">

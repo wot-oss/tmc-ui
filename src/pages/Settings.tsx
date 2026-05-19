@@ -66,14 +66,14 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <main className="min-h-[calc(100dvh-4rem)] bg-bgBodyPrimary px-4 py-10 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100dvh-4rem)] bg-surface-canvas px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-textLabel">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-text-secondary">
             Settings
           </p>
-          <h1 className="text-3xl font-semibold text-inputText">Manage API credentials</h1>
-          <p className="text-sm leading-6 text-textLabel">
+          <h1 className="text-3xl font-semibold text-text-primary">Manage API credentials</h1>
+          <p className="text-sm leading-6 text-text-secondary">
             Review the credentials stored for this tab and save changes to re-authenticate the
             catalog session.
           </p>
