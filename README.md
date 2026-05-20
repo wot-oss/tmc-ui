@@ -3,33 +3,9 @@
 Open-source web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
 The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
 
-# Development
-
-## Prerequisites
-
-- Node.js >= 22.20.0
-- Yarn
-
-## Local Setup
-
-If you wish to have a local setup, you only need to have the `setup-local.sh` file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
-
-Edit the `.env` file, and then run:
-
-    sh setup-local.sh
-
-It will automatically install, build and give a preview of the current application.
-
-The `setup-local.sh` script does the following:
-
-1. Checks that Node.js `>= 22.20.0` is installed.
-2. Checks whether Yarn is available.
-3. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
-4. Runs `yarn install && yarn build && yarn preview`.
-
 # Deploy
 
-This UI can be deployed as a static site or with a backend server using GitHub Pages or GitLab Pages.
+The TMC-UI can be deployed as a static site or with a backend server using GitHub Pages or GitLab Pages.
 
 The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
@@ -39,11 +15,11 @@ Inside the `ci-cd` folder are the files used by `deploy.sh`.
 - `fetchRepository.sh`
 - `validateRequiredFiles.sh`
 
-### Workflow of deploy.sh
+## Workflow of deploy.sh
 
 <img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
 
-### Instructions
+## Instructions
 
 Create a `.env` file at the repository root before running the script:
 
@@ -106,7 +82,7 @@ Notes:
 - The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
 
-### Connection to a backend server
+## Connection to a backend server
 
 The connection to a backend server that provides the catalog can be configured by adding the following variables to the `.env` file:
 
@@ -118,7 +94,7 @@ Or you can use the **export** command before running the application:
 
     export VITE_API_HOST=some_value
 
-If no `.env` file is defined, the default value will be:
+If no VITE_API_HOST, VITE_API_PORT, VITE_API_PROTOCOL is defined, the default value will be:
 
     http://localhost:8080
 
@@ -134,8 +110,11 @@ Based on the previous sections, the .env file can have the following structure:
     SERVER_AVAILABLE
     VITE_EDITDOR_URL=https://eclipse-editdor.github.io/editdor/
     VITE_PLAYGROUND_URL=https://playground.thingweb.io/
+    VITE_SETUP_CREDENTIALS_MESSAGE=
 
-`VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
+- `VITE_SETUP_CREDENTIALS_MESSAGE`="My Message": Additional text shown in the setup credentials screen. This can be used to provide operator instructions such as who to contact for access.
+
+- `VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
 
 These two options are displayed in the Details page.
 
@@ -211,18 +190,37 @@ On startup, the UI behaves as follows:
 - The access token is kept in memory and is not persisted in browser storage.
 - The Settings page allows users to review and replace the current credentials during the session.
 
-#### Optional environment variables
 
-- `VITE_SETUP_CREDENTIALS_MESSAGE`: Additional text shown in the setup credentials screen. This can be used to provide operator instructions such as who to contact for access.
-
-#### Example local configuration
+#### Example minimal local configuration
 
 Create a local `.env` file with the following keys:
 
     SERVER_AVAILABLE=true
     VITE_TOKEN_URL=https://auth.example.local/oauth/token
     VITE_SERVER_URL=https://api.example.local
-    VITE_SETUP_CREDENTIALS_MESSAGE="If you do not have credentials, contact the administrator."
+
+# Development
+## Prerequisites
+
+- Node.js >= 22.20.0
+- Yarn
+
+## Local Setup
+
+If you wish to have a local setup, you only need to have the `setup-local.sh` file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
+
+Edit the `.env` file, and then run:
+
+    sh setup-local.sh
+
+It will automatically install, build and give a preview of the current application.
+
+The `setup-local.sh` script does the following:
+
+1. Checks that Node.js `>= 22.20.0` is installed.
+2. Checks whether Yarn is available.
+3. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
+4. Runs `yarn install && yarn build && yarn preview`.
 
 ## Formatting
 
