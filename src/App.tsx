@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import CredentialsPrompt from './components/SetupCredentials';
 import Loader from './components/base/Loader';
 import Details from './pages/Details';
-import FourZeroFourNotFound from './components/404NotFound';
+import AppError from './components/AppError';
 import { AuthProvider } from './context/AuthContext';
 import LayoutLoadData from './pages/LayoutLoadData';
 import Settings from './pages/Settings';
@@ -98,14 +98,15 @@ const AppShell: React.FC = () => {
   );
 };
 
-const AppShellError: React.FC<{ titleError: string; descriptionError?: string }> = ({
-  titleError,
-  descriptionError,
-}) => {
+const AppShellError: React.FC<{
+  codeError: number;
+  titleError: string;
+  descriptionError?: string;
+}> = ({ codeError, titleError, descriptionError }) => {
   return (
     <>
       <Navbar />
-      <FourZeroFourNotFound titleError={titleError} descriptionError={descriptionError} />
+      <AppError codeError={codeError} titleError={titleError} descriptionError={descriptionError} />
     </>
   );
 };
@@ -151,7 +152,10 @@ const App: React.FC = () => {
     seedToken === null;
 
   const authIsEnabled =
-    !missingRequiredEnvConfig && !showSetupCredentials && !shouldValidateStoredCredentials;
+    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
+    !missingRequiredEnvConfig &&
+    !showSetupCredentials &&
+    !shouldValidateStoredCredentials;
 
   const handleClientIdChange = useCallback((value: string) => {
     setStoredSessionValue(CLIENT_ID_SESSION_KEY, value);
@@ -276,6 +280,7 @@ const App: React.FC = () => {
                     descriptionError={
                       'Required deployment variables are missing. Please contact the deployment administrator to resolve this configuration issue.'
                     }
+                    codeError={401}
                   />
                 ),
               },
@@ -283,7 +288,7 @@ const App: React.FC = () => {
           : [
               {
                 element: <AppShell />,
-                errorElement: <AppShellError titleError={'Settings not found'} />,
+                errorElement: <AppShellError titleError={'Settings not found'} codeError={401} />,
                 children: showSetupCredentials
                   ? [
                       {
@@ -319,12 +324,12 @@ const App: React.FC = () => {
                       {
                         index: true,
                         element: <LayoutLoadData />,
-                        errorElement: <FourZeroFourNotFound titleError={'Catalog not found'} />,
+                        errorElement: <AppError titleError={'Catalog not found'} codeError={404} />,
                       },
                       {
                         path: 'details/*',
                         element: <Details />,
-                        errorElement: <FourZeroFourNotFound titleError={'Details not found'} />,
+                        errorElement: <AppError titleError={'Details not found'} codeError={404} />,
                       },
                       {
                         path: 'settings',
@@ -336,7 +341,9 @@ const App: React.FC = () => {
                             onCommitCredentials={handleCredentialsCommit}
                           />
                         ),
-                        errorElement: <FourZeroFourNotFound titleError={'Settings not found'} />,
+                        errorElement: (
+                          <AppError titleError={'Settings not found'} codeError={404} />
+                        ),
                       },
                     ],
               },

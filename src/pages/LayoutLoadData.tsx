@@ -54,11 +54,11 @@ export default function LayoutLoadData() {
         }
 
         if (err instanceof Response) {
-          setInventoryError(err.statusText || 'Failed to load inventory');
+          setInventoryError(err.statusText || 'Failed to find local inventory');
           return;
         }
 
-        setInventoryError(err instanceof Error ? err.message : 'Failed to load inventory');
+        setInventoryError(err instanceof Error ? err.message : 'Failed to find local inventory');
       } finally {
         setInventoryLoading(false);
       }

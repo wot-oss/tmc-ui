@@ -1,19 +1,17 @@
 import React from 'react';
 import Button from './base/Button';
 
-type FourZeroFourNotFoundProps = {
+type AppErrorProps = {
+  codeError: number;
   titleError?: string;
   descriptionError?: string;
 };
 
-const DEFAULT_SECONDARY_ERROR = 'Oops! We couldn’t locate the catalog you requested.';
+const DEFAULT_DESCRIPTION_ERROR = 'Oops! We couldn’t locate the catalog you requested.';
 
-const FourZeroFourNotFound: React.FC<FourZeroFourNotFoundProps> = ({
-  titleError,
-  descriptionError,
-}) => {
+const AppError: React.FC<AppErrorProps> = ({ codeError, titleError, descriptionError }) => {
   const resolvedTitleError = titleError ?? 'Page not found';
-  const resolvedDescriptionError = descriptionError ?? DEFAULT_SECONDARY_ERROR;
+  const resolvedDescriptionError = descriptionError ?? DEFAULT_DESCRIPTION_ERROR;
 
   const handleReload = () => {
     window.location.reload();
@@ -23,7 +21,7 @@ const FourZeroFourNotFound: React.FC<FourZeroFourNotFoundProps> = ({
     <>
       <div className="bg-surface-canvas grid min-h-dvh place-items-center px-6 py-24 sm:py-32 lg:px-8">
         <div className="text-center">
-          <p className="text-status-error text-base font-semibold">Error 404</p>
+          <p className="text-status-error text-base font-semibold">Error {codeError}</p>
           <h1 className="text-text-primary mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-7xl">
             {resolvedTitleError}
           </h1>
@@ -45,4 +43,4 @@ const FourZeroFourNotFound: React.FC<FourZeroFourNotFoundProps> = ({
   );
 };
 
-export default FourZeroFourNotFound;
+export default AppError;

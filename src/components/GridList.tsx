@@ -1,6 +1,6 @@
 import React from 'react';
 import defaultImage from '../assets/default-image.png';
-import FourZeroFourNotFound from './404NotFound';
+import AppError from './AppError';
 import { Link } from 'react-router-dom';
 import Loader from './base/Loader';
 import Card from './Card';
@@ -49,7 +49,7 @@ const GridList: React.FC<{
   if (error)
     return (
       <div className="p-4">
-        <FourZeroFourNotFound titleError={error}></FourZeroFourNotFound>
+        <AppError titleError={error} codeError={404}></AppError>
       </div>
     );
 

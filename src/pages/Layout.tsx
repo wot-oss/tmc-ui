@@ -173,7 +173,7 @@ const Layout: React.FC<{
 
   return (
     <>
-      <div className="min-h-[100dvh] bg-surface-canvas py-10">
+      <div className="bg-surface-canvas min-h-[100dvh] py-10">
         <main>
           <div
             id="search-bar"
@@ -202,7 +202,7 @@ const Layout: React.FC<{
             <aside className="w-full rounded-lg p-4 lg:w-1/4" aria-label="Filters">
               {errorFetchData && (
                 <div style={{ padding: 12 }}>
-                  <strong>Filters unavailable:</strong> {errorFetchData}
+                  <strong>Filters unavailable</strong>
                 </div>
               )}
 
@@ -222,7 +222,7 @@ const Layout: React.FC<{
 
             {/* Results */}
             <section className="w-3/4 flex-1">
-              <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
+              <div className="text-text-primary mb-4 flex flex-wrap items-center gap-4">
                 <p className="text-lg">
                   {filteredItems.length} result
                   {filteredItems.length !== 1 ? 's' : ''} found
@@ -233,7 +233,7 @@ const Layout: React.FC<{
                   className="w-64 justify-center rounded border"
                   variant="default"
                 />
-                <label className="flex items-center gap-2 text-sm text-text-primary">
+                <label className="text-text-primary flex items-center gap-2 text-sm">
                   TMs per page:
                   <Dropdown
                     id="page-size"
@@ -248,11 +248,11 @@ const Layout: React.FC<{
                       value: String(n),
                     }))}
                     showChevron={true}
-                    className="rounded bg-surface-canvas px-2 py-1 pr-10 text-sm"
+                    className="bg-surface-canvas rounded px-2 py-1 pr-10 text-sm"
                   />
                 </label>
                 {query && filteredItems.length === 0 && (
-                  <span className="text-sm text-text-secondary">(No matches for "{query}")</span>
+                  <span className="text-text-secondary text-sm">(No matches for "{query}")</span>
                 )}
               </div>
               {loading && <Loader text="Loading catalog..." />}
