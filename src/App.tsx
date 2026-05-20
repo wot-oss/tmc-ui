@@ -98,11 +98,14 @@ const AppShell: React.FC = () => {
   );
 };
 
-const AppShellError: React.FC = () => {
+const AppShellError: React.FC<{ titleError: string; descriptionError?: string }> = ({
+  titleError,
+  descriptionError,
+}) => {
   return (
     <>
       <Navbar />
-      <FourZeroFourNotFound error={'Settings not defined'} />
+      <FourZeroFourNotFound titleError={titleError} descriptionError={descriptionError} />
     </>
   );
 };
@@ -132,17 +135,23 @@ const App: React.FC = () => {
   const [isValidatingStartupCredentials, setIsValidatingStartupCredentials] = useState(false);
 
   const tokenUrl = (import.meta.env.VITE_TOKEN_URL ?? '') as string;
+  const serverUrl = (import.meta.env.VITE_SERVER_URL ?? '') as string;
+  const missingRequiredEnvConfig = tokenUrl.trim().length === 0 || serverUrl.trim().length === 0;
+
   const credentialsReady =
     credentialsSubmitted && clientId.trim().length > 0 && clientSecret.trim().length > 0;
+
   const showSetupCredentials =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && Boolean(tokenUrl) && !credentialsReady;
+    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && !missingRequiredEnvConfig && !credentialsReady;
+
   const shouldValidateStoredCredentials =
     __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
-    Boolean(tokenUrl) &&
+    !missingRequiredEnvConfig &&
     credentialsReady &&
     seedToken === null;
+
   const authIsEnabled =
-    Boolean(tokenUrl) && !showSetupCredentials && !shouldValidateStoredCredentials;
+    !missingRequiredEnvConfig && !showSetupCredentials && !shouldValidateStoredCredentials;
 
   const handleClientIdChange = useCallback((value: string) => {
     setStoredSessionValue(CLIENT_ID_SESSION_KEY, value);
@@ -257,67 +266,81 @@ const App: React.FC = () => {
   const router = useMemo(
     () =>
       createHashRouter(
-        [
-          {
-            element: <AppShell />,
-            errorElement: <AppShellError />,
-            children: showSetupCredentials
-              ? [
-                  {
-                    index: true,
-                    element: (
-                      <CredentialsPrompt
-                        clientId={clientId}
-                        clientSecret={clientSecret}
-                        onClientIdChange={handleClientIdChange}
-                        onClientSecretChange={handleClientSecretChange}
-                        onSubmit={handleCredentialsSubmit}
-                        errorMessage={startupError}
-                        isSubmitting={isValidatingStartupCredentials}
-                      />
-                    ),
-                  },
-                  {
-                    path: '*',
-                    element: (
-                      <CredentialsPrompt
-                        clientId={clientId}
-                        clientSecret={clientSecret}
-                        onClientIdChange={handleClientIdChange}
-                        onClientSecretChange={handleClientSecretChange}
-                        onSubmit={handleCredentialsSubmit}
-                        errorMessage={startupError}
-                        isSubmitting={isValidatingStartupCredentials}
-                      />
-                    ),
-                  },
-                ]
-              : [
-                  {
-                    index: true,
-                    element: <LayoutLoadData />,
-                    errorElement: <FourZeroFourNotFound error={'Catalog not found'} />,
-                  },
-                  {
-                    path: 'details/*',
-                    element: <Details />,
-                    errorElement: <FourZeroFourNotFound error={'Details not found'} />,
-                  },
-                  {
-                    path: 'settings',
-                    element: (
-                      <Settings
-                        clientId={clientId}
-                        clientSecret={clientSecret}
-                        tokenUrl={tokenUrl}
-                        onCommitCredentials={handleCredentialsCommit}
-                      />
-                    ),
-                    errorElement: <FourZeroFourNotFound error={'Settings not found'} />,
-                  },
-                ],
-          },
-        ],
+        missingRequiredEnvConfig
+          ? [
+              {
+                path: '*',
+                element: (
+                  <AppShellError
+                    titleError={'Environment not configured'}
+                    descriptionError={
+                      'Required deployment variables are missing. Please contact the deployment administrator to resolve this configuration issue.'
+                    }
+                  />
+                ),
+              },
+            ]
+          : [
+              {
+                element: <AppShell />,
+                errorElement: <AppShellError titleError={'Settings not found'} />,
+                children: showSetupCredentials
+                  ? [
+                      {
+                        index: true,
+                        element: (
+                          <CredentialsPrompt
+                            clientId={clientId}
+                            clientSecret={clientSecret}
+                            onClientIdChange={handleClientIdChange}
+                            onClientSecretChange={handleClientSecretChange}
+                            onSubmit={handleCredentialsSubmit}
+                            errorMessage={startupError}
+                            isSubmitting={isValidatingStartupCredentials}
+                          />
+                        ),
+                      },
+                      {
+                        path: '*',
+                        element: (
+                          <CredentialsPrompt
+                            clientId={clientId}
+                            clientSecret={clientSecret}
+                            onClientIdChange={handleClientIdChange}
+                            onClientSecretChange={handleClientSecretChange}
+                            onSubmit={handleCredentialsSubmit}
+                            errorMessage={startupError}
+                            isSubmitting={isValidatingStartupCredentials}
+                          />
+                        ),
+                      },
+                    ]
+                  : [
+                      {
+                        index: true,
+                        element: <LayoutLoadData />,
+                        errorElement: <FourZeroFourNotFound titleError={'Catalog not found'} />,
+                      },
+                      {
+                        path: 'details/*',
+                        element: <Details />,
+                        errorElement: <FourZeroFourNotFound titleError={'Details not found'} />,
+                      },
+                      {
+                        path: 'settings',
+                        element: (
+                          <Settings
+                            clientId={clientId}
+                            clientSecret={clientSecret}
+                            tokenUrl={tokenUrl}
+                            onCommitCredentials={handleCredentialsCommit}
+                          />
+                        ),
+                        errorElement: <FourZeroFourNotFound titleError={'Settings not found'} />,
+                      },
+                    ],
+              },
+            ],
         {
           future: {
             v7_relativeSplatPath: true,
@@ -332,6 +355,7 @@ const App: React.FC = () => {
       handleCredentialsCommit,
       handleCredentialsSubmit,
       isValidatingStartupCredentials,
+      missingRequiredEnvConfig,
       startupError,
       tokenUrl,
       showSetupCredentials,
@@ -342,9 +366,13 @@ const App: React.FC = () => {
     return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
   }
 
+  if (missingRequiredEnvConfig) {
+    return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+  }
+
   if (shouldValidateStoredCredentials) {
     return (
-      <main className="min-h-dvh bg-surface-canvas px-4 py-10 sm:px-6 lg:px-8">
+      <main className="bg-surface-canvas min-h-dvh px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-6xl items-center justify-center">
           <Loader text="Validating saved credentials..." />
         </div>

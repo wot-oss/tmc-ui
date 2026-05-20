@@ -49,7 +49,7 @@ const GridList: React.FC<{
   if (error)
     return (
       <div className="p-4">
-        <FourZeroFourNotFound error={error}></FourZeroFourNotFound>
+        <FourZeroFourNotFound titleError={error}></FourZeroFourNotFound>
       </div>
     );
 
@@ -79,19 +79,19 @@ const GridList: React.FC<{
                   imageAlt={`Product image of ${title}`}
                   imageFallbackSrc={DEFAULT_IMAGE_SRC}
                 >
-                  <p className="mt-1 truncate text-sm text-text-secondary">
+                  <p className="text-text-secondary mt-1 truncate text-sm">
                     {itemTM.links?.content ?? ''}
                   </p>
-                  <p className="mt-1 truncate text-sm text-text-secondary">
+                  <p className="text-text-secondary mt-1 truncate text-sm">
                     {itemTM.repo?.concat(', ') ?? ''}
                   </p>
-                  <p className="mt-1 truncate text-sm text-text-secondary">
+                  <p className="text-text-secondary mt-1 truncate text-sm">
                     {itemTM['schema:mpn']}
                   </p>
-                  <p className="mt-1 truncate text-sm text-text-secondary">
+                  <p className="text-text-secondary mt-1 truncate text-sm">
                     {itemTM['schema:description'] ?? ''}
                   </p>
-                  <p className="mt-1 truncate text-sm text-text-secondary">
+                  <p className="text-text-secondary mt-1 truncate text-sm">
                     {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
                     available
                   </p>
