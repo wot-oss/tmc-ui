@@ -4,6 +4,12 @@ import { INVENTORY_TIMEOUT_MS, INVENTORY_ENDPOINT, THING_MODEL_ENDPOINT } from '
 interface FetchInventoryOptions {
   readonly signal?: AbortSignal;
   readonly authorizationHeader?: string | null;
+  readonly filters?: {
+    readonly author?: readonly string[];
+    readonly protocol?: readonly string[];
+    readonly manufacturer?: readonly string[];
+    readonly repository?: readonly string[];
+  };
 }
 
 interface FetchThingModelOptions {
@@ -18,6 +24,32 @@ function buildRequestHeaders(authorizationHeader?: string | null): HeadersInit {
   };
 }
 
+function buildInventoryUrl(baseUrl: string, filters?: FetchInventoryOptions['filters']): string {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const searchParams = new URLSearchParams();
+
+  if (filters?.author?.length) {
+    searchParams.set('filter.author', filters.author.join(','));
+  }
+
+  if (filters?.protocol?.length) {
+    searchParams.set('filter.protocol', filters.protocol.join(','));
+  }
+
+  if (filters?.manufacturer?.length) {
+    searchParams.set('filter.manufacturer', filters.manufacturer.join(','));
+  }
+
+  if (filters?.repository?.length) {
+    searchParams.set('filter.repository', filters.repository.join(','));
+  }
+
+  const query = searchParams.toString();
+  return query
+    ? `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}?${query}`
+    : `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}`;
+}
+
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
   options: FetchInventoryOptions = {},
@@ -26,7 +58,7 @@ export async function fetchApiDataInventory(
     throw new Response('Catalog URL not configured', { status: 400 });
   }
 
-  const { signal, authorizationHeader } = options;
+  const { signal, authorizationHeader, filters } = options;
   const controller = new AbortController();
   let didTimeout = false;
 
@@ -39,7 +71,7 @@ export async function fetchApiDataInventory(
   signal?.addEventListener('abort', abortFromCaller);
 
   try {
-    const res = await fetch(`${baseUrl}/${INVENTORY_ENDPOINT}`, {
+    const res = await fetch(buildInventoryUrl(baseUrl, filters), {
       signal: controller.signal,
       headers: buildRequestHeaders(authorizationHeader),
     });

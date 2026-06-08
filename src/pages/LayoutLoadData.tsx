@@ -14,6 +14,20 @@ export default function LayoutLoadData() {
 
   useEffect(() => {
     const controller = new AbortController();
+    if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && enabled && isLoading && !authorizationHeader) {
+      return () => controller.abort();
+    }
+
+    if (error) {
+      setInventoryLoading(false);
+      setInventoryError(error);
+      return () => controller.abort();
+    }
+
+    if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && enabled && !authorizationHeader) {
+      setInventoryLoading(true);
+      return () => controller.abort();
+    }
 
     if (__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && enabled && isLoading && !authorizationHeader) {
       return () => controller.abort();
@@ -29,7 +43,6 @@ export default function LayoutLoadData() {
             if (enabled && !authorizationHeader) {
               return;
             }
-
             const nextInventory = await fetchApiDataInventory(__API_BASE__, {
               signal: controller.signal,
               authorizationHeader,

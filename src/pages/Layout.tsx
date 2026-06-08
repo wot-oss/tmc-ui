@@ -10,6 +10,7 @@ import Loader from '../components/base/Loader';
 import Button from '../components/base/Button';
 import Dropdown from '../components/base/Dropdown';
 import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
+import { fetchApiDataInventory } from '../services/apiData';
 
 const Layout: React.FC<{
   loadedItems: Item[];
@@ -17,6 +18,7 @@ const Layout: React.FC<{
   inventoryError: string | null;
 }> = ({ loadedItems, inventoryLoading, inventoryError }) => {
   const [items, setItems] = useState<Item[]>(loadedItems ?? []);
+  const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
 
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading' || inventoryLoading;
@@ -35,6 +37,18 @@ const Layout: React.FC<{
   const selectedProtocols = useMemo(
     () => protocolsState.filter((p) => p.checked).map((p) => p.value),
     [protocolsState],
+  );
+  const checkedRepositories = useMemo(
+    () => repositoriesState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [repositoriesState],
+  );
+  const checkedManufacturers = useMemo(
+    () => manufacturersState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [manufacturersState],
+  );
+  const checkedAuthors = useMemo(
+    () => authorsState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [authorsState],
   );
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
@@ -97,39 +111,76 @@ const Layout: React.FC<{
     return () => controller.abort();
   }, [authorizationHeader, authLoading, enabled, selectedProtocols]);
 
-  const filteredItems = useMemo<Item[]>(() => {
-    const checkedRepositories = repositoriesState
-      .filter((opt) => opt.checked)
-      .map((opt) => opt.value);
-    const checkedManufacturers = manufacturersState
-      .filter((opt) => opt.checked)
-      .map((opt) => opt.value);
-    const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
-
+  useEffect(() => {
     const hasFilters =
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
       checkedAuthors.length > 0;
 
-    let result = protocolFilteredItems ?? items;
+    const result = protocolFilteredItems ?? items;
 
-    if (hasFilters) {
-      result = items.filter((item) => {
-        const matchesCatalog =
-          checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
-        const matchesManufacturer =
-          checkedManufacturers.length === 0 ||
-          checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
-        const matchesAuthor =
-          checkedAuthors.length === 0 ||
-          //checkedAuthors.includes(item["schema:author"]?.["schema:name"]); // case api
-          checkedAuthors.some((author) => item.name?.toLowerCase().includes(author.toLowerCase())); // case local
+    if (hasFilters && __DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') {
+      // filtering frontend
+      setFilteredItems(
+        items.filter((item) => {
+          const matchesCatalog =
+            checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
+          const matchesManufacturer =
+            checkedManufacturers.length === 0 ||
+            checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
+          const matchesAuthor =
+            checkedAuthors.length === 0 ||
+            checkedAuthors.some((author) =>
+              item.name?.toLowerCase().includes(author.toLowerCase()),
+            );
 
-        return matchesCatalog && matchesManufacturer && matchesAuthor;
-      });
+          return matchesCatalog && matchesManufacturer && matchesAuthor;
+        }),
+      );
+      return;
     }
-    return result;
-  }, [items, repositoriesState, manufacturersState, authorsState, protocolFilteredItems]);
+
+    if (hasFilters && __DEPLOY_TYPE__ === 'SERVER_AVAILABLE') {
+      const controller = new AbortController();
+
+      const loadFilteredItems = async () => {
+        try {
+          const nextFilteredItems = (await fetchApiDataInventory(__API_BASE__, {
+            signal: controller.signal,
+            authorizationHeader,
+            filters: {
+              protocol: selectedProtocols,
+              repository: checkedRepositories,
+              manufacturer: checkedManufacturers,
+              author: checkedAuthors,
+            },
+          })) as Item[];
+
+          setFilteredItems(nextFilteredItems);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') {
+            return;
+          }
+
+          console.error(err);
+        }
+      };
+
+      void loadFilteredItems();
+
+      return () => controller.abort();
+    }
+
+    setFilteredItems(result);
+  }, [
+    authorizationHeader,
+    checkedAuthors,
+    checkedManufacturers,
+    checkedRepositories,
+    items,
+    protocolFilteredItems,
+    selectedProtocols,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
 
@@ -173,7 +224,7 @@ const Layout: React.FC<{
 
   return (
     <>
-      <div className="bg-surface-canvas min-h-[100dvh] py-10">
+      <div className="min-h-[100dvh] bg-surface-canvas py-10">
         <main>
           <div
             id="search-bar"
@@ -222,7 +273,7 @@ const Layout: React.FC<{
 
             {/* Results */}
             <section className="w-3/4 flex-1">
-              <div className="text-text-primary mb-4 flex flex-wrap items-center gap-4">
+              <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
                 <p className="text-lg">
                   {filteredItems.length} result
                   {filteredItems.length !== 1 ? 's' : ''} found
@@ -233,7 +284,7 @@ const Layout: React.FC<{
                   className="w-64 justify-center rounded border"
                   variant="default"
                 />
-                <label className="text-text-primary flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm text-text-primary">
                   TMs per page:
                   <Dropdown
                     id="page-size"
@@ -248,11 +299,11 @@ const Layout: React.FC<{
                       value: String(n),
                     }))}
                     showChevron={true}
-                    className="bg-surface-canvas rounded px-2 py-1 pr-10 text-sm"
+                    className="rounded bg-surface-canvas px-2 py-1 pr-10 text-sm"
                   />
                 </label>
                 {query && filteredItems.length === 0 && (
-                  <span className="text-text-secondary text-sm">(No matches for "{query}")</span>
+                  <span className="text-sm text-text-secondary">(No matches for "{query}")</span>
                 )}
               </div>
               {loading && <Loader text="Loading catalog..." />}
