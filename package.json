@@ -10,7 +10,7 @@
     "clean": "rm -rf node_modules dist build && yarn install && yarn build",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "setup:local": "yarn install && yarn build && yarn preview"
+    "setup:local": "yarn install && yarn build && vite preview"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
