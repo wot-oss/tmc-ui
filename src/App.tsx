@@ -114,13 +114,13 @@ const AppShellError: React.FC<{
 const App: React.FC = () => {
   if (__DEBUG__) {
     console.warn('Vite globals', {
-      __API_BASE__,
-      __CATALOG_URL__,
-      __DEBUG__,
-      __SERVER_AVAILABLE__,
-      __APP_REPO_URL__,
-      __CATALOG_REPO_URL__,
-      __DEPLOY_TYPE__,
+      api_base: __API_BASE__,
+      catalog_url: __CATALOG_URL__,
+      debug: __DEBUG__,
+      server_available: __SERVER_AVAILABLE__,
+      app_repo_url: __APP_REPO_URL__,
+      catalog_repo_url: __CATALOG_REPO_URL__,
+      deploy_type: __DEPLOY_TYPE__,
     });
   }
 
@@ -137,23 +137,26 @@ const App: React.FC = () => {
 
   const tokenUrl = (import.meta.env.VITE_TOKEN_URL ?? '') as string;
   const serverUrl = (import.meta.env.VITE_SERVER_URL ?? '') as string;
-  const missingRequiredEnvConfig = tokenUrl.trim().length === 0 || serverUrl.trim().length === 0;
+
+  const isServerDeployment = __DEPLOY_TYPE__ === 'SERVER_AVAILABLE';
+
+  const hasServerUrl = serverUrl.trim().length > 0;
+  const hasTokenUrl = tokenUrl.trim().length > 0;
+
+  const authConfigured = isServerDeployment && hasServerUrl && hasTokenUrl;
+
+  const missingRequiredEnvConfig = isServerDeployment && !hasServerUrl;
 
   const credentialsReady =
     credentialsSubmitted && clientId.trim().length > 0 && clientSecret.trim().length > 0;
 
-  const showSetupCredentials =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && !missingRequiredEnvConfig && !credentialsReady;
+  const showSetupCredentials = authConfigured && !credentialsReady;
 
   const shouldValidateStoredCredentials =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
-    !missingRequiredEnvConfig &&
-    credentialsReady &&
-    seedToken === null;
+    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && credentialsReady && seedToken === null;
 
   const authIsEnabled =
     __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
-    !missingRequiredEnvConfig &&
     !showSetupCredentials &&
     !shouldValidateStoredCredentials;
 
