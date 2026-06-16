@@ -6,11 +6,11 @@ const DEV_API_PROXY_PREFIX = '/__tmc_api__';
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  const host = env.API_HOST || 'localhost';
-  const port = env.API_PORT || '8080';
-  const protocol = env.API_PROTOCOL || 'http';
+  const host = env.VITE_API_HOST || 'localhost';
+  const port = env.VITE_API_PORT || '8080';
+  const protocol = env.VITE_API_PROTOCOL || 'http';
   const remoteApiBase = env.VITE_SERVER_URL || `${protocol}://${host}:${port}`;
-  const isDevServer = 'true'; // TODO needs to be changed in production
+  const isDevServer = false; // TODO needs to be changed in production
   const apiBase = isDevServer ? DEV_API_PROXY_PREFIX : remoteApiBase;
 
   const appRepoUrl = env.APP_REPO_URL || '';
@@ -39,12 +39,17 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     define: {
-      __API_BASE__: JSON.stringify(apiBase),
-      __CATALOG_URL__: JSON.stringify('test-tm-ui'),
-      __DEBUG__: true,
-      __SERVER_AVAILABLE__: serverAvailable,
       __APP_REPO_URL__: JSON.stringify(appRepoUrl),
       __CATALOG_REPO_URL__: JSON.stringify(catalogRepoUrl),
+      __DEPLOY_SERVER_AVAILABLE__: serverAvailable,
+      __VITE_EDITOR_URL__: JSON.stringify(env.VITE_EDITOR_URL),
+      __VITE_PLAYGROUND_URL__: JSON.stringify(env.VITE_PLAYGROUND_URL),
+      __VITE_TOKEN_URL__: JSON.stringify(env.VITE_TOKEN_URL),
+      __VITE_SERVER_URL__: JSON.stringify(env.VITE_SERVER_URL),
+      __VITE_SETUP_CREDENTIALS_MESSAGE__: JSON.stringify(env.VITE_SETUP_CREDENTIALS_MESSAGE),
+      __API_BASE__: JSON.stringify(apiBase),
+      __PIPELINE_CATALOG_URL__: JSON.stringify('test-tm-ui'), // TODO: ??
+      __DEBUG__: true,
       __DEPLOY_TYPE__: JSON.stringify(deployType),
     },
   };

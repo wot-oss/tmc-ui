@@ -115,7 +115,7 @@ const App: React.FC = () => {
   if (__DEBUG__) {
     console.warn('Vite globals', {
       api_base: __API_BASE__,
-      catalog_url: __CATALOG_URL__,
+      catalog_url: __CATALOG_REPO_URL__,
       debug: __DEBUG__,
       server_available: __SERVER_AVAILABLE__,
       app_repo_url: __APP_REPO_URL__,
