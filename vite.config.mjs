@@ -42,7 +42,7 @@ export default defineConfig(({ command, mode }) => {
       __APP_REPO_URL__: JSON.stringify(appRepoUrl),
       __CATALOG_REPO_URL__: JSON.stringify(catalogRepoUrl),
       __DEPLOY_SERVER_AVAILABLE__: serverAvailable,
-      __VITE_EDITOR_URL__: JSON.stringify(env.VITE_EDITOR_URL),
+      __VITE_EDITDOR_URL__: JSON.stringify(env.VITE_EDITDOR_URL),
       __VITE_PLAYGROUND_URL__: JSON.stringify(env.VITE_PLAYGROUND_URL),
       __VITE_TOKEN_URL__: JSON.stringify(env.VITE_TOKEN_URL),
       __VITE_SERVER_URL__: JSON.stringify(env.VITE_SERVER_URL),

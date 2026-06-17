@@ -9,8 +9,14 @@ interface ViteConfigDefines {
   readonly __APP_REPO_URL__?: string;
   readonly __CATALOG_REPO_URL__?: string;
   readonly __DEPLOY_SERVER_AVAILABLE__?: boolean;
+  readonly __VITE_EDITDOR_URL__?: string;
+  readonly __VITE_PLAYGROUND_URL__?: string;
+  readonly __VITE_TOKEN_URL__?: string;
   readonly __VITE_SERVER_URL__?: string;
+  readonly __VITE_SETUP_CREDENTIALS_MESSAGE__?: string;
+
   readonly __API_BASE__?: string;
+  readonly __PIPELINE_CATALOG_URL__?: string;
   readonly __DEBUG__?: boolean;
   readonly __DEPLOY_TYPE__?: string;
 }
@@ -22,10 +28,10 @@ const ENV_KEYS = [
   'VITE_API_HOST',
   'VITE_API_PORT',
   'VITE_API_PROTOCOL',
-  'VITE_SERVER_URL',
-  'VITE_TOKEN_URL',
-  'VITE_EDITOR_URL',
+  'VITE_EDITDOR_URL',
   'VITE_PLAYGROUND_URL',
+  'VITE_TOKEN_URL',
+  'VITE_SERVER_URL',
   'VITE_SETUP_CREDENTIALS_MESSAGE',
 ] as const;
 
@@ -45,7 +51,42 @@ function getDefines(): ViteConfigDefines {
   return resolveViteConfig().define as ViteConfigDefines;
 }
 
-describe('vite config env mapping', () => {
+describe('Vite config file test the setup of globals', () => {
+  test('maps env values to the build globals used by the app', () => {
+    clearConfigEnv();
+    vi.stubEnv('APP_REPO_URL', '');
+    vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
+    vi.stubEnv('SERVER_AVAILABLE', 'true');
+    vi.stubEnv('VITE_API_HOST', 'localhost');
+    vi.stubEnv('VITE_API_PORT', '8080');
+    vi.stubEnv('VITE_API_PROTOCOL', 'http');
+    vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
+    vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
+    vi.stubEnv('VITE_TOKEN_URL', 'https://vite.token.url/token');
+    vi.stubEnv('VITE_SERVER_URL', 'https://vite.server.url/');
+    vi.stubEnv('VITE_SETUP_CREDENTIALS_MESSAGE', 'This is a message.');
+
+    const defines = getDefines();
+
+    expect(defines.__APP_REPO_URL__).toBe(JSON.stringify(''));
+    expect(defines.__CATALOG_REPO_URL__).toBe(
+      JSON.stringify('https://github.com/wot-oss/example-catalog.git'),
+    );
+    expect(defines.__DEPLOY_SERVER_AVAILABLE__).toBe(true);
+    expect(defines.__VITE_EDITDOR_URL__).toBe(
+      JSON.stringify('https://eclipse-editor.github.io/editor/'),
+    );
+    expect(defines.__VITE_PLAYGROUND_URL__).toBe(JSON.stringify('https://playground.thingweb.io/'));
+    expect(defines.__VITE_TOKEN_URL__).toBe(JSON.stringify('https://vite.token.url/token'));
+    expect(defines.__VITE_SERVER_URL__).toBe(JSON.stringify('https://vite.server.url/'));
+    expect(defines.__VITE_SETUP_CREDENTIALS_MESSAGE__).toBe(JSON.stringify('This is a message.'));
+
+    expect(defines.__API_BASE__).toBe(JSON.stringify('https://vite.server.url/'));
+    expect(defines.__PIPELINE_CATALOG_URL__).toBe(JSON.stringify('test-tm-ui'));
+    expect(defines.__DEBUG__).toBe(true);
+    expect(defines.__DEPLOY_TYPE__).toBe(JSON.stringify('SERVER_AVAILABLE'));
+  });
+
   test('builds __API_BASE__ from VITE_API_HOST, VITE_API_PORT, and VITE_API_PROTOCOL', () => {
     clearConfigEnv();
     vi.stubEnv('VITE_API_HOST', 'api.example.test');

@@ -25,19 +25,30 @@ export const TOKEN_RESULT = {
 };
 
 interface DeployGlobalsOptions {
-  readonly appRepoUrl: string;
-  readonly deployServerAvailable: boolean;
-  readonly serverAvailable: boolean;
-  readonly viteEditorUrl: string;
-  readonly vitePlaygroundUrl: string;
-  readonly viteTokenUrl: string;
-  readonly viteServerUrl: string;
-  readonly viteSetupCredentialsMessage: string;
-  readonly apiBase: string;
-  readonly pipelineCatalogUrl: string;
-  readonly catalogRepoUrl: string;
-  readonly debug: boolean;
+  readonly serverAvailable?: boolean;
+  readonly appRepoUrl?: string;
+  readonly catalogRepoUrl?: string;
+  readonly deployServerAvailable?: boolean;
+  readonly viteEditdorUrl?: string;
+  readonly vitePlaygroundUrl?: string;
+  readonly viteTokenUrl?: string;
+  readonly viteServerUrl?: string;
+  readonly viteSetupCredentialsMessage?: string;
+  readonly apiBase?: string;
+
+  readonly pipelineCatalogUrl?: string;
+  readonly debug?: boolean;
   readonly deployType: DeployType;
+}
+
+interface TestImportMetaEnv {
+  readonly APP_REPO_URL?: string;
+  readonly CATALOG_REPO_URL?: string;
+  readonly VITE_EDITDOR_URL?: string;
+  readonly VITE_PLAYGROUND_URL?: string;
+  readonly VITE_TOKEN_URL?: string;
+  readonly VITE_SERVER_URL?: string;
+  readonly VITE_SETUP_CREDENTIALS_MESSAGE?: string;
 }
 
 /**
@@ -46,29 +57,34 @@ interface DeployGlobalsOptions {
  * `afterEach`.
  */
 export function stubDeployGlobals({
+  deployType,
+  apiBase = TEST_API_BASE,
+  serverAvailable = false,
   appRepoUrl,
   catalogRepoUrl,
   deployServerAvailable,
-  serverAvailable,
-  viteEditorUrl,
+  viteEditdorUrl,
   vitePlaygroundUrl,
   viteTokenUrl,
   viteServerUrl,
   viteSetupCredentialsMessage,
-  apiBase,
-  pipelineCatalogUrl,
-  debug,
-  deployType,
+  pipelineCatalogUrl = 'test-tm-ui',
+  debug = true,
 }: DeployGlobalsOptions): void {
-  vi.stubGlobal('__APP_REPO_URL__', appRepoUrl);
-  vi.stubGlobal('__CATALOG_REPO_URL__', catalogRepoUrl);
-  vi.stubGlobal('__DEPLOY_SERVER_AVAILABLE__', deployServerAvailable);
+  const env = import.meta.env as ImportMetaEnv & TestImportMetaEnv;
+
+  vi.stubGlobal('__APP_REPO_URL__', appRepoUrl ?? env.APP_REPO_URL ?? '');
+  vi.stubGlobal('__CATALOG_REPO_URL__', catalogRepoUrl ?? env.CATALOG_REPO_URL ?? '');
+  vi.stubGlobal('__DEPLOY_SERVER_AVAILABLE__', deployServerAvailable ?? serverAvailable);
   vi.stubGlobal('__SERVER_AVAILABLE__', serverAvailable);
-  vi.stubGlobal('__VITE_EDITOR_URL__', viteEditorUrl);
-  vi.stubGlobal('__VITE_PLAYGROUND_URL__', vitePlaygroundUrl);
-  vi.stubGlobal('__VITE_TOKEN_URL__', viteTokenUrl);
-  vi.stubGlobal('__VITE_SERVER_URL__', viteServerUrl);
-  vi.stubGlobal('__VITE_SETUP_CREDENTIALS_MESSAGE__', viteSetupCredentialsMessage);
+  vi.stubGlobal('__VITE_EDITDOR_URL__', viteEditdorUrl ?? env.VITE_EDITDOR_URL ?? '');
+  vi.stubGlobal('__VITE_PLAYGROUND_URL__', vitePlaygroundUrl ?? env.VITE_PLAYGROUND_URL ?? '');
+  vi.stubGlobal('__VITE_TOKEN_URL__', viteTokenUrl ?? env.VITE_TOKEN_URL ?? '');
+  vi.stubGlobal('__VITE_SERVER_URL__', viteServerUrl ?? env.VITE_SERVER_URL ?? '');
+  vi.stubGlobal(
+    '__VITE_SETUP_CREDENTIALS_MESSAGE__',
+    viteSetupCredentialsMessage ?? env.VITE_SETUP_CREDENTIALS_MESSAGE ?? '',
+  );
   vi.stubGlobal('__API_BASE__', apiBase);
   vi.stubGlobal('__PIPELINE_CATALOG_URL__', pipelineCatalogUrl);
   vi.stubGlobal('__DEBUG__', debug);
