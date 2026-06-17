@@ -14,7 +14,7 @@ declare const __CATALOG_URL__: string; //TODO
 
 declare const __DEBUG__: boolean;
 
-declare const __SERVER_AVAILABLE__: boolean;
+declare const __DEPLOY_SERVER_AVAILABLE__: boolean;
 
 declare const __APP_REPO_URL__: string;
 

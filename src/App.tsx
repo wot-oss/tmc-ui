@@ -117,7 +117,7 @@ const App: React.FC = () => {
       api_base: __API_BASE__,
       catalog_url: __CATALOG_REPO_URL__,
       debug: __DEBUG__,
-      server_available: __SERVER_AVAILABLE__,
+      server_available: __DEPLOY_SERVER_AVAILABLE__,
       app_repo_url: __APP_REPO_URL__,
       catalog_repo_url: __CATALOG_REPO_URL__,
       deploy_type: __DEPLOY_TYPE__,
