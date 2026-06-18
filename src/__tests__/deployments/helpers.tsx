@@ -136,6 +136,16 @@ export function makeItem(name: string): Record<string, unknown> {
     version: {
       model: 'v1.0.0',
     },
+    versions: [
+      {
+        links: {
+          content: `/omnicorp/omnicorp/lightall/${name}.tm.json`,
+        },
+        version: {
+          model: 'v1.0.0',
+        },
+      },
+    ],
     id: 'lampuser/lampcorp/lampmodel/v1.0.0-20241008124326-15af48381cf7.tm.json',
   };
 }

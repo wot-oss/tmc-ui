@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 //
-// Deployment mode 2: BACKEND NO AUTH
-// __DEPLOY_TYPE__ is 'SERVER_AVAILABLE' and a server URL is configured, but no
-// VITE_TOKEN_URL is provided. App.tsx computes authConfigured = false, so the
-// credentials prompt is never shown and the catalog is loaded straight from the
-// backend inventory endpoint.
+// Deployment mode 3: BACKEND WITH AUTH
+// __DEPLOY_TYPE__ is 'SERVER_AVAILABLE' with both VITE_SERVER_URL and
+// VITE_TOKEN_URL configured. App.tsx computes authConfigured = true, so it gates
+// the catalog behind an OAuth2 client-credentials prompt. After valid
+// credentials are submitted, it authenticates and renders the catalog.
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
@@ -45,6 +45,8 @@ const mockRequestToken = requestClientCredentialsToken as MockedFunction<
   typeof requestClientCredentialsToken
 >;
 
+const TOKEN_URL = 'http://test-api/token';
+
 function mockBackendFilters(): void {
   vi.stubGlobal(
     'fetch',
@@ -68,19 +70,37 @@ function mockBackendFilters(): void {
   );
 }
 
+function submitCredentials(clientId: string, clientSecret: string): void {
+  fireEvent.change(screen.getByLabelText('Client ID'), { target: { value: clientId } });
+  fireEvent.change(screen.getByLabelText('Client Secret'), { target: { value: clientSecret } });
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+}
+
+async function authenticateCatalog(): Promise<void> {
+  await screen.findByText('Enter API credentials');
+  submitCredentials('test-client', 'test-secret');
+
+  await waitFor(() =>
+    expect(mockRequestToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenUrl: TOKEN_URL,
+        clientId: 'test-client',
+        clientSecret: 'test-secret',
+      }),
+    ),
+  );
+}
+
 beforeEach(() => {
   clearStoredSession();
   stubDeployGlobals({ deployType: 'SERVER_AVAILABLE', serverAvailable: true });
 
-  // Server URL present, token URL absent → backend no auth.
+  // Both server URL and token URL present → backend with auth.
   vi.stubEnv('VITE_SERVER_URL', TEST_API_BASE);
-  vi.stubEnv('VITE_TOKEN_URL', '');
+  vi.stubEnv('VITE_TOKEN_URL', TOKEN_URL);
   vi.stubEnv('VITE_SETUP_CREDENTIALS_MESSAGE', '');
 
   mockBackendFilters();
-
-  // The token effect still runs for server deployments; keep it resolved so it
-  // does not surface a spurious error during catalog rendering.
   mockRequestToken.mockResolvedValue(TOKEN_RESULT);
 });
 
@@ -90,11 +110,16 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
-  test('Landing page navigation, filters, and results no items', async () => {
+describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
+  test('Landing page navigation, filters, and results no items after valid credentials', async () => {
     mockFetchApiInventory.mockResolvedValue([]);
 
     renderApp();
+
+    expect(await screen.findByText('Enter API credentials')).toBeTruthy();
+    expect(screen.queryByText('Environment not configured')).toBeNull();
+
+    await authenticateCatalog();
 
     expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
     expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
@@ -106,12 +131,18 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
     expect(await screen.findByText('0 results found')).toBeTruthy();
     expect(screen.queryByText('Enter API credentials')).toBeNull();
     expect(screen.queryByText('Environment not configured')).toBeNull();
+    expect(mockFetchApiInventory).toHaveBeenCalledWith(
+      TEST_API_BASE,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
-  test('Landing page with one item', async () => {
+  test('Landing page with one item after valid credentials', async () => {
     mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
 
     renderApp();
+    expect(await screen.findByText('Enter API credentials')).toBeTruthy();
+    await authenticateCatalog();
 
     expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
     expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
@@ -130,10 +161,11 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
     );
   });
 
-  test('Settings page from landing page with one item', async () => {
+  test('Settings page from landing page with one authenticated item', async () => {
     mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
 
     renderApp();
+    await authenticateCatalog();
 
     expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
@@ -158,7 +190,7 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
     ).toBeTruthy();
   });
 
-  test('Details page for a backend Thing Model without auth', async () => {
+  test('Details page for an authenticated backend Thing Model', async () => {
     mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
     mockFetchApiThingModel.mockResolvedValue({
       id: 'lampuser/lampcorp/thingaslamp',
@@ -178,10 +210,36 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
         },
       },
       security: ['nosec_sc'],
-      properties: {},
+      properties: {
+        temperature: {
+          description: 'temperature (degrees C)',
+          type: 'number',
+          readOnly: true,
+          forms: [{ href: 'https://example.test/properties/temperature' }],
+        },
+        humidity: {
+          description: 'relative humidity (%)',
+          type: 'number',
+          readOnly: true,
+          forms: [{ href: 'https://example.test/properties/humidity' }],
+        },
+      },
+      actions: {
+        resetLamp: {
+          description: 'Reset the lamp state',
+          forms: [{ href: 'https://example.test/actions/resetLamp' }],
+        },
+      },
+      events: {
+        overheated: {
+          description: 'Lamp temperature threshold exceeded',
+          forms: [{ href: 'https://example.test/events/overheated' }],
+        },
+      },
     });
 
     renderApp();
+    await authenticateCatalog();
 
     const cardHeading = await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 });
     const cardLink = cardHeading.closest('a');
@@ -195,13 +253,87 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
     expect(await screen.findByText('LampManufacturer')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Author' })).toBeTruthy();
     expect(await screen.findByText('LampAuthor')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'MPN' })).toBeTruthy();
+    expect(await screen.findByText('LampMpn')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Current Version' })).toBeTruthy();
+    expect(await screen.findByText('v1.0.0')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Number of Versions' })).toBeTruthy();
+    expect(await screen.findByText('1')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ID' })).toBeTruthy();
+    expect(await screen.findByText('lampuser/lampcorp/thingaslamp')).toBeTruthy();
+    expect(
+      screen.getByRole('img', { name: 'Product image of ThingasLamp' }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText('version')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Additional details' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Properties' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Actions' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Events' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Open full details' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Open with …' })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Properties' }));
+    expect(await screen.findByText('temperature')).toBeTruthy();
+    expect(await screen.findByText('humidity')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions' }));
+    expect(await screen.findByText('resetLamp')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Events' }));
+    expect(await screen.findByText('overheated')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open with …' }));
+    expect(await screen.findByRole('heading', { name: 'Open with …' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'EdiTDor' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'TD Playground' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy();
     expect(mockFetchApiThingModel).toHaveBeenCalledWith(
       TEST_API_BASE,
       'ThingasLamp',
       expect.objectContaining({ authorizationHeader: 'Bearer test-access-token' }),
     );
     expect(screen.queryByText('Enter API credentials')).toBeNull();
+  });
+
+  test('prompts for API credentials when none are stored', async () => {
+    renderApp();
+
+    await screen.findByText('Enter API credentials');
+    expect(screen.getByLabelText('Client ID')).toBeTruthy();
+    expect(screen.getByLabelText('Client Secret')).toBeTruthy();
+    expect(mockFetchApiInventory).not.toHaveBeenCalled();
+  });
+
+  test('shows the environment-not-configured error when the server URL is missing', async () => {
+    vi.stubEnv('VITE_SERVER_URL', '');
+
+    renderApp();
+
+    await screen.findByText('Environment not configured');
+    expect(screen.queryByText('Enter API credentials')).toBeNull();
+  });
+
+  test('authenticates and renders the catalog after valid credentials are submitted', async () => {
+    mockFetchApiInventory.mockResolvedValue([makeItem('lightall-mk2')]);
+
+    renderApp();
+
+    await authenticateCatalog();
+
+    await screen.findByRole('heading', { name: 'lightall-mk2', level: 3 });
+    expect(screen.queryByText('Enter API credentials')).toBeNull();
+  });
+
+  test('keeps the prompt and shows an error when credential validation fails', async () => {
+    mockRequestToken.mockRejectedValue(new Error('Invalid credentials'));
+
+    renderApp();
+
+    await screen.findByText('Enter API credentials');
+    submitCredentials('bad-client', 'bad-secret');
+
+    await screen.findByText('Error on credentials');
+    expect(screen.getByText('Enter API credentials')).toBeTruthy();
+    expect(mockFetchApiInventory).not.toHaveBeenCalled();
   });
 });
