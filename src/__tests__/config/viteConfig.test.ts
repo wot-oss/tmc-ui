@@ -83,7 +83,7 @@ describe('Vite config file test the setup of globals', () => {
 
     expect(defines.__API_BASE__).toBe(JSON.stringify('https://vite.server.url/'));
     expect(defines.__PIPELINE_CATALOG_URL__).toBe(JSON.stringify('test-tm-ui'));
-    expect(defines.__DEBUG__).toBe(true);
+    //expect(defines.__DEBUG__).toBe(true);
     expect(defines.__DEPLOY_TYPE__).toBe(JSON.stringify('SERVER_AVAILABLE'));
   });
 

@@ -197,6 +197,10 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
       title: 'ThingasLamp',
       '@context': 'https://www.w3.org/2022/wot/td/v1.1',
       '@type': 'tm:ThingModel',
+      version: {
+        model: 'v1.0.0',
+        instance: 'v1.0.0',
+      },
       'schema:mpn': 'LampMpn',
       'schema:manufacturer': {
         'schema:name': 'LampManufacturer',
@@ -256,14 +260,12 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
     expect(await screen.findByRole('heading', { name: 'MPN' })).toBeTruthy();
     expect(await screen.findByText('LampMpn')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Current Version' })).toBeTruthy();
-    expect(await screen.findByText('v1.0.0')).toBeTruthy();
+    expect(await screen.findAllByText('v1.0.0')).toHaveLength(2);
     expect(await screen.findByRole('heading', { name: 'Number of Versions' })).toBeTruthy();
     expect(await screen.findByText('1')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'ID' })).toBeTruthy();
     expect(await screen.findByText('lampuser/lampcorp/thingaslamp')).toBeTruthy();
-    expect(
-      screen.getByRole('img', { name: 'Product image of ThingasLamp' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Product image of ThingasLamp' })).toBeTruthy();
     expect(screen.getByLabelText('version')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Additional details' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Properties' })).toBeTruthy();
