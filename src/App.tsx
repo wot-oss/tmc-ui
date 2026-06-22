@@ -153,12 +153,9 @@ const App: React.FC = () => {
   const showSetupCredentials = authConfigured && !credentialsReady;
 
   const shouldValidateStoredCredentials =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && credentialsReady && seedToken === null;
+    authConfigured && credentialsReady && seedToken === null;
 
-  const authIsEnabled =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' &&
-    !showSetupCredentials &&
-    !shouldValidateStoredCredentials;
+  const authIsEnabled = authConfigured && !showSetupCredentials && !shouldValidateStoredCredentials;
 
   const handleClientIdChange = useCallback((value: string) => {
     setStoredSessionValue(CLIENT_ID_SESSION_KEY, value);

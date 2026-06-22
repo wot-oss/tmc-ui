@@ -79,8 +79,8 @@ beforeEach(() => {
 
   mockBackendFilters();
 
-  // The token effect still runs for server deployments; keep it resolved so it
-  // does not surface a spurious error during catalog rendering.
+  // With no token URL configured, auth stays disabled and no token request runs.
+  // Provide a default resolution only as a safety net; tests assert it is unused.
   mockRequestToken.mockResolvedValue(TOKEN_RESULT);
 });
 
@@ -90,7 +90,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
+describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   test('Landing page navigation, filters, and results no items', async () => {
     mockFetchApiInventory.mockResolvedValue([]);
 
@@ -200,8 +200,26 @@ describe('Backend No Auth (SERVER_AVAILABLE, no token URL)', () => {
     expect(mockFetchApiThingModel).toHaveBeenCalledWith(
       TEST_API_BASE,
       'ThingasLamp',
-      expect.objectContaining({ authorizationHeader: 'Bearer test-access-token' }),
+      expect.objectContaining({ authorizationHeader: null }),
     );
     expect(screen.queryByText('Enter API credentials')).toBeNull();
+  });
+
+  test('no token URL never requests a token and loads the catalog unauthenticated', async () => {
+    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    await waitFor(() => {
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+
+    expect(mockRequestToken).not.toHaveBeenCalled();
+
+    expect(mockFetchApiInventory).toHaveBeenCalledWith(
+      TEST_API_BASE,
+      expect.objectContaining({ authorizationHeader: null }),
+    );
   });
 });
