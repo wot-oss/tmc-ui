@@ -13,81 +13,13 @@ import {
   type RequestClientCredentialsTokenResult,
 } from './services/auth';
 import {
-  CLIENT_ID_SESSION_KEY,
-  CLIENT_SECRET_SESSION_KEY,
-  CREDENTIALS_SUBMITTED_SESSION_KEY,
-} from './utils/constants';
-
-const getSessionStorage = (): Storage | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  try {
-    return window.sessionStorage;
-  } catch {
-    return null;
-  }
-};
-
-const getStoredSessionValue = (key: string): string => {
-  return getSessionStorage()?.getItem(key) ?? '';
-};
-
-const setStoredSessionValue = (key: string, value: string): void => {
-  const storage = getSessionStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  if (value.trim().length === 0) {
-    storage.removeItem(key);
-    return;
-  }
-
-  storage.setItem(key, value);
-};
-
-const hasStoredCredentials = (): boolean => {
-  return (
-    getStoredSessionValue(CLIENT_ID_SESSION_KEY).trim().length > 0 &&
-    getStoredSessionValue(CLIENT_SECRET_SESSION_KEY).trim().length > 0
-  );
-};
-
-const getStoredCredentialsSubmitted = (): boolean => {
-  return (
-    getStoredSessionValue(CREDENTIALS_SUBMITTED_SESSION_KEY) === 'true' && hasStoredCredentials()
-  );
-};
-
-const setStoredCredentialsSubmitted = (submitted: boolean): void => {
-  const storage = getSessionStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  if (!submitted) {
-    storage.removeItem(CREDENTIALS_SUBMITTED_SESSION_KEY);
-    return;
-  }
-
-  storage.setItem(CREDENTIALS_SUBMITTED_SESSION_KEY, 'true');
-};
-
-const clearStoredCredentialsSession = (): void => {
-  const storage = getSessionStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  storage.removeItem(CLIENT_ID_SESSION_KEY);
-  storage.removeItem(CLIENT_SECRET_SESSION_KEY);
-  storage.removeItem(CREDENTIALS_SUBMITTED_SESSION_KEY);
-};
+  getStoredSessionValue,
+  setStoredSessionValue,
+  getStoredCredentialsSubmitted,
+  setStoredCredentialsSubmitted,
+  clearStoredCredentialsSession,
+} from './utils/utils';
+import { CLIENT_ID_SESSION_KEY, CLIENT_SECRET_SESSION_KEY } from './utils/constants';
 
 const AppShell: React.FC = () => {
   return (
@@ -112,28 +44,20 @@ const AppShellError: React.FC<{
 };
 
 const App: React.FC = () => {
-  if (__DEBUG__) {
-    console.warn('Vite globals', {
-      api_base: __API_BASE__,
-      catalog_url: __CATALOG_REPO_URL__,
-      debug: __DEBUG__,
-      server_available: __DEPLOY_SERVER_AVAILABLE__,
-      app_repo_url: __APP_REPO_URL__,
-      catalog_repo_url: __CATALOG_REPO_URL__,
-      deploy_type: __DEPLOY_TYPE__,
-    });
-  }
-
-  const [clientId, setClientId] = useState(() => getStoredSessionValue(CLIENT_ID_SESSION_KEY));
-  const [clientSecret, setClientSecret] = useState(() =>
+  const [clientId, setClientId] = useState<string>(() =>
+    getStoredSessionValue(CLIENT_ID_SESSION_KEY),
+  );
+  const [clientSecret, setClientSecret] = useState<string>(() =>
     getStoredSessionValue(CLIENT_SECRET_SESSION_KEY),
   );
-  const [credentialsSubmitted, setCredentialsSubmitted] = useState(() =>
+  const [credentialsSubmitted, setCredentialsSubmitted] = useState<boolean>(() =>
     getStoredCredentialsSubmitted(),
   );
   const [seedToken, setSeedToken] = useState<RequestClientCredentialsTokenResult | null>(null);
+
   const [startupError, setStartupError] = useState<string | null>(null);
-  const [isValidatingStartupCredentials, setIsValidatingStartupCredentials] = useState(false);
+  const [isValidatingStartupCredentials, setIsValidatingStartupCredentials] =
+    useState<boolean>(false);
 
   const tokenUrl = (import.meta.env.VITE_TOKEN_URL ?? '') as string;
   const serverUrl = (import.meta.env.VITE_SERVER_URL ?? '') as string;
@@ -152,10 +76,25 @@ const App: React.FC = () => {
 
   const showSetupCredentials = authConfigured && !credentialsReady;
 
-  const shouldValidateStoredCredentials =
-    authConfigured && credentialsReady && seedToken === null;
+  const shouldValidateStoredCredentials = authConfigured && credentialsReady && seedToken === null;
 
   const authIsEnabled = authConfigured && !showSetupCredentials && !shouldValidateStoredCredentials;
+
+  if (__DEBUG__) {
+    console.warn('Vite globals', {
+      api_base: __API_BASE__,
+      catalog_url: __CATALOG_REPO_URL__,
+      debug: __DEBUG__,
+      server_available: __DEPLOY_SERVER_AVAILABLE__,
+      app_repo_url: __APP_REPO_URL__,
+      catalog_repo_url: __CATALOG_REPO_URL__,
+      deploy_type: __DEPLOY_TYPE__,
+      authConfigured: authConfigured,
+      authIsEnabled: authIsEnabled,
+      showSetupCredentials: showSetupCredentials,
+      shouldValidateStoredCredentials: shouldValidateStoredCredentials,
+    });
+  }
 
   const handleClientIdChange = useCallback((value: string) => {
     setStoredSessionValue(CLIENT_ID_SESSION_KEY, value);

@@ -19,13 +19,13 @@ const AppError: React.FC<AppErrorProps> = ({ codeError, titleError, descriptionE
 
   return (
     <>
-      <div className="bg-surface-canvas grid min-h-dvh place-items-center px-6 py-24 sm:py-32 lg:px-8">
+      <div className="grid min-h-dvh place-items-center bg-surface-canvas px-6 py-24 sm:py-32 lg:px-8">
         <div className="text-center">
-          <p className="text-status-error text-base font-semibold">Error {codeError}</p>
-          <h1 className="text-text-primary mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-7xl">
+          <p className="text-base font-semibold text-status-error">Error {codeError}</p>
+          <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-text-primary sm:text-7xl">
             {resolvedTitleError}
           </h1>
-          <p className="text-text-secondary mt-6 text-pretty text-lg font-medium sm:text-xl/8">
+          <p className="mt-6 text-pretty text-lg font-medium text-text-secondary sm:text-xl/8">
             {resolvedDescriptionError}
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">

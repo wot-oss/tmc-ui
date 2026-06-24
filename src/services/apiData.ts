@@ -12,6 +12,19 @@ interface FetchInventoryOptions {
   };
 }
 
+export interface InventoryResponse {
+  data: unknown[];
+  meta: MetaResponse;
+}
+export interface MetaResponse {
+  lastUpdated: string;
+  page: {
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+  };
+}
+
 interface FetchThingModelOptions {
   readonly signal?: AbortSignal;
   readonly authorizationHeader?: string | null;
@@ -24,9 +37,22 @@ function buildRequestHeaders(authorizationHeader?: string | null): HeadersInit {
   };
 }
 
-function buildInventoryUrl(baseUrl: string, filters?: FetchInventoryOptions['filters']): string {
+function buildInventoryUrl(
+  baseUrl: string,
+  filters?: FetchInventoryOptions['filters'],
+  page?: number,
+  pageSize?: number,
+): string {
   const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
   const searchParams = new URLSearchParams();
+
+  if (page !== undefined) {
+    searchParams.set('page', String(page));
+  }
+
+  if (pageSize !== undefined) {
+    searchParams.set('pageSize', String(pageSize));
+  }
 
   if (filters?.author?.length) {
     searchParams.set('filter.author', filters.author.join(','));
@@ -45,15 +71,15 @@ function buildInventoryUrl(baseUrl: string, filters?: FetchInventoryOptions['fil
   }
 
   const query = searchParams.toString();
-  return query
-    ? `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}?${query}`
-    : `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}`;
+  return `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}?${query}`;
 }
 
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
   options: FetchInventoryOptions = {},
-): Promise<unknown[]> {
+  page?: number,
+  pageSize?: number,
+): Promise<InventoryResponse> {
   if (!baseUrl) {
     throw new Response('Catalog URL not configured', { status: 400 });
   }
@@ -71,7 +97,7 @@ export async function fetchApiDataInventory(
   signal?.addEventListener('abort', abortFromCaller);
 
   try {
-    const res = await fetch(buildInventoryUrl(baseUrl, filters), {
+    const res = await fetch(buildInventoryUrl(baseUrl, filters, page, pageSize), {
       signal: controller.signal,
       headers: buildRequestHeaders(authorizationHeader),
     });
@@ -87,10 +113,19 @@ export async function fetchApiDataInventory(
       'data' in json &&
       Array.isArray((json as { data?: unknown }).data)
     ) {
-      return (json as { data: unknown[] }).data;
+      const data = (json as { data: unknown[] }).data;
+      const meta = (json as { meta?: MetaResponse }).meta;
+
+      return {
+        data: data,
+        meta: meta ?? { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+      };
     }
 
-    return [];
+    return {
+      data: [],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+    };
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       if (didTimeout) {

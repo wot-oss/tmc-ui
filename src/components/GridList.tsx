@@ -79,19 +79,19 @@ const GridList: React.FC<{
                   imageAlt={`Product image of ${title}`}
                   imageFallbackSrc={DEFAULT_IMAGE_SRC}
                 >
-                  <p className="text-text-secondary mt-1 truncate text-sm">
+                  <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM.links?.content ?? ''}
                   </p>
-                  <p className="text-text-secondary mt-1 truncate text-sm">
+                  <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM.repo?.concat(', ') ?? ''}
                   </p>
-                  <p className="text-text-secondary mt-1 truncate text-sm">
+                  <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM['schema:mpn']}
                   </p>
-                  <p className="text-text-secondary mt-1 truncate text-sm">
+                  <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM['schema:description'] ?? ''}
                   </p>
-                  <p className="text-text-secondary mt-1 truncate text-sm">
+                  <p className="mt-1 truncate text-sm text-text-secondary">
                     {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
                     available
                   </p>

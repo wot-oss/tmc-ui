@@ -52,6 +52,7 @@ const Layout: React.FC<{
   );
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
+  const [totalElements, setTotalElements] = useState<number>(0);
 
   useEffect(() => {
     setItems(loadedItems ?? []);
@@ -143,20 +144,26 @@ const Layout: React.FC<{
     if (hasFilters && __DEPLOY_TYPE__ === 'SERVER_AVAILABLE') {
       const controller = new AbortController();
 
-      const loadFilteredItems = async () => {
+      const loadFilteredItems = async (page?: number, pageSize?: number) => {
         try {
-          const nextFilteredItems = (await fetchApiDataInventory(__API_BASE__, {
-            signal: controller.signal,
-            authorizationHeader,
-            filters: {
-              protocol: selectedProtocols,
-              repository: checkedRepositories,
-              manufacturer: checkedManufacturers,
-              author: checkedAuthors,
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: selectedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
             },
-          })) as Item[];
+            page,
+            pageSize,
+          );
 
-          setFilteredItems(nextFilteredItems);
+          setFilteredItems(data as Item[]);
+          setTotalElements(meta.page.totalElements);
         } catch (err: unknown) {
           if (err instanceof DOMException && err.name === 'AbortError') {
             return;
@@ -166,7 +173,7 @@ const Layout: React.FC<{
         }
       };
 
-      void loadFilteredItems();
+      void loadFilteredItems(page, pageSize);
 
       return () => controller.abort();
     }
@@ -180,9 +187,14 @@ const Layout: React.FC<{
     items,
     protocolFilteredItems,
     selectedProtocols,
+    page,
+    pageSize,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const totalPages =
+    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && totalElements > 0
+      ? Math.max(1, Math.ceil(totalElements / pageSize))
+      : Math.max(1, Math.ceil(filteredItems.length / pageSize));
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
