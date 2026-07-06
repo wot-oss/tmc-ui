@@ -92,7 +92,7 @@ afterEach(() => {
 
 describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   test('Landing page navigation, filters, and results no items', async () => {
-    mockFetchApiInventory.mockResolvedValue([]);
+    mockFetchApiInventory.mockResolvedValue({ data: [], totalElements: 0 });
 
     renderApp();
 
@@ -109,7 +109,7 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   });
 
   test('Landing page with one item', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
 
     renderApp();
 
@@ -131,7 +131,7 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   });
 
   test('Settings page from landing page with one item', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
 
     renderApp();
 
@@ -159,7 +159,7 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   });
 
   test('Details page for a backend Thing Model without auth', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
     mockFetchApiThingModel.mockResolvedValue({
       id: 'lampuser/lampcorp/thingaslamp',
       title: 'ThingasLamp',
@@ -206,7 +206,7 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
   });
 
   test('no token URL never requests a token and loads the catalog unauthenticated', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
 
     renderApp();
 

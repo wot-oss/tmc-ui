@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
 import { useFilters } from '../hooks/useFilters';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from 'react-router-dom';
@@ -9,7 +9,6 @@ import Pagination from '../components/Pagination';
 import Loader from '../components/base/Loader';
 import Button from '../components/base/Button';
 import Dropdown from '../components/base/Dropdown';
-import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
 import { fetchApiDataInventory } from '../services/apiData';
 
 const Layout: React.FC<{
@@ -17,11 +16,21 @@ const Layout: React.FC<{
   inventoryLoading: boolean;
   inventoryError: string | null;
 }> = ({ loadedItems, inventoryLoading, inventoryError }) => {
-  const [items, setItems] = useState<Item[]>(loadedItems ?? []);
-  const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
-
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading' || inventoryLoading;
+
+  // source of truth for all items, regardless of filters
+  const [items, setItems] = useState<Item[]>(loadedItems ?? []);
+  const totalElements = useMemo<number>(() => items.length ?? 0, [items]);
+
+  const [resultCounts, setResultCounts] = useState<number>(totalElements);
+
+  useEffect(() => {
+    setItems(loadedItems ?? []);
+    setResultCounts(loadedItems?.length ?? 0);
+  }, [loadedItems]);
+
+  const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
 
   const [query, setQuery] = useState('');
 
@@ -34,7 +43,8 @@ const Layout: React.FC<{
   const [protocolsState, setProtocolsState] = useState<FilterData[]>(protocols);
 
   const [protocolFilteredItems, setProtocolFilteredItems] = useState<Item[] | null>(null);
-  const selectedProtocols = useMemo(
+
+  const checkedProtocols = useMemo(
     () => protocolsState.filter((p) => p.checked).map((p) => p.value),
     [protocolsState],
   );
@@ -50,13 +60,14 @@ const Layout: React.FC<{
     () => authorsState.filter((opt) => opt.checked).map((opt) => opt.value),
     [authorsState],
   );
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(20);
-  const [totalElements, setTotalElements] = useState<number>(0);
 
-  useEffect(() => {
-    setItems(loadedItems ?? []);
-  }, [loadedItems]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(resultCounts / pageSize)),
+    [resultCounts, pageSize],
+  );
 
   useEffect(() => {
     if (repositories.length === 0) return;
@@ -75,13 +86,13 @@ const Layout: React.FC<{
 
     setAuthorsState((prev) => (prev.length === 0 ? authors : prev));
   }, [authors]);
-
+  /*
   useEffect(() => {
     if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') return;
 
     const controller = new AbortController();
 
-    if (selectedProtocols.length === 0) {
+    if (checkedProtocols.length === 0) {
       setProtocolFilteredItems(null);
       return;
     }
@@ -90,9 +101,10 @@ const Layout: React.FC<{
       return () => controller.abort();
     }
 
-    const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
+    const filterProtocols: string = checkedProtocols ? checkedProtocols.join(',') : '';
 
     const fetchProtocols = async () => {
+      console.log('fetch prtoocols');
       try {
         const fp = encodeURIComponent(filterProtocols);
         const res = await fetch(`${__API_BASE__}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
@@ -110,10 +122,13 @@ const Layout: React.FC<{
     fetchProtocols();
 
     return () => controller.abort();
-  }, [authorizationHeader, authLoading, enabled, selectedProtocols]);
-
+  }, [authorizationHeader, authLoading, enabled, checkedProtocols]);
+*/
   useEffect(() => {
+    console.log('fetch protocols');
+
     const hasFilters =
+      checkedProtocols.length > 0 ||
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
       checkedAuthors.length > 0;
@@ -152,7 +167,7 @@ const Layout: React.FC<{
               signal: controller.signal,
               authorizationHeader,
               filters: {
-                protocol: selectedProtocols,
+                protocol: checkedProtocols,
                 repository: checkedRepositories,
                 manufacturer: checkedManufacturers,
                 author: checkedAuthors,
@@ -163,7 +178,7 @@ const Layout: React.FC<{
           );
 
           setFilteredItems(data as Item[]);
-          setTotalElements(meta.page.totalElements);
+          setResultCounts(meta.page.totalElements);
         } catch (err: unknown) {
           if (err instanceof DOMException && err.name === 'AbortError') {
             return;
@@ -186,24 +201,20 @@ const Layout: React.FC<{
     checkedRepositories,
     items,
     protocolFilteredItems,
-    selectedProtocols,
+    checkedProtocols,
     page,
     pageSize,
   ]);
-
-  const totalPages =
-    __DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && totalElements > 0
-      ? Math.max(1, Math.ceil(totalElements / pageSize))
-      : Math.max(1, Math.ceil(filteredItems.length / pageSize));
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [totalPages, page]);
 
   const paginatedItems = useMemo<Item[]>(() => {
     const start = (page - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
   }, [filteredItems, page, pageSize]);
+
+  // Defer the heavy grid updates so checkbox/filter interactions paint immediately
+  // while the (memoized) GridList re-renders at a lower priority.
+  const deferredPaginatedItems = useDeferredValue(paginatedItems);
+  const deferredFilteredItems = useDeferredValue(filteredItems);
 
   const handleFilterChange = (sectionId: string, optionValue: string, checked: boolean) => {
     const updateOptions = (prev: FilterData[]) =>
@@ -218,12 +229,105 @@ const Layout: React.FC<{
     } else if (sectionId === 'protocol') {
       setProtocolsState(updateOptions);
     }
+    setPage(1);
   };
 
   const handleSearchResults = useCallback((results: Item[]) => {
-    setItems(results);
+    setFilteredItems(results);
     setPage(1);
   }, []);
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
+
+      const controller = new AbortController();
+
+      const fetchPage = async () => {
+        try {
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: checkedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
+            },
+            newPage,
+            pageSize,
+          );
+
+          setFilteredItems(data as Item[]);
+          setResultCounts(meta.page.totalElements);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          console.error(err);
+        }
+      };
+
+      void fetchPage();
+
+      return () => controller.abort();
+    },
+    [
+      authorizationHeader,
+      pageSize,
+      checkedProtocols,
+      checkedRepositories,
+      checkedManufacturers,
+      checkedAuthors,
+    ],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      setPage(1);
+
+      const controller = new AbortController();
+
+      const fetchPage = async () => {
+        try {
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: checkedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
+            },
+            1,
+            newPageSize,
+          );
+
+          setFilteredItems(data as Item[]);
+          setResultCounts(meta.page.totalElements);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          console.error(err);
+        }
+      };
+
+      void fetchPage();
+
+      return () => controller.abort();
+    },
+    [
+      authorizationHeader,
+      checkedProtocols,
+      checkedRepositories,
+      checkedManufacturers,
+      checkedAuthors,
+    ],
+  );
 
   const resetFilters = () => {
     setQuery('');
@@ -287,8 +391,9 @@ const Layout: React.FC<{
             <section className="w-3/4 flex-1">
               <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
                 <p className="text-lg">
-                  {filteredItems.length} result
-                  {filteredItems.length !== 1 ? 's' : ''} found
+                  {resultCounts} result
+                  {resultCounts !== 1 ? 's' : ''} found in the catalog with {totalElements} TDs in
+                  total
                 </p>
                 <Button
                   text="Reset filters"
@@ -303,8 +408,7 @@ const Layout: React.FC<{
                     label="TMs per page"
                     value={String(pageSize)}
                     onChange={(value) => {
-                      setPageSize(Number(value));
-                      setPage(1);
+                      handlePageSizeChange(Number(value));
                     }}
                     options={[10, 20, 50, 100].map((n) => ({
                       key: String(n),
@@ -318,12 +422,40 @@ const Layout: React.FC<{
                   <span className="text-sm text-text-secondary">(No matches for "{query}")</span>
                 )}
               </div>
-              {loading && <Loader text="Loading catalog..." />}
-              {!loading && (
-                <GridList items={paginatedItems} loading={isLoading} error={inventoryError} />
+
+              {__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE' && (
+                <div>
+                  {loading && <Loader text="Loading catalog..." />}
+                  {!loading && (
+                    <GridList
+                      items={deferredPaginatedItems}
+                      loading={isLoading}
+                      error={inventoryError}
+                    />
+                  )}
+
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={(p) => setPage(p)}
+                  />
+                </div>
               )}
 
-              <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
+              {__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && (
+                <div>
+                  {loading && <Loader text="Loading catalog..." />}
+                  {!loading && (
+                    <GridList
+                      items={deferredFilteredItems}
+                      loading={isLoading}
+                      error={inventoryError}
+                    />
+                  )}
+
+                  <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+                </div>
+              )}
             </section>
           </div>
         </main>

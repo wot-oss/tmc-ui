@@ -105,4 +105,4 @@ const GridList: React.FC<{
   );
 };
 
-export default GridList;
+export default React.memo(GridList);

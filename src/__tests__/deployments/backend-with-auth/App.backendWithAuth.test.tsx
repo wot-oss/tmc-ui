@@ -112,7 +112,7 @@ afterEach(() => {
 
 describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   test('Landing page navigation, filters, and results no items after valid credentials', async () => {
-    mockFetchApiInventory.mockResolvedValue([]);
+    mockFetchApiInventory.mockResolvedValue({ data: [], totalElements: 0 });
 
     renderApp();
 
@@ -138,7 +138,7 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Landing page with one item after valid credentials', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
 
     renderApp();
     expect(await screen.findByText('Enter API credentials')).toBeTruthy();
@@ -162,7 +162,7 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Settings page from landing page with one authenticated item', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
 
     renderApp();
     await authenticateCatalog();
@@ -191,7 +191,7 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Details page for an authenticated backend Thing Model', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('ThingasLamp')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
     mockFetchApiThingModel.mockResolvedValue({
       id: 'lampuser/lampcorp/thingaslamp',
       title: 'ThingasLamp',
@@ -316,7 +316,7 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('authenticates and renders the catalog after valid credentials are submitted', async () => {
-    mockFetchApiInventory.mockResolvedValue([makeItem('lightall-mk2')]);
+    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('lightall-mk2')], totalElements: 1 });
 
     renderApp();
 

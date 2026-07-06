@@ -1,4 +1,5 @@
 import React from 'react';
+import { useImageLoader } from '../hooks/useImageLoader';
 
 interface CardProps {
   title: string | undefined;
@@ -19,6 +20,11 @@ const Card: React.FC<CardProps> = ({
   imageFallbackSrc,
   children,
 }) => {
+  const { currentSrc, isLoading, handleLoad, handleError } = useImageLoader({
+    src: imageSrc,
+    fallbackSrc: imageFallbackSrc,
+  });
+
   return (
     <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
       <div className="flex-1 truncate text-text-primary">
@@ -33,15 +39,19 @@ const Card: React.FC<CardProps> = ({
       </div>
       <div className="flex-1">
         <div className="inline-flex rounded-lg bg-media p-4 shadow-md">
+          {isLoading && (
+            <div
+              className="aspect-square size-28 shrink-0 animate-pulse rounded-lg bg-surface-panel"
+              aria-label="Loading image"
+            />
+          )}
           <img
-            loading="lazy"
             decoding="async"
             alt={imageAlt}
-            src={imageSrc}
-            onError={(e) => {
-              e.currentTarget.src = imageFallbackSrc;
-            }}
-            className="aspect-square size-28 shrink-0 rounded-lg object-contain"
+            src={currentSrc}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`aspect-square size-28 shrink-0 rounded-lg object-contain${isLoading ? 'visibility-hidden' : ''}`}
           />
         </div>
       </div>
