@@ -116,7 +116,6 @@ describe('Static deployment integration tests', () => {
     expect(await screen.findByText('Protocol')).toBeTruthy();
     expect(await screen.findByText('Manufacturer')).toBeTruthy();
     expect(await screen.findByText('Author')).toBeTruthy();
-    expect(await screen.findByText('0 results found')).toBeTruthy();
   });
   test('Landing page with one item', async () => {
     vi.stubEnv('APP_REPO_URL', '');

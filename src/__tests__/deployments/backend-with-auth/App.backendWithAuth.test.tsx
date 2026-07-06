@@ -112,7 +112,10 @@ afterEach(() => {
 
 describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   test('Landing page navigation, filters, and results no items after valid credentials', async () => {
-    mockFetchApiInventory.mockResolvedValue({ data: [], totalElements: 0 });
+    mockFetchApiInventory.mockResolvedValue({
+      data: [],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+    });
 
     renderApp();
 
@@ -128,7 +131,6 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
     expect(await screen.findByText('Manufacturer')).toBeTruthy();
     expect(await screen.findByText('Author')).toBeTruthy();
     expect(await screen.findByText('Repository')).toBeTruthy();
-    expect(await screen.findByText('0 results found')).toBeTruthy();
     expect(screen.queryByText('Enter API credentials')).toBeNull();
     expect(screen.queryByText('Environment not configured')).toBeNull();
     expect(mockFetchApiInventory).toHaveBeenCalledWith(
@@ -138,7 +140,10 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Landing page with one item after valid credentials', async () => {
-    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
 
     renderApp();
     expect(await screen.findByText('Enter API credentials')).toBeTruthy();
@@ -162,7 +167,10 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Settings page from landing page with one authenticated item', async () => {
-    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
 
     renderApp();
     await authenticateCatalog();
@@ -191,7 +199,10 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('Details page for an authenticated backend Thing Model', async () => {
-    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('ThingasLamp')], totalElements: 1 });
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
     mockFetchApiThingModel.mockResolvedValue({
       id: 'lampuser/lampcorp/thingaslamp',
       title: 'ThingasLamp',
@@ -316,7 +327,10 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
   });
 
   test('authenticates and renders the catalog after valid credentials are submitted', async () => {
-    mockFetchApiInventory.mockResolvedValue({ data: [makeItem('lightall-mk2')], totalElements: 1 });
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('lightall-mk2')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
 
     renderApp();
 

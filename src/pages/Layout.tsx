@@ -42,7 +42,7 @@ const Layout: React.FC<{
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
   const [protocolsState, setProtocolsState] = useState<FilterData[]>(protocols);
 
-  const [protocolFilteredItems, setProtocolFilteredItems] = useState<Item[] | null>(null);
+  const [protocolFilteredItems] = useState<Item[] | null>(null);
 
   const checkedProtocols = useMemo(
     () => protocolsState.filter((p) => p.checked).map((p) => p.value),
@@ -86,47 +86,8 @@ const Layout: React.FC<{
 
     setAuthorsState((prev) => (prev.length === 0 ? authors : prev));
   }, [authors]);
-  /*
+
   useEffect(() => {
-    if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') return;
-
-    const controller = new AbortController();
-
-    if (checkedProtocols.length === 0) {
-      setProtocolFilteredItems(null);
-      return;
-    }
-
-    if (enabled && (authLoading || !authorizationHeader)) {
-      return () => controller.abort();
-    }
-
-    const filterProtocols: string = checkedProtocols ? checkedProtocols.join(',') : '';
-
-    const fetchProtocols = async () => {
-      console.log('fetch prtoocols');
-      try {
-        const fp = encodeURIComponent(filterProtocols);
-        const res = await fetch(`${__API_BASE__}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
-          signal: controller.signal,
-          headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
-        });
-        if (!res.ok) throw new Error(`Protocol fetch failed: ${res.status}`);
-        const json = await res.json();
-        setProtocolFilteredItems(Array.isArray(json.data) ? json.data : []);
-      } catch (e: any) {
-        if (e.name !== 'AbortError') console.error(e);
-      }
-    };
-
-    fetchProtocols();
-
-    return () => controller.abort();
-  }, [authorizationHeader, authLoading, enabled, checkedProtocols]);
-*/
-  useEffect(() => {
-    console.log('fetch protocols');
-
     const hasFilters =
       checkedProtocols.length > 0 ||
       checkedRepositories.length > 0 ||
