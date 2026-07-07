@@ -25,9 +25,6 @@ const ENV_KEYS = [
   'APP_REPO_URL',
   'CATALOG_REPO_URL',
   'SERVER_AVAILABLE',
-  'VITE_API_HOST',
-  'VITE_API_PORT',
-  'VITE_API_PROTOCOL',
   'VITE_EDITDOR_URL',
   'VITE_PLAYGROUND_URL',
   'VITE_TOKEN_URL',
@@ -57,9 +54,6 @@ describe('Vite config file test the setup of globals', () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
     vi.stubEnv('SERVER_AVAILABLE', 'true');
-    vi.stubEnv('VITE_API_HOST', 'localhost');
-    vi.stubEnv('VITE_API_PORT', '8080');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
     vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
     vi.stubEnv('VITE_TOKEN_URL', 'https://vite.token.url/token');
@@ -87,22 +81,16 @@ describe('Vite config file test the setup of globals', () => {
     expect(defines.__DEPLOY_TYPE__).toBe(JSON.stringify('SERVER_AVAILABLE'));
   });
 
-  test('builds __API_BASE__ from VITE_API_HOST, VITE_API_PORT, and VITE_API_PROTOCOL', () => {
+  test('falls back to the default localhost API base when VITE_SERVER_URL is not set', () => {
     clearConfigEnv();
-    vi.stubEnv('VITE_API_HOST', 'api.example.test');
-    vi.stubEnv('VITE_API_PORT', '9443');
-    vi.stubEnv('VITE_API_PROTOCOL', 'https');
 
     const defines = getDefines();
 
-    expect(defines.__API_BASE__).toBe(JSON.stringify('https://api.example.test:9443'));
+    expect(defines.__API_BASE__).toBe(JSON.stringify('http://localhost:8080'));
   });
 
-  test('prefers VITE_SERVER_URL over the host, port, and protocol values', () => {
+  test('prefers VITE_SERVER_URL over the default API base', () => {
     clearConfigEnv();
-    vi.stubEnv('VITE_API_HOST', 'ignored-host.example.test');
-    vi.stubEnv('VITE_API_PORT', '1234');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_SERVER_URL', 'https://configured-server.example.test');
 
     const defines = getDefines();

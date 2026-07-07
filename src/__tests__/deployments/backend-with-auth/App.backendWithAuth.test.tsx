@@ -136,6 +136,8 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
     expect(mockFetchApiInventory).toHaveBeenCalledWith(
       TEST_API_BASE,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      1,
+      10,
     );
   });
 
@@ -163,6 +165,8 @@ describe('Backend with auth (SERVER_AVAILABLE, server + token URL)', () => {
     expect(mockFetchApiInventory).toHaveBeenCalledWith(
       TEST_API_BASE,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      1,
+      10,
     );
   });
 

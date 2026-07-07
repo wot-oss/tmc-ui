@@ -82,32 +82,44 @@ Notes:
 - The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
 
-## Connection to a backend server
+## Application Modes
 
-The connection to a backend server that provides the catalog can be configured by adding the following variables to the `.env` file:
+### Static
 
-    VITE_API_HOST=
-    VITE_API_PORT=
-    VITE_API_PROTOCOL=
+A static application mode will have all the catalog files deployed on the public folder, exacly the same way as a deploy on github or gitlab pages.
 
-Or you can use the **export** command before running the application:
+For this mode, the .env file requirements will be (example values), variables with values will mean they are mandatory:
 
-    export VITE_API_HOST=some_value
+    APP_REPO_URL=https://github.com/wot-oss/tmc-ui.git
+    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
+    SERVER_AVAILABLE=false
 
-If no VITE_API_HOST, VITE_API_PORT, VITE_API_PROTOCOL is defined, the default value will be:
+### Backend with no auth
 
-    http://localhost:8080
+    APP_REPO_URL=
+    CATALOG_REPO_URL=
+    SERVER_AVAILABLE=true
+    VITE_TOKEN_URL=
+    VITE_SERVER_URL=https://server.url
+
+If no value is defined in VITE_SERVER_URL the default value will be http://localhost:8080
+
+### Backend with Auth
+
+This UI supports OAuth2 client-credentials authentication for protected catalog backends.
+
+Use this mode when the backend requires an access token before serving catalog or Thing Model data.
+
+    APP_REPO_URL=
+    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
+    SERVER_AVAILABLE=false
+    VITE_TOKEN_URL=https://server/oauth/token
+    VITE_SERVER_URL=https://server.cloud
 
 ### Other variables supported in the `.env` file
 
-Based on the previous sections, the .env file can have the following structure:
+To add to the previous sections, the .env file can also have the following variables:
 
-    VITE_API_HOST=
-    VITE_API_PORT=
-    VITE_API_PROTOCOL=
-    APP_REPO_URL=
-    CATALOG_REPO_URL=
-    SERVER_AVAILABLE
     VITE_EDITDOR_URL=https://eclipse-editdor.github.io/editdor/
     VITE_PLAYGROUND_URL=https://playground.thingweb.io/
     VITE_SETUP_CREDENTIALS_MESSAGE=
@@ -154,26 +166,6 @@ Security recommendations:
 
 The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready message is received within that time, the action is marked as failed.
 
-### Support Authentication 0AUTH2
-
-This UI supports OAuth2 client-credentials authentication for protected catalog backends.
-
-Use this mode when the backend requires an access token before serving catalog or Thing Model data.
-
-#### When authentication is used
-
-Authentication is enabled when the UI is running against a backend server deployment and a token endpoint is configured.
-
-In practice, this means:
-
-- `SERVER_AVAILABLE=true`
-- `VITE_TOKEN_URL` is defined
-
-If those conditions are not met, the UI runs without requesting an access token.
-
-- `VITE_TOKEN_URL`: OAuth token endpoint used to validate credentials and request an access token.
-- `VITE_SERVER_URL`: Base URL of the protected backend server.
-
 #### Startup flow
 
 When authentication is enabled, the UI validates credentials before granting access to the catalog.
@@ -190,7 +182,6 @@ On startup, the UI behaves as follows:
 - The access token is kept in memory and is not persisted in browser storage.
 - The Settings page allows users to review and replace the current credentials during the session.
 
-
 #### Example minimal local configuration
 
 Create a local `.env` file with the following keys:
@@ -200,6 +191,7 @@ Create a local `.env` file with the following keys:
     VITE_SERVER_URL=https://api.example.local
 
 # Development
+
 ## Prerequisites
 
 - Node.js >= 22.20.0

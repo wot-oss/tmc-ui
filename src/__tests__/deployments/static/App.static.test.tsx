@@ -75,9 +75,6 @@ describe('Static deployment integration tests', () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
     vi.stubEnv('SERVER_AVAILABLE', 'false');
-    vi.stubEnv('VITE_API_HOST', 'localhost');
-    vi.stubEnv('VITE_API_PORT', '8080');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
     vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
     vi.stubEnv('VITE_TOKEN_URL', 'https://tmcprod.eu1.sws.siemens.com/oauth/token');
@@ -121,9 +118,6 @@ describe('Static deployment integration tests', () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
     vi.stubEnv('SERVER_AVAILABLE', 'false');
-    vi.stubEnv('VITE_API_HOST', 'localhost');
-    vi.stubEnv('VITE_API_PORT', '8080');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
     vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
     vi.stubEnv('VITE_TOKEN_URL', 'https://tmcprod.eu1.sws.siemens.com/oauth/token');
@@ -173,9 +167,6 @@ describe('Static deployment integration tests', () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
     vi.stubEnv('SERVER_AVAILABLE', 'false');
-    vi.stubEnv('VITE_API_HOST', 'localhost');
-    vi.stubEnv('VITE_API_PORT', '8080');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
     vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
     vi.stubEnv('VITE_TOKEN_URL', 'https://tmcprod.eu1.sws.siemens.com/oauth/token');
@@ -236,9 +227,6 @@ describe('Static deployment integration tests', () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
     vi.stubEnv('SERVER_AVAILABLE', 'false');
-    vi.stubEnv('VITE_API_HOST', 'localhost');
-    vi.stubEnv('VITE_API_PORT', '8080');
-    vi.stubEnv('VITE_API_PROTOCOL', 'http');
     vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
     vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
     vi.stubEnv('VITE_TOKEN_URL', 'https://tmcprod.eu1.sws.siemens.com/oauth/token');

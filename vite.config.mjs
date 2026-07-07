@@ -6,11 +6,12 @@ const DEV_API_PROXY_PREFIX = '/__tmc_api__';
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  const host = env.VITE_API_HOST || 'localhost';
-  const port = env.VITE_API_PORT || '8080';
-  const protocol = env.VITE_API_PROTOCOL || 'http';
+  const host = 'localhost';
+  const port = '8080';
+  const protocol = 'http';
   const remoteApiBase = env.VITE_SERVER_URL || `${protocol}://${host}:${port}`;
-  const isDevServer = false; // TODO needs to be changed in production
+  const isDevServer = false; // TODO - Dev variable needs to be changed in production
+
   const apiBase = isDevServer ? DEV_API_PROXY_PREFIX : remoteApiBase;
 
   const appRepoUrl = env.APP_REPO_URL || '';

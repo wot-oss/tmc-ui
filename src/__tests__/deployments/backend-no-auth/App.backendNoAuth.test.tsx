@@ -132,7 +132,9 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
     });
     expect(mockFetchApiInventory).toHaveBeenCalledWith(
       TEST_API_BASE,
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      expect.objectContaining({ authorizationHeader: null, signal: expect.any(AbortSignal) }),
+      1,
+      10,
     );
   });
 
@@ -234,7 +236,9 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
 
     expect(mockFetchApiInventory).toHaveBeenCalledWith(
       TEST_API_BASE,
-      expect.objectContaining({ authorizationHeader: null }),
+      expect.objectContaining({ authorizationHeader: null, signal: expect.any(AbortSignal) }),
+      1,
+      10,
     );
   });
 });
