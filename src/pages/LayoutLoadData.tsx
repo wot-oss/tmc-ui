@@ -5,12 +5,16 @@ import { useAuth } from '../hooks/useAuth';
 import { fetchApiDataInventory } from '../services/apiData';
 import { fetchLocalDataInventory } from '../services/localData';
 
+const PAGE_ONE = 1;
+const DEFAULT_PAGE_SIZE = 10;
+
 const LayoutLoadData = () => {
   const { authorizationHeader, enabled, error, isLoading } = useAuth();
 
   const [inventory, setInventory] = useState<Item[]>([]);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [inventoryLoading, setInventoryLoading] = useState<boolean>(true);
+  const [totalItems, setTotalItems] = useState<number>(0);
 
   if (__DEBUG__) {
     console.warn('Vite globals', {
@@ -40,12 +44,18 @@ const LayoutLoadData = () => {
             if (enabled && !authorizationHeader) {
               return;
             }
-            const { data } = await fetchApiDataInventory(__API_BASE__, {
-              signal: controller.signal,
-              authorizationHeader,
-            });
+            const { data, meta } = await fetchApiDataInventory(
+              __API_BASE__,
+              {
+                signal: controller.signal,
+                authorizationHeader,
+              },
+              PAGE_ONE,
+              DEFAULT_PAGE_SIZE,
+            );
 
             setInventory(data as Item[]);
+            setTotalItems(meta.page.totalElements);
             return;
           }
           case 'TYPE_TMC-UI-CATALOG': {
@@ -85,6 +95,7 @@ const LayoutLoadData = () => {
         loadedItems={inventory}
         inventoryError={inventoryError}
         inventoryLoading={inventoryLoading}
+        totalItems={totalItems}
       />
     </FilterProvider>
   );

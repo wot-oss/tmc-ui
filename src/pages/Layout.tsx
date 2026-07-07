@@ -15,19 +15,23 @@ const Layout: React.FC<{
   loadedItems: Item[];
   inventoryLoading: boolean;
   inventoryError: string | null;
-}> = ({ loadedItems, inventoryLoading, inventoryError }) => {
+  totalItems: number;
+}> = ({ loadedItems, inventoryLoading, inventoryError, totalItems }) => {
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading' || inventoryLoading;
 
   // source of truth for all items, regardless of filters
   const [items, setItems] = useState<Item[]>(loadedItems ?? []);
-  const totalElements = useMemo<number>(() => items.length ?? 0, [items]);
+  const totalElements = useMemo<number>(
+    () => totalItems ?? loadedItems?.length ?? 0,
+    [totalItems, loadedItems],
+  );
 
-  const [resultCounts, setResultCounts] = useState<number>(totalElements);
+  const [resultCounts, setResultCounts] = useState<number>(totalItems);
 
   useEffect(() => {
     setItems(loadedItems ?? []);
-    setResultCounts(loadedItems?.length ?? 0);
+    setResultCounts(totalItems ?? 0);
   }, [loadedItems]);
 
   const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
