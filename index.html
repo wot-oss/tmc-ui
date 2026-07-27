@@ -1,12 +1,31 @@
 <!doctype html>
-<html lang="en" class="custom">
+<html lang="en" class="custom dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="./tm-catalog-logo.ico" />
     <title>TMC</title>
+    <script>
+      (function () {
+        var themeKey = 'tmc-ui-theme';
+        var root = document.documentElement;
+        var storedTheme = null;
+
+        try {
+          storedTheme = window.localStorage.getItem(themeKey);
+        } catch {
+          storedTheme = null;
+        }
+
+        var theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'dark';
+
+        root.classList.remove('dark', 'light');
+        root.classList.add(theme);
+        root.dataset.theme = theme;
+      })();
+    </script>
   </head>
-  <body class="light">
+  <body>
     <div id="root"></div>
     <script type="module" src="./src/main.jsx"></script>
   </body>

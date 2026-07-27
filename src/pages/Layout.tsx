@@ -1,40 +1,77 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useFilters } from '../context/FilterContext';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
+import { useFilters } from '../hooks/useFilters';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from 'react-router-dom';
 import GridList from '../components/GridList';
 import Search from '../components/Search';
 import SideBar from '../components/SideBar';
 import Pagination from '../components/Pagination';
-import { INVENTORY_ENDPOINT, PROTOCOLS_FILTER } from '../utils/constants';
+import Loader from '../components/base/Loader';
+import Button from '../components/base/Button';
+import Dropdown from '../components/base/Dropdown';
+import { fetchApiDataInventory } from '../services/apiData';
 
 const Layout: React.FC<{
-  deploymentType: DeploymentType;
   loadedItems: Item[];
-}> = ({ deploymentType, loadedItems }) => {
-  const [items, setItems] = useState<Item[]>(loadedItems ?? []);
-
+  inventoryLoading: boolean;
+  inventoryError: string | null;
+  totalItems: number;
+}> = ({ loadedItems, inventoryLoading, inventoryError, totalItems }) => {
   const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
+  const isLoading = navigation.state === 'loading' || inventoryLoading;
 
-  const [error] = useState<string | null>(null);
-  const [isResetClicked, setIsResetClicked] = useState(false);
+  // source of truth for all items, regardless of filters
+  const [items, setItems] = useState<Item[]>(loadedItems ?? []);
+  const totalElements = useMemo<number>(
+    () => totalItems ?? loadedItems?.length ?? 0,
+    [totalItems, loadedItems],
+  );
+
+  const [resultCounts, setResultCounts] = useState<number>(totalItems);
+
+  useEffect(() => {
+    setItems(loadedItems ?? []);
+    setResultCounts(totalItems ?? 0);
+  }, [loadedItems]);
+
+  const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
 
   const [query, setQuery] = useState('');
 
   const { repositories, manufacturers, authors, protocols, loading, errorFetchData } = useFilters();
+  const { authorizationHeader, enabled, error: authError, isLoading: authLoading } = useAuth();
 
   const [repositoriesState, setRepositoriesState] = useState<FilterData[]>([]);
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
   const [protocolsState, setProtocolsState] = useState<FilterData[]>(protocols);
 
-  const [protocolFilteredItems, setProtocolFilteredItems] = useState<Item[] | null>(null);
-  const selectedProtocols = useMemo(
+  const [protocolFilteredItems] = useState<Item[] | null>(null);
+
+  const checkedProtocols = useMemo(
     () => protocolsState.filter((p) => p.checked).map((p) => p.value),
     [protocolsState],
   );
+  const checkedRepositories = useMemo(
+    () => repositoriesState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [repositoriesState],
+  );
+  const checkedManufacturers = useMemo(
+    () => manufacturersState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [manufacturersState],
+  );
+  const checkedAuthors = useMemo(
+    () => authorsState.filter((opt) => opt.checked).map((opt) => opt.value),
+    [authorsState],
+  );
+
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(20);
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(resultCounts / pageSize)),
+    [resultCounts, pageSize],
+  );
 
   useEffect(() => {
     if (repositories.length === 0) return;
@@ -55,79 +92,94 @@ const Layout: React.FC<{
   }, [authors]);
 
   useEffect(() => {
-    if (deploymentType !== 'SERVER_AVAILABLE') return;
-
-    if (selectedProtocols.length === 0) {
-      setProtocolFilteredItems(null);
-      return;
-    }
-    const filterProtocols: string = selectedProtocols ? selectedProtocols.join(',') : '';
-
-    const controller = new AbortController();
-
-    const fetchProtocols = async () => {
-      try {
-        const fp = encodeURIComponent(filterProtocols);
-        const res = await fetch(`${__API_BASE__}/${INVENTORY_ENDPOINT}?${PROTOCOLS_FILTER}${fp}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`Protocol fetch failed: ${res.status}`);
-        const json = await res.json();
-        setProtocolFilteredItems(Array.isArray(json.data) ? json.data : []);
-      } catch (e: any) {
-        if (e.name !== 'AbortError') console.error(e);
-      }
-    };
-
-    fetchProtocols();
-
-    return () => controller.abort();
-  }, [selectedProtocols, deploymentType]);
-
-  const filteredItems = useMemo<Item[]>(() => {
-    const checkedRepositories = repositoriesState
-      .filter((opt) => opt.checked)
-      .map((opt) => opt.value);
-    const checkedManufacturers = manufacturersState
-      .filter((opt) => opt.checked)
-      .map((opt) => opt.value);
-    const checkedAuthors = authorsState.filter((opt) => opt.checked).map((opt) => opt.value);
-
     const hasFilters =
+      checkedProtocols.length > 0 ||
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
       checkedAuthors.length > 0;
 
-    let result = protocolFilteredItems ?? items;
+    const result = protocolFilteredItems ?? items;
 
-    if (hasFilters) {
-      result = items.filter((item) => {
-        const matchesCatalog =
-          checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
-        const matchesManufacturer =
-          checkedManufacturers.length === 0 ||
-          checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
-        const matchesAuthor =
-          checkedAuthors.length === 0 ||
-          //checkedAuthors.includes(item["schema:author"]?.["schema:name"]); // case api
-          checkedAuthors.some((author) => item.name?.toLowerCase().includes(author.toLowerCase())); // case local
+    if (hasFilters && __DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') {
+      // filtering frontend
+      setFilteredItems(
+        items.filter((item) => {
+          const matchesCatalog =
+            checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
+          const matchesManufacturer =
+            checkedManufacturers.length === 0 ||
+            checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
+          const matchesAuthor =
+            checkedAuthors.length === 0 ||
+            checkedAuthors.some((author) =>
+              item.name?.toLowerCase().includes(author.toLowerCase()),
+            );
 
-        return matchesCatalog && matchesManufacturer && matchesAuthor;
-      });
+          return matchesCatalog && matchesManufacturer && matchesAuthor;
+        }),
+      );
+      return;
     }
-    return result;
-  }, [items, repositoriesState, manufacturersState, authorsState, protocolFilteredItems]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+    if (hasFilters && __DEPLOY_TYPE__ === 'SERVER_AVAILABLE') {
+      const controller = new AbortController();
 
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [totalPages, page]);
+      const loadFilteredItems = async (page?: number, pageSize?: number) => {
+        try {
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: checkedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
+            },
+            page,
+            pageSize,
+          );
+
+          setFilteredItems(data as Item[]);
+          setResultCounts(meta.page.totalElements);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') {
+            return;
+          }
+
+          console.error(err);
+        }
+      };
+
+      void loadFilteredItems(page, pageSize);
+
+      return () => controller.abort();
+    }
+
+    setFilteredItems(result);
+  }, [
+    authorizationHeader,
+    checkedAuthors,
+    checkedManufacturers,
+    checkedRepositories,
+    items,
+    protocolFilteredItems,
+    checkedProtocols,
+    page,
+    pageSize,
+  ]);
 
   const paginatedItems = useMemo<Item[]>(() => {
     const start = (page - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
   }, [filteredItems, page, pageSize]);
+
+  // Defer the heavy grid updates so checkbox/filter interactions paint immediately
+  // while the (memoized) GridList re-renders at a lower priority.
+  const deferredPaginatedItems = useDeferredValue(paginatedItems);
+  const deferredFilteredItems = useDeferredValue(filteredItems);
 
   const handleFilterChange = (sectionId: string, optionValue: string, checked: boolean) => {
     const updateOptions = (prev: FilterData[]) =>
@@ -142,12 +194,105 @@ const Layout: React.FC<{
     } else if (sectionId === 'protocol') {
       setProtocolsState(updateOptions);
     }
+    setPage(1);
   };
 
   const handleSearchResults = useCallback((results: Item[]) => {
-    setItems(results);
+    setFilteredItems(results);
     setPage(1);
   }, []);
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
+
+      const controller = new AbortController();
+
+      const fetchPage = async () => {
+        try {
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: checkedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
+            },
+            newPage,
+            pageSize,
+          );
+
+          setFilteredItems(data as Item[]);
+          setResultCounts(meta.page.totalElements);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          console.error(err);
+        }
+      };
+
+      void fetchPage();
+
+      return () => controller.abort();
+    },
+    [
+      authorizationHeader,
+      pageSize,
+      checkedProtocols,
+      checkedRepositories,
+      checkedManufacturers,
+      checkedAuthors,
+    ],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      setPage(1);
+
+      const controller = new AbortController();
+
+      const fetchPage = async () => {
+        try {
+          const { data, meta } = await fetchApiDataInventory(
+            __API_BASE__,
+            {
+              signal: controller.signal,
+              authorizationHeader,
+              filters: {
+                protocol: checkedProtocols,
+                repository: checkedRepositories,
+                manufacturer: checkedManufacturers,
+                author: checkedAuthors,
+              },
+            },
+            1,
+            newPageSize,
+          );
+
+          setFilteredItems(data as Item[]);
+          setResultCounts(meta.page.totalElements);
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          console.error(err);
+        }
+      };
+
+      void fetchPage();
+
+      return () => controller.abort();
+    },
+    [
+      authorizationHeader,
+      checkedProtocols,
+      checkedRepositories,
+      checkedManufacturers,
+      checkedAuthors,
+    ],
+  );
 
   const resetFilters = () => {
     setQuery('');
@@ -155,14 +300,12 @@ const Layout: React.FC<{
     setManufacturersState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setProtocolsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
-    setIsResetClicked(true);
-    setTimeout(() => setIsResetClicked(false), 150);
     setPage(1);
   };
 
   return (
     <>
-      <div className="min-h-[100dvh] bg-bgBodyPrimary py-10">
+      <div className="min-h-[100dvh] bg-surface-canvas py-10">
         <main>
           <div
             id="search-bar"
@@ -170,12 +313,16 @@ const Layout: React.FC<{
           >
             <div className="hidden md:block md:w-1/4 lg:w-1/5" />
             <div className="w-full md:w-2/4 lg:w-3/5">
-              {deploymentType === 'SERVER_AVAILABLE' && (
+              {__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && (
                 <Search
                   query={query}
                   onSearch={setQuery}
                   onResultsChange={handleSearchResults}
                   baseItems={loadedItems}
+                  authorizationHeader={authorizationHeader}
+                  authEnabled={enabled}
+                  authLoading={authLoading}
+                  authError={authError}
                 />
               )}
             </div>
@@ -184,15 +331,10 @@ const Layout: React.FC<{
 
           <div className="max-w-screen-3xl flex flex-col gap-12 px-4 sm:px-6 lg:flex-row lg:px-8">
             {/* Sidebar */}
-            <aside
-              className="w-full rounded-lg p-4 shadow-sm outline outline-1 -outline-offset-1 outline-gray-200 lg:w-1/4"
-              aria-label="Filters"
-            >
-              {loading && <div style={{ padding: 12 }}>Loading filters…</div>}
-
+            <aside className="w-full rounded-lg p-4 lg:w-1/4" aria-label="Filters">
               {errorFetchData && (
                 <div style={{ padding: 12 }}>
-                  <strong>Filters unavailable:</strong> {errorFetchData}
+                  <strong>Filters unavailable</strong>
                 </div>
               )}
 
@@ -206,58 +348,79 @@ const Layout: React.FC<{
                   onAddProtocol={(protocol) => {
                     setProtocolsState((prev) => [...prev, protocol]);
                   }}
-                  deploymentType={deploymentType}
                 />
               )}
             </aside>
 
             {/* Results */}
             <section className="w-3/4 flex-1">
-              <div className="mb-4 flex flex-wrap items-center gap-4 text-inputText">
+              <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
                 <p className="text-lg">
-                  {filteredItems.length} result
-                  {filteredItems.length !== 1 ? 's' : ''} found
+                  {resultCounts} result
+                  {resultCounts !== 1 ? 's' : ''} found in the catalog with {totalElements} TDs in
+                  total
                 </p>
-                <button
-                  type="button"
+                <Button
+                  text="Reset filters"
                   onClick={resetFilters}
-                  className={`w-64 rounded bg-buttonPrimary px-3 py-2 text-sm text-textWhite disabled:opacity-40 ${
-                    isResetClicked
-                      ? 'bg-buttonOnClick hover:bg-buttonOnClick'
-                      : 'bg-buttonPrimary hover:bg-buttonOnHover'
-                  }`}
-                >
-                  Reset filters
-                </button>
-                <label className="flex items-center gap-2 text-sm text-textValue">
+                  className="w-64 justify-center rounded border"
+                  variant="default"
+                />
+                <label className="flex items-center gap-2 text-sm text-text-primary">
                   TMs per page:
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setPage(1);
+                  <Dropdown
+                    id="page-size"
+                    label="TMs per page"
+                    value={String(pageSize)}
+                    onChange={(value) => {
+                      handlePageSizeChange(Number(value));
                     }}
-                    className="rounded border border-buttonBorder bg-bgBodyPrimary px-2 py-1 text-sm hover:border-buttonOnHover"
-                  >
-                    {[10, 20, 50, 100].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                    options={[10, 20, 50, 100].map((n) => ({
+                      key: String(n),
+                      value: String(n),
+                    }))}
+                    showChevron={true}
+                    className="rounded bg-surface-canvas px-2 py-1 pr-10 text-sm"
+                  />
                 </label>
                 {query && filteredItems.length === 0 && (
-                  <span className="text-sm text-textLabel">(No matches for "{query}")</span>
+                  <span className="text-sm text-text-secondary">(No matches for "{query}")</span>
                 )}
               </div>
-              <GridList
-                items={paginatedItems}
-                loading={isLoading}
-                error={error}
-                deploymentType={deploymentType}
-              />
 
-              <Pagination page={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
+              {__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE' && (
+                <div>
+                  {loading && <Loader text="Loading catalog..." />}
+                  {!loading && (
+                    <GridList
+                      items={deferredPaginatedItems}
+                      loading={isLoading}
+                      error={inventoryError}
+                    />
+                  )}
+
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={(p) => setPage(p)}
+                  />
+                </div>
+              )}
+
+              {__DEPLOY_TYPE__ === 'SERVER_AVAILABLE' && (
+                <div>
+                  {loading && <Loader text="Loading catalog..." />}
+                  {!loading && (
+                    <GridList
+                      items={deferredFilteredItems}
+                      loading={isLoading}
+                      error={inventoryError}
+                    />
+                  )}
+
+                  <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+                </div>
+              )}
             </section>
           </div>
         </main>

@@ -32,8 +32,6 @@ export async function fetchLocalDataInventory(baseUrl: string): Promise<unknown[
   const relativePath = `${normalizeRelativePathSegment(baseUrl)}${folder}${filename}`;
   const url = new URL(`/${normalizeRelativePathSegment(relativePath)}`, window.location.origin);
 
-  console.warn('Fetching local inventory from URL:', url.toString());
-
   const res = await fetch(url.toString());
   if (!res.ok) {
     throw new Response('Failed to fetch local inventory', {
