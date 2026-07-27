@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Button from './base/Button';
+import Input from './base/Input';
 import { normalizeString } from '../utils/strings';
 import { OPTIONS_LIST_SIZE, SCROLL_THRESHOLD_PX } from '../utils/constants';
 
@@ -17,6 +18,18 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
   onAddProtocol,
 }) => {
   const shouldScroll = options.length > OPTIONS_LIST_SIZE;
+  const scrollContainerBaseClassName = 'max-h-72 space-y-4 overflow-y-auto pr-[6px]';
+  const scrollContainerFirefoxClassName =
+    '[scrollbar-color:theme(colors.overlay.scroll-thumb)_transparent] [scrollbar-width:thin]';
+  const scrollContainerWebkitClassName =
+    '[&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-overlay-scroll-thumb [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb]:border-y-[8px] [&::-webkit-scrollbar-thumb]:border-y-transparent';
+  const scrollContainerClassName = shouldScroll
+    ? [
+        scrollContainerBaseClassName,
+        scrollContainerFirefoxClassName,
+        scrollContainerWebkitClassName,
+      ].join(' ')
+    : 'space-y-4';
 
   const [visibleCount, setVisibleCount] = useState<number>(OPTIONS_LIST_SIZE);
 
@@ -80,13 +93,13 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
   return (
     <div
       onScroll={handleScroll}
-      className={shouldScroll ? 'max-h-72 space-y-4 overflow-y-auto pr-2' : 'space-y-4'}
+      className={scrollContainerClassName}
       aria-label={`${sectionId} options`}
     >
       {visibleOptions.map((option, optionIdx) => (
         <div key={option.value} className="flex gap-3">
           <div className="flex h-5 shrink-0 items-center">
-            <div className="group grid size-4 grid-cols-1">
+            <div className="group relative grid size-4 grid-cols-1">
               <input
                 id={`filter-${sectionId}-${optionIdx}`}
                 name={`${sectionId}[]`}
@@ -94,19 +107,26 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
                 checked={option.checked}
                 type="checkbox"
                 onChange={(e) => onOptionChange(sectionId, option.value, e.target.checked)}
-                className="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
+                className="peer col-start-1 row-start-1 size-4 appearance-none rounded-[2px] focus-visible:outline-none disabled:cursor-not-allowed forced-colors:appearance-auto"
               />
+              <span className="pointer-events-none absolute left-[-2px] top-[-2px] h-5 w-5 rounded-[4px] border border-focus-ring opacity-0 peer-focus-visible:opacity-100" />
               <svg
                 fill="none"
-                viewBox="0 0 14 14"
-                className="group-has-disabled:stroke-gray-950/25 pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                className="pointer-events-none col-start-1 row-start-1 size-4 self-center justify-self-center"
               >
+                <rect
+                  width="16"
+                  height="16"
+                  rx="2"
+                  className="fill-transparent stroke-text-primary group-hover:fill-surface-input-hover group-hover:stroke-interactive-hover group-has-[:checked]:fill-interactive-pressed group-has-[:disabled]:fill-media group-has-[:checked]:stroke-interactive-pressed group-has-[:disabled]:stroke-text-marker"
+                />
                 <path
-                  d="M3 8L6 11L11 3.5"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="opacity-0 group-has-[:checked]:opacity-100"
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M7.01428 9.85976L11.7739 2.73831L13.4367 3.84965L7.32081 13.0004L2.7594 8.42398L4.17593 7.01209L7.01428 9.85976Z"
+                  className="fill-text-inverse-strong opacity-0 group-has-[:disabled]:fill-text-tertiary group-has-[:checked]:opacity-100"
                 />
               </svg>
             </div>
@@ -114,7 +134,7 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
 
           <label
             htmlFor={`filter-${sectionId}-${optionIdx}`}
-            className="text-sm text-textValue hover:text-textLabel"
+            className="text-sm text-text-primary hover:text-text-secondary"
           >
             {option.label}
           </label>
@@ -122,12 +142,12 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
       ))}
       {sectionId === 'protocol' && (
         <div className="ml-7 mt-4">
-          <label htmlFor="custom-protocol" className="block text-sm text-textLabel">
+          <label htmlFor="custom-protocol" className="block text-sm text-text-secondary">
             Add new protocol filter with its URI Scheme
           </label>
 
           <div className="mt-2 flex gap-2">
-            <input
+            <Input
               id="custom-protocol"
               type="text"
               value={customProtocol}
@@ -142,19 +162,19 @@ const FilterOptions: React.FC<FilterOptionsProps> = ({
                 }
               }}
               placeholder="e.g. opc.tcp"
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-textValue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             />
             <Button
               type="button"
               text="Add"
               onClick={handleAddProtocol}
               disabled={!onAddProtocol}
-              className=""
+              className="border pl-4 pr-4"
+              variant="default"
             ></Button>
           </div>
 
           {customProtocolError && (
-            <p className="mt-2 text-sm text-red-600">{customProtocolError}</p>
+            <p className="mt-2 text-sm text-status-error">{customProtocolError}</p>
           )}
         </div>
       )}

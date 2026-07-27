@@ -1,7 +1,9 @@
 import React from 'react';
 import defaultImage from '../assets/default-image.png';
-import FourZeroFourNotFound from './404NotFound';
+import AppError from './AppError';
 import { Link } from 'react-router-dom';
+import Loader from './base/Loader';
+import Card from './Card';
 
 const DEFAULT_IMAGE_SRC = defaultImage;
 
@@ -9,8 +11,8 @@ const buildItemKey = (itemTM: Item, i: number): string =>
   `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
 const buildItemImageSrc = (
-  tmName: string,
-  deploymentType: DeploymentType,
+  tmName: string | undefined,
+  deploymentType: DeploymentType | string,
   attachments: Attachments[] | undefined,
 ): string => {
   if (!attachments) return DEFAULT_IMAGE_SRC;
@@ -18,6 +20,8 @@ const buildItemImageSrc = (
   const pngImageSrc: Attachments | undefined = attachments.find((att) => att.name.endsWith('png'));
 
   if (deploymentType !== 'SERVER_AVAILABLE') {
+    if (!tmName || !pngImageSrc) return DEFAULT_IMAGE_SRC;
+
     return `${tmName}/.attachments/${pngImageSrc?.name}`;
   }
 
@@ -32,164 +36,73 @@ const buildItemImageSrc = (
   return `${__API_BASE__}/${attachmentLink}`;
 };
 
+const CARD_CLASS_NAME =
+  "col-span-1 relative rounded-[4px] border border-border-default bg-surface-panel shadow-md before:pointer-events-none before:absolute before:bottom-[-3px] before:left-[-3px] before:right-[-3px] before:top-[-3px] before:rounded-[4px] before:border before:border-focus-ring before:opacity-0 before:content-[''] focus-within:rounded-[4px] focus-within:border focus-within:border-border-default focus-within:bg-surface-panel focus-within:outline-none focus-within:before:opacity-100 hover:bg-surface-panel-hover hover:shadow-sm hover:outline-interactive-support-hover";
+
 const GridList: React.FC<{
   items: ItemExtended[];
   loading: boolean;
   error: string | null;
-  deploymentType: DeploymentType;
-}> = ({ items, loading, error, deploymentType }) => {
-  __DEBUG__ &&
-    console.warn(
-      'Rendering GridList with items:',
-      items,
-      'loading:',
-      loading,
-      'deploymenType:',
-      deploymentType,
-    );
-
-  if (loading) return <div className="p-4 text-textValue">Loading...</div>;
+}> = ({ items, loading, error }) => {
+  if (loading) return <Loader text="Loading catalog..." />;
 
   if (error)
     return (
       <div className="p-4">
-        <FourZeroFourNotFound error={error}></FourZeroFourNotFound>
+        <AppError titleError={error} codeError={404}></AppError>
       </div>
     );
 
-  if (deploymentType === 'SERVER_AVAILABLE')
-    return (
-      <div>
-        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((itemTM, i) => {
-            const key = buildItemKey(itemTM, i);
-            const imageSrc = buildItemImageSrc(itemTM.tmName, deploymentType, itemTM.attachments);
-            return (
-              <li
-                key={key}
-                className="col-span-1 divide-y divide-white/10 rounded-lg bg-bgBodySecondary shadow-md outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
+  return (
+    <div>
+      <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((itemTM, i) => {
+          const key = buildItemKey(itemTM, i);
+          const title = itemTM.name ?? itemTM.tmName;
+          const imageSrc = buildItemImageSrc(title, __DEPLOY_TYPE__, itemTM.attachments);
+
+          return (
+            <li key={key} className={CARD_CLASS_NAME}>
+              <Link
+                to={`/details/${title}`}
+                state={{
+                  item: itemTM,
+                  imageSrc: imageSrc,
+                  deploymentType: __DEPLOY_TYPE__,
+                }}
               >
-                <Link
-                  to={`/details/${itemTM.tmName}`}
-                  state={{
-                    item: itemTM,
-                    imageSrc: imageSrc,
-                    deploymentType: deploymentType,
-                  }}
+                <Card
+                  title={title}
+                  author={itemTM['schema:author']['schema:name']}
+                  manufacturer={itemTM['schema:manufacturer']['schema:name']}
+                  imageSrc={imageSrc}
+                  imageAlt={`Product image of ${title}`}
+                  imageFallbackSrc={DEFAULT_IMAGE_SRC}
                 >
-                  <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
-                    <div className="flex-1 truncate text-textValue">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-sm font-medium">{itemTM.tmName}</h3>
-                      </div>
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
-                        {itemTM['schema:author']['schema:name']}
-                      </span>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM['schema:manufacturer']['schema:name']}
-                      </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM.links?.content ?? ''}
-                      </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM.repo?.concat(', ') ?? ''}
-                      </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">{itemTM['schema:mpn']}</p>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM['schema:description']}
-                      </p>
-
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
-                        available
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <div className="inline-flex rounded-lg bg-imageBackground p-4 shadow-md">
-                        <img
-                          loading="lazy"
-                          decoding="async"
-                          alt={`Product image of ${itemTM.tmName}`}
-                          src={imageSrc}
-                          onError={(e) => {
-                            e.currentTarget.src = DEFAULT_IMAGE_SRC;
-                          }}
-                          className="aspect-square size-28 shrink-0 rounded-lg object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    );
-  else
-    return (
-      <div>
-        <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((itemTM, i) => {
-            const key = buildItemKey(itemTM, i);
-            const imageSrc = buildItemImageSrc(
-              itemTM.name ?? itemTM.tmName,
-              deploymentType,
-              itemTM.attachments,
-            );
-
-            return (
-              <li
-                key={key}
-                className="col-span-1 divide-y divide-white/10 rounded-lg bg-bgBodySecondary shadow-md outline -outline-offset-1 outline-white/10 hover:shadow-sm hover:outline-buttonOnHover"
-              >
-                <Link
-                  to={`/details/${itemTM.name ?? itemTM.tmName}`}
-                  state={{
-                    item: itemTM,
-                    imageSrc: imageSrc,
-                    deploymentType: deploymentType,
-                  }}
-                >
-                  <div className="flex w-full flex-col items-start space-y-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:space-x-6 sm:space-y-0">
-                    <div className="flex-1 truncate text-textValue">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-sm font-medium">{itemTM.name ?? itemTM.tmName}</h3>
-                      </div>
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-textHighlight px-1.5 py-0.5 text-xs font-medium text-success">
-                        {itemTM['schema:author']['schema:name']}
-                      </span>
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        {itemTM['schema:manufacturer']['schema:name']}
-                      </p>
-                      <p className="mt-1 truncate text-sm text-textLabel">{itemTM['schema:mpn']}</p>
-
-                      <p className="mt-1 truncate text-sm text-textLabel">
-                        Number of Versions available: {itemTM.versions.length}
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <div className="inline-flex rounded-lg bg-imageBackground p-4 shadow-md">
-                        <img
-                          loading="lazy"
-                          decoding="async"
-                          alt={`Product image of ${itemTM.name ?? itemTM.tmName}`}
-                          src={imageSrc}
-                          onError={(e) => {
-                            e.currentTarget.src = DEFAULT_IMAGE_SRC;
-                          }}
-                          className="aspect-square size-28 shrink-0 rounded-lg object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    );
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM.links?.content ?? ''}
+                  </p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM.repo?.concat(', ') ?? ''}
+                  </p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM['schema:mpn']}
+                  </p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM['schema:description'] ?? ''}
+                  </p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">
+                    {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
+                    available
+                  </p>
+                </Card>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 };
 
-export default GridList;
+export default React.memo(GridList);

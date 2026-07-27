@@ -1,79 +1,90 @@
 import { type ThingDescription } from 'wot-typescript-definitions';
-import {
-  INVENTORY_TIMEOUT_MS,
-  INVENTORY_ENDPOINT,
-  REPOSITORY_ENDPOINT,
-  MANUFACTURER_ENDPOINT,
-  AUTHOR_ENDPOINT,
-  THING_MODEL_ENDPOINT,
-} from '../utils/constants';
+import { INVENTORY_TIMEOUT_MS, INVENTORY_ENDPOINT, THING_MODEL_ENDPOINT } from '../utils/constants';
 
-export async function fetchApiDataFilters(): Promise<{
-  nextProtocols: FilterData[];
-  nextManufacturers: FilterData[];
-  nextAuthors: FilterData[];
-  nextRepositories: FilterData[];
-}> {
-  let nextProtocols: FilterData[] = [];
-  let nextManufacturers: FilterData[] = [];
-  let nextAuthors: FilterData[] = [];
-  let nextRepositories: FilterData[] = [];
+interface FetchInventoryOptions {
+  readonly signal?: AbortSignal;
+  readonly authorizationHeader?: string | null;
+  readonly filters?: {
+    readonly author?: readonly string[];
+    readonly protocol?: readonly string[];
+    readonly manufacturer?: readonly string[];
+    readonly repository?: readonly string[];
+  };
+}
 
-  try {
-    const [reposRes, manufacturersRes, authorsRes] = await Promise.all([
-      fetch(`${__API_BASE__}/${REPOSITORY_ENDPOINT}`),
-      fetch(`${__API_BASE__}/${MANUFACTURER_ENDPOINT}`),
-      fetch(`${__API_BASE__}/${AUTHOR_ENDPOINT}`),
-    ]);
+export interface InventoryResponse {
+  data: unknown[];
+  meta: MetaResponse;
+}
+export interface MetaResponse {
+  lastUpdated: string;
+  page: {
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+  };
+}
 
-    if (!reposRes.ok || !manufacturersRes.ok || !authorsRes.ok) {
-      throw new Error('Failed to fetch filter data');
-    }
+interface FetchThingModelOptions {
+  readonly signal?: AbortSignal;
+  readonly authorizationHeader?: string | null;
+}
 
-    const [reposJson, manufacturersJson, authorsJson] = await Promise.all([
-      reposRes.json(),
-      manufacturersRes.json(),
-      authorsRes.json(),
-    ]);
+function buildRequestHeaders(authorizationHeader?: string | null): HeadersInit {
+  return {
+    ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+    'Content-Type': 'application/json',
+  };
+}
 
-    nextManufacturers = (manufacturersJson.data || []).map((manufacturer: string) => ({
-      value: manufacturer,
-      label: manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1),
-      checked: false,
-    }));
+function buildInventoryUrl(
+  baseUrl: string,
+  filters?: FetchInventoryOptions['filters'],
+  page?: number,
+  pageSize?: number,
+): string {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const searchParams = new URLSearchParams();
 
-    nextAuthors = (authorsJson.data || []).map((author: string) => ({
-      value: author,
-      label: author.charAt(0).toUpperCase() + author.slice(1),
-      checked: false,
-    }));
-
-    nextRepositories = (reposJson.data || []).map((repo: { name: string }) => ({
-      value: repo.name,
-      label: repo.name.charAt(0).toUpperCase() + repo.name.slice(1),
-      checked: false,
-    }));
-
-    if (
-      nextAuthors.length === 0 &&
-      nextManufacturers.length === 0 &&
-      nextRepositories.length === 0
-    ) {
-      throw new Error('No filter data available');
-    }
-  } catch (err: unknown) {
-    throw new Error(err instanceof Error ? err.message : 'fecthApiDataFilters unknown error');
+  if (page !== undefined) {
+    searchParams.set('page', String(page));
   }
-  return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
+
+  if (pageSize !== undefined) {
+    searchParams.set('pageSize', String(pageSize));
+  }
+
+  if (filters?.author?.length) {
+    searchParams.set('filter.author', filters.author.join(','));
+  }
+
+  if (filters?.protocol?.length) {
+    searchParams.set('filter.protocol', filters.protocol.join(','));
+  }
+
+  if (filters?.manufacturer?.length) {
+    searchParams.set('filter.manufacturer', filters.manufacturer.join(','));
+  }
+
+  if (filters?.repository?.length) {
+    searchParams.set('filter.repository', filters.repository.join(','));
+  }
+
+  const query = searchParams.toString();
+  return `${normalizedBaseUrl}/${INVENTORY_ENDPOINT}?${query}`;
 }
 
 export async function fetchApiDataInventory(
   baseUrl: string | undefined,
-  request: Request,
-): Promise<unknown[]> {
+  options: FetchInventoryOptions = {},
+  page?: number,
+  pageSize?: number,
+): Promise<InventoryResponse> {
   if (!baseUrl) {
     throw new Response('Catalog URL not configured', { status: 400 });
   }
+
+  const { signal, authorizationHeader, filters } = options;
   const controller = new AbortController();
   let didTimeout = false;
 
@@ -82,12 +93,13 @@ export async function fetchApiDataInventory(
     controller.abort();
   }, INVENTORY_TIMEOUT_MS);
 
-  const abortFromRouter = () => controller.abort();
-  request.signal.addEventListener('abort', abortFromRouter);
+  const abortFromCaller = () => controller.abort();
+  signal?.addEventListener('abort', abortFromCaller);
 
   try {
-    const res = await fetch(`${baseUrl}/${INVENTORY_ENDPOINT}`, {
+    const res = await fetch(buildInventoryUrl(baseUrl, filters, page, pageSize), {
       signal: controller.signal,
+      headers: buildRequestHeaders(authorizationHeader),
     });
 
     if (!res.ok) {
@@ -101,10 +113,19 @@ export async function fetchApiDataInventory(
       'data' in json &&
       Array.isArray((json as { data?: unknown }).data)
     ) {
-      return (json as { data: unknown[] }).data;
+      const data = (json as { data: unknown[] }).data;
+      const meta = (json as { meta?: MetaResponse }).meta;
+
+      return {
+        data: data,
+        meta: meta ?? { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+      };
     }
 
-    return [];
+    return {
+      data: [],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+    };
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       if (didTimeout) {
@@ -116,13 +137,14 @@ export async function fetchApiDataInventory(
     throw err;
   } finally {
     clearTimeout(timeoutId);
-    request.signal.removeEventListener('abort', abortFromRouter);
+    signal?.removeEventListener('abort', abortFromCaller);
   }
 }
 
 export async function fetchApiThingModel(
   baseUrl: string | undefined,
   itemName: string,
+  options: FetchThingModelOptions = {},
 ): Promise<ThingDescription> {
   if (!baseUrl) {
     throw new Error('Catalog URL not configured');
@@ -133,7 +155,10 @@ export async function fetchApiThingModel(
   }
 
   try {
-    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`);
+    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`, {
+      signal: options.signal,
+      headers: buildRequestHeaders(options.authorizationHeader),
+    });
 
     if (!res.ok) {
       throw new Error('Item not found');

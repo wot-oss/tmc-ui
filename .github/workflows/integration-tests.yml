@@ -1,0 +1,30 @@
+name: Integration tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run integration tests with coverage
+        run: yarn vitest run src/__tests__ --coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage
+          path: coverage/

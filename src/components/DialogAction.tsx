@@ -1,6 +1,7 @@
 import { Dialog, DialogPanel } from '@headlessui/react';
 import React, { useEffect, useRef, useState } from 'react';
 import type { ThingDescription } from 'wot-typescript-definitions';
+import Button from './base/Button';
 
 type ItemStatus = 'idle' | 'copied' | 'error' | 'sent';
 
@@ -166,22 +167,23 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
 
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+      <div className="fixed inset-0 bg-overlay-backdrop" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-md rounded-lg bg-bgBodySecondary p-6 shadow-lg">
-          <h2 className="mb-4 text-lg font-semibold text-textValue">Open with …</h2>
+        <DialogPanel className="w-full max-w-md rounded-lg bg-surface-modal p-6 shadow-lg">
+          <h2 className="mb-4 text-lg font-semibold text-text-primary">Open with …</h2>
           <ul className="flex flex-col gap-3">
             {targets.map((t) => (
               <li key={t.name} className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={t.handleOnClick}
-                  disabled={!fullDescription}
-                  className="flex-1 rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-center text-sm text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus disabled:opacity-40"
-                >
-                  <span>{t.name}</span>
-                </button>
-                <span className="px-3 text-sm text-success">
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    onClick={t.handleOnClick}
+                    disabled={!fullDescription}
+                    text={t.name}
+                    variant="default"
+                  />
+                </div>
+                <span className="px-3 text-sm text-status-success">
                   {t.status === 'copied' && 'Copied!'}
                   {t.status === 'error' && 'Copy failed'}
                   {t.status === 'sent' && 'TD sent to EdiTDor!'}
@@ -191,7 +193,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
           </ul>
 
           <div className="mt-6 flex justify-end gap-3">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 if (editdorReadyTimeoutRef.current !== null) {
@@ -204,10 +206,9 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                 setStatuses(INITIAL_STATUSES);
                 onClose();
               }}
-              className="rounded-md border border-buttonBorder bg-buttonPrimary px-3 py-2 text-sm font-medium text-textWhite hover:bg-buttonOnHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-buttonFocus"
-            >
-              Close
-            </button>
+              text="Close"
+              variant="default"
+            />
           </div>
         </DialogPanel>
       </div>
