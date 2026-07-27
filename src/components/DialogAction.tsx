@@ -14,8 +14,7 @@ interface DialogActionProps {
 const EDITDOR_URL =
   import.meta.env.VITE_EDITDOR_URL || 'https://eclipse-editdor.github.io/editdor/';
 const PLAYGROUND_URL = import.meta.env.VITE_PLAYGROUND_URL || 'https://playground.thingweb.io/';
-const EDITDOR_ORIGIN = new URL(EDITDOR_URL).origin;
-const EDITDOR_READY_TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 10000;
 const INITIAL_STATUSES = {
   editdor: 'idle' as ItemStatus,
   playground: 'idle' as ItemStatus,
@@ -31,6 +30,8 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
   const editdorWindowRef = useRef<Window | null>(null);
   const pendingEditdorMessageRef = useRef<PendingEditdorMessage | null>(null);
   const editdorReadyTimeoutRef = useRef<number | null>(null);
+  const pendingOriginRef = useRef<string | null>(null);
+  const pendingStatusKeyRef = useRef<keyof typeof INITIAL_STATUSES | null>(null);
 
   useEffect(() => {
     setStatuses(INITIAL_STATUSES);
@@ -48,7 +49,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
 
   useEffect(() => {
     function handleEditdorMessage(event: MessageEvent) {
-      if (event.origin !== EDITDOR_ORIGIN) {
+      if (!pendingOriginRef.current || event.origin !== pendingOriginRef.current) {
         return;
       }
 
@@ -56,7 +57,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
         return;
       }
 
-      if (event.data?.type !== 'EDITDOR_READY') {
+      if (event.data?.type !== 'APPLICATION_READY') {
         return;
       }
 
@@ -70,7 +71,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
           description: pendingEditdorMessageRef.current.description,
           payload: pendingEditdorMessageRef.current.payload,
         },
-        EDITDOR_ORIGIN,
+        pendingOriginRef.current,
       );
 
       if (editdorReadyTimeoutRef.current !== null) {
@@ -79,7 +80,8 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       }
 
       pendingEditdorMessageRef.current = null;
-      setStatuses((prev) => ({ ...prev, editdor: 'sent' }));
+      const statusKey = pendingStatusKeyRef.current;
+      if (statusKey) setStatuses((prev) => ({ ...prev, [statusKey]: 'sent' }));
     }
 
     window.addEventListener('message', handleEditdorMessage);
@@ -96,8 +98,14 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
     };
   }, []);
 
-  function handleOnOpenInEdiTDor(tdJson: string): void {
-    setStatuses((prev) => ({ ...prev, editdor: 'idle' }));
+  function handleOnOpenExternalApplication(
+    url: string,
+    tdJson: string,
+    statusKey: keyof typeof INITIAL_STATUSES,
+  ): void {
+    pendingOriginRef.current = new URL(url).origin;
+    pendingStatusKeyRef.current = statusKey;
+    setStatuses((prev) => ({ ...prev, [statusKey]: 'idle' }));
     pendingEditdorMessageRef.current = {
       description:
         fullDescription?.title ||
@@ -106,11 +114,11 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       payload: tdJson,
     };
 
-    const editdorWindow = window.open(EDITDOR_URL, '_blank');
+    const editdorWindow = window.open(url, '_blank');
 
     if (!editdorWindow) {
       pendingEditdorMessageRef.current = null;
-      setStatuses((prev) => ({ ...prev, editdor: 'error' }));
+      setStatuses((prev) => ({ ...prev, [statusKey]: 'error' }));
       return;
     }
 
@@ -126,26 +134,10 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       editdorReadyTimeoutRef.current = null;
       setStatuses((prev) => ({
         ...prev,
-        editdor: prev.editdor === 'sent' ? prev.editdor : 'error',
+        [statusKey]: prev[statusKey] === 'sent' ? prev[statusKey] : 'error',
       }));
-    }, EDITDOR_READY_TIMEOUT_MS);
+    }, TIMEOUT_MS);
   }
-
-  const handleOpenPlayground = async () => {
-    if (!fullDescription) return;
-
-    try {
-      setStatuses((prev) => ({ ...prev, playground: 'idle' }));
-      const json = JSON.stringify(fullDescription, null, 2);
-      await navigator.clipboard.writeText(json);
-      setStatuses((prev) => ({ ...prev, playground: 'copied' }));
-
-      const win = window.open(PLAYGROUND_URL, '_blank');
-      if (!win) window.location.href = PLAYGROUND_URL;
-    } catch {
-      setStatuses((prev) => ({ ...prev, playground: 'error' }));
-    }
-  };
 
   const targets = [
     {
@@ -154,14 +146,25 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       status: statuses.editdor,
       handleOnClick: () => {
         if (!fullDescription) return;
-        handleOnOpenInEdiTDor(JSON.stringify(fullDescription, null, 2));
+        handleOnOpenExternalApplication(
+          EDITDOR_URL,
+          JSON.stringify(fullDescription, null, 2),
+          'editdor',
+        );
       },
     },
     {
       name: 'TD Playground',
       url: PLAYGROUND_URL,
       status: statuses.playground,
-      handleOnClick: handleOpenPlayground,
+      handleOnClick: () => {
+        if (!fullDescription) return;
+        handleOnOpenExternalApplication(
+          PLAYGROUND_URL,
+          JSON.stringify(fullDescription, null, 2),
+          'playground',
+        );
+      },
     },
   ];
 
@@ -186,7 +189,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                 <span className="px-3 text-sm text-status-success">
                   {t.status === 'copied' && 'Copied!'}
                   {t.status === 'error' && 'Copy failed'}
-                  {t.status === 'sent' && 'TD sent to EdiTDor!'}
+                  {t.status === 'sent' && `TD sent to ${t.name}!`}
                 </span>
               </li>
             ))}
