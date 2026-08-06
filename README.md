@@ -103,6 +103,8 @@ For this mode, the .env file requirements will be (example values), variables wi
 
 If no value is defined in VITE_SERVER_URL the default value will be http://localhost:8080
 
+You can use [the example .env file](.env.example) by renaming it .env to use this setup.
+
 ### Backend with Auth
 
 This UI supports OAuth2 client-credentials authentication for protected catalog backends.
