@@ -101,6 +101,15 @@ describe('Vite config file test the setup of globals', () => {
     );
   });
 
+  test('routes API calls through the Vite proxy when serving locally', () => {
+    clearConfigEnv();
+    vi.stubEnv('VITE_SERVER_URL', 'http://localhost:8080');
+
+    const defines = resolveViteConfig('serve').define as ViteConfigDefines;
+
+    expect(defines.__API_BASE__).toBe(JSON.stringify('/__tmc_api__'));
+  });
+
   test('sets SERVER_AVAILABLE deployment globals when SERVER_AVAILABLE is true', () => {
     clearConfigEnv();
     vi.stubEnv('SERVER_AVAILABLE', 'true');

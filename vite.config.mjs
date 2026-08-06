@@ -7,7 +7,7 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   const remoteApiBase = env.VITE_SERVER_URL || `http://localhost:8080`;
-  const isDevServer = false; // TODO - Dev variable needs to be changed in production
+  const isDevServer = command === 'serve';
 
   const apiBase = isDevServer ? DEV_API_PROXY_PREFIX : remoteApiBase;
 
