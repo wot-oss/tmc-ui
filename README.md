@@ -25,7 +25,7 @@ Create a `.env` file at the repository root before running the script:
 
     APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
     CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
-    SERVER_AVAILABLE=false
+    SERVER_AVAILABLE=true
 
 Variables:
 
@@ -37,7 +37,9 @@ Variables:
 
 Run the deployment preparation step with:
 
+```sh
     sh deploy.sh
+```
 
 The script performs the following steps:
 
@@ -96,8 +98,6 @@ For this mode, the .env file requirements will be (example values), variables wi
 
 ### Backend with no Auth
 
-    APP_REPO_URL=
-    CATALOG_REPO_URL=
     SERVER_AVAILABLE=true
     VITE_SERVER_URL=https://example.com
 
@@ -109,9 +109,7 @@ This UI supports OAuth2 client-credentials authentication for protected catalog 
 
 Use this mode when the backend requires an access token before serving catalog or Thing Model data.
 
-    APP_REPO_URL=
-    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
-    SERVER_AVAILABLE=false
+    SERVER_AVAILABLE=true
     VITE_TOKEN_URL=https://example.com/oauth/token
     VITE_SERVER_URL=https://example.com
 
