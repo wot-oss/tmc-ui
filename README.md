@@ -86,7 +86,7 @@ Notes:
 
 ### Static
 
-A static application mode will have all the catalog files deployed on the public folder, exacly the same way as a deploy on github or gitlab pages.
+A static application mode will have all the catalog files deployed on the public folder, exactly the same way as a deploy on GitHub or Gitlab pages.
 
 For this mode, the .env file requirements will be (example values), variables with values will mean they are mandatory:
 
@@ -94,13 +94,12 @@ For this mode, the .env file requirements will be (example values), variables wi
     CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
     SERVER_AVAILABLE=false
 
-### Backend with no auth
+### Backend with no Auth
 
     APP_REPO_URL=
     CATALOG_REPO_URL=
     SERVER_AVAILABLE=true
-    VITE_TOKEN_URL=
-    VITE_SERVER_URL=https://server.url
+    VITE_SERVER_URL=https://example.com
 
 If no value is defined in VITE_SERVER_URL the default value will be http://localhost:8080
 
@@ -113,8 +112,8 @@ Use this mode when the backend requires an access token before serving catalog o
     APP_REPO_URL=
     CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
     SERVER_AVAILABLE=false
-    VITE_TOKEN_URL=https://server/oauth/token
-    VITE_SERVER_URL=https://server.cloud
+    VITE_TOKEN_URL=https://example.com/oauth/token
+    VITE_SERVER_URL=https://example.com
 
 ### Other variables supported in the `.env` file
 
