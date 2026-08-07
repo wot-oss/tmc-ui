@@ -5,7 +5,7 @@ The initial goal is to support only GET requests in the UI; this is not a CLI re
 
 # Deploy
 
-The TMC-UI can be deployed as a static site or with a backend server using GitHub Pages or GitLab Pages.
+The TMC-UI can be deployed as a static site using GitHub Pages or GitLab Pages or with a backend server.
 
 The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
