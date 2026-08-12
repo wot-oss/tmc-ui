@@ -1,11 +1,21 @@
 # TMC User Interface
 
-Open-source web UI for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
+Open-source web user interface for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
 The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
 
-# Deploy
+There is 3 use cases for this repository:
+    1) A TMC-UI connected to a backend service without authentication
+    2) A TMC-Ui connected to a backend service with authentication
+    3) A TMC-UI served as a static page, with TMs served as static files (NOTE: some features on the TMC-UI, e.g. filters won't be available)
 
-The TMC-UI can be deployed as a static site using GitHub Pages or GitLab Pages or with a backend server.
+The deploy and the setup for all three uses cases can be handle by the deploy.sh file. This file exist to be used in the Gitlab CI/CD pipelines and/or in Github workflows and do the necessary checks to be deploy in gitlab/github pages. More infromation can be found [here](#deploy).
+
+A customization of the UI can be made according to the following instructions [here](#custom-theme).
+
+Communication between applications of the wos ecosystem, like Editdor and Playground is made my the postMessage feature describe [here](#postmessage-integration-for-external-applications)
+
+
+# Deploy
 
 The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
@@ -132,39 +142,6 @@ These two options are displayed in the Details page.
 
 The `Open with` action can integrate with an external application by using `window.postMessage`.
 
-#### `postMessage` integration for external applications
-
-When the user clicks **Open with** and chooses the application configured through `VITE_EDITDOR_URL`, the UI opens that application in a new window and waits for a ready message from it.
-
-To support this flow, the receiving application must implement the following handshake:
-
-1. After the external application finishes loading, it must send a message to the opener window:
-
-   window.opener?.postMessage({ type: 'EDITDOR_READY' }, '<tmc-ui-origin>');
-
-2. After that message is received, this UI sends a second message back to the external application window with the Thing Description content:
-
-   {
-   type: 'LOAD_TD',
-   description: '<thing-title-or-id>',
-   payload: '<thing-description-json>'
-   }
-
-Message fields:
-
-- `type`: message identifier.
-- `description`: Thing Description title when available, otherwise the Thing Description `id`.
-- `payload`: the full Thing Description serialized as formatted JSON.
-
-The receiving application must listen for the `LOAD_TD` message and parse `payload` as JSON before loading it into its editor.
-
-Security recommendations:
-
-- Validate `event.origin` before accepting messages.
-- Reply only to the opener window that created the external application window.
-- Use the origin part of the configured URLs when calling `postMessage`, not the full URL including the path.
-
-The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready message is received within that time, the action is marked as failed.
 
 #### Startup flow
 
@@ -224,7 +201,41 @@ To format and fix the errors:
 
     yarn format
 
-## Custom theme
+# `postMessage` integration for external applications
+
+When the user clicks **Open with** and chooses the application configured through `VITE_EDITDOR_URL`, the UI opens that application in a new window and waits for a ready message from it.
+
+To support this flow, the receiving application must implement the following handshake:
+
+1. After the external application finishes loading, it must send a message to the opener window:
+
+   window.opener?.postMessage({ type: 'EDITDOR_READY' }, '<tmc-ui-origin>');
+
+2. After that message is received, this UI sends a second message back to the external application window with the Thing Description content:
+
+   {
+   type: 'LOAD_TD',
+   description: '<thing-title-or-id>',
+   payload: '<thing-description-json>'
+   }
+
+Message fields:
+
+- `type`: message identifier.
+- `description`: Thing Description title when available, otherwise the Thing Description `id`.
+- `payload`: the full Thing Description serialized as formatted JSON.
+
+The receiving application must listen for the `LOAD_TD` message and parse `payload` as JSON before loading it into its editor.
+
+Security recommendations:
+
+- Validate `event.origin` before accepting messages.
+- Reply only to the opener window that created the external application window.
+- Use the origin part of the configured URLs when calling `postMessage`, not the full URL including the path.
+
+The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready message is received within that time, the action is marked as failed.
+
+# Custom theme
 
 Customize the colors of the UI by editing the CSS variables in `src/theme.css`.
 
