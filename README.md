@@ -1,18 +1,19 @@
 # TMC User Interface
 
-Open-source web user interface for TMs managed by a TMC instance. The TMC instance URL is defined in the Settings page.
-The initial goal is to support only GET requests in the UI; this is not a CLI replicated in the browser.
+The TMC User Interface is an open-source web interface for TMs managed by a TMC instance. The TMC instance URL is defined on the Settings page.
+The initial goal is to support only GET requests in the UI; this is not a CLI replicated in a browser.
 
-There is 3 use cases for this repository:
-    1) A TMC-UI connected to a backend service without authentication
-    2) A TMC-Ui connected to a backend service with authentication
-    3) A TMC-UI served as a static page, with TMs served as static files (NOTE: some features on the TMC-UI, e.g. filters won't be available)
+There are three use cases for this repository:
 
-The deploy and the setup for all three uses cases can be handle by the deploy.sh file. This file exist to be used in the Gitlab CI/CD pipelines and/or in Github workflows and do the necessary checks to be deploy in gitlab/github pages. More infromation can be found [here](#deploy).
+1. A TMC UI connected to a backend service without authentication.
+2. A TMC UI connected to a backend service with authentication.
+3. A TMC UI served as a static page, with TMs provided as static files. Note that some TMC UI features, such as filters, will not be available.
 
-A customization of the UI can be made according to the following instructions [here](#custom-theme).
+Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file is intended for use in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
 
-Communication between applications of the wos ecosystem, like Editdor and Playground is made my the postMessage feature describe [here](#postmessage-integration-for-external-applications)
+The UI can be customized by following the instructions in the [Custom theme](#custom-theme) section.
+
+Communication between applications in the WoT ecosystem, such as Editdor and Playground, uses the `postMessage` feature described in the [`postMessage` integration for external applications](#postmessage-integration-for-external-applications) section.
 
 
 # Deploy
