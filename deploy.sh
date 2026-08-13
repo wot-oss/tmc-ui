@@ -73,6 +73,3 @@ if [ "$SERVER_AVAILABLE" = "false" ]; then
 	log_info "Validating required catalog files..."
 	run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
 fi
-
-log_info "Editing configuration file:  vite.config.mjs"
-run_or_exit sh ci-cd/editConfig.sh "$SERVER_AVAILABLE"

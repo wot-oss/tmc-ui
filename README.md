@@ -9,11 +9,52 @@ There are three use cases for this repository:
 2. A TMC UI connected to a backend service with authentication.
 3. A TMC UI served as a static page, with TMs provided as static files. Note that some TMC UI features, such as filters, will not be available.
 
-Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file is intended for use in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
+Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file has the goal to automate  the configurationa and details  to have a working version. Can be used in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
 
 The UI can be customized by following the instructions in the [Custom theme](#custom-theme) section.
 
 Communication between applications in the WoT ecosystem, such as Editdor and Playground, uses the `postMessage` feature described in the [`postMessage` integration for external applications](#postmessage-integration-for-external-applications) section.
+
+
+# How to use
+
+
+## Local use - static 
+
+To use the TMC UI in your local enviroment, create a `.env` file with the following:
+
+```sh
+    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+    SERVER_AVAILABLE=false
+```
+And then run:
+
+```sh
+ sh setup-local.sh
+ ```
+
+It will check for node version, yarn version, and run the `deploy.sh`
+
+
+## Local use - backend
+
+To use the TMC UI in your local enviroment, create a `.env` file with the following:
+
+```sh
+    SERVER_AVAILABLE=true
+    VITE_SERVER_URL=http://localhost:8080
+```
+If VITE_SERVER_URL is empty the default value will be `http://localhost:8080`. It is assumed that in this address there is a tmc instance running with at least one catalog of TMs configured. More information about tmc instance [here](https://github.com/wot-oss/tmc)
+
+And then run:
+
+```sh
+ yarn dev
+ ```
+
+## 
+
+
 
 
 # Deploy
@@ -22,7 +63,6 @@ The deployment preparation flow is handled by `deploy.sh`. It reads the deployme
 
 Inside the `ci-cd` folder are the files used by `deploy.sh`.
 
-- `editConfig.sh`
 - `fetchRepository.sh`
 - `validateRequiredFiles.sh`
 
