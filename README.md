@@ -47,9 +47,7 @@ To use the TMC UI in your local environment, create a `.env` file with the follo
 
 If VITE_SERVER_URL is empty the default value will be `http://localhost:8080`. It is assumed that in this address there is a tmc instance running with at least one catalog of TMs configured. More information about tmc instance [here](https://github.com/wot-oss/tmc)
 
-`LOCAL` flag is to avoid CORS policy error. 
-
-In case there is an authentication process on the backend, the following variable needs to be added in the `.env` file:
+In case there is an authentication process on the backend, the following variable needs to be added in the `.env` file (all other previous variables should be maintain):
 
 ```sh
     VITE_TOKEN_URL=http://endpoint/get_access_token/token
