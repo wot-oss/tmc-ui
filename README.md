@@ -55,7 +55,7 @@ In case there is an authentication process on the backend, the following variabl
 And then run:
 
 ```sh
- yarn dev
+ sh setup-local.sh
  ```
 
 # Static page

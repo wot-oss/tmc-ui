@@ -50,23 +50,31 @@ if [ ! -d "public" ]; then
 fi
 
 log_info "Current value: SERVER_AVAILABLE=[$SERVER_AVAILABLE]"
+
 # Check if .tmc folder already exists inside public
-if [ "$SERVER_AVAILABLE" = "false" ] && [ -d "public/.tmc" ]; then
-	log_info "Catalog already exists (public/.tmc found). Skipping catalog download."
-	run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
+if [ "$SERVER_AVAILABLE" = "true" ]; then
+	log_info "Server is available. Skipping catalog download."
 else
-	log_info "Public folder found. Downloading repository catalog to temporary location..."
-	TEMP_APP_DIR_CATALOG="temp_catalog"
-	log_info "$CATALOG_REPO_URL"
-	log_info "$TEMP_APP_DIR_CATALOG"
+	log_info "Server is not available. Proceeding with catalog download."
 
-	run_or_exit sh ci-cd/fetchRepository.sh "$CATALOG_REPO_URL" "$TEMP_APP_DIR_CATALOG"
+	if [ "$SERVER_AVAILABLE" = "false" ] && [ -d "public/.tmc" ]; then
+		log_info "Catalog already exists (public/.tmc found). Skipping catalog download."
+		run_or_exit sh ci-cd/validateRequiredFiles.sh "public"
+	else
+		log_info "Public folder found. Downloading repository catalog to temporary location..."
+		TEMP_APP_DIR_CATALOG="temp_catalog"
+		log_info "$CATALOG_REPO_URL"
+		log_info "$TEMP_APP_DIR_CATALOG"
 
-	log_info "Copying catalog contents to public directory..."
-	cp -r "$TEMP_APP_DIR_CATALOG"/. public/
+		run_or_exit sh ci-cd/fetchRepository.sh "$CATALOG_REPO_URL" "$TEMP_APP_DIR_CATALOG"
 
-	log_info "Cleaning up temporary catalog folder..."
-	rm -rf "$TEMP_APP_DIR_CATALOG"
+		log_info "Copying catalog contents to public directory..."
+		cp -r "$TEMP_APP_DIR_CATALOG"/. public/
+
+		log_info "Cleaning up temporary catalog folder..."
+		rm -rf "$TEMP_APP_DIR_CATALOG"
+	fi
+
 fi
 
 if [ "$SERVER_AVAILABLE" = "false" ]; then
