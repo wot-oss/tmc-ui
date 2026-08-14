@@ -9,7 +9,7 @@ There are three use cases for this repository:
 2. A TMC UI connected to a backend service with authentication.
 3. A TMC UI served as a static page, with TMs provided as static files. Note that some TMC UI features, such as filters, will not be available.
 
-Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file has the goal to automate  the configurationa and details  to have a working version. Can be used in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
+Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file has the goal to automate  the configuration and details  to have a working version. Can be used in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
 
 The UI can be customized by following the instructions in the [Custom theme](#custom-theme) section.
 
@@ -18,10 +18,9 @@ Communication between applications in the WoT ecosystem, such as Editdor and Pla
 
 # How to use
 
-
 ## Local use - static 
 
-To use the TMC UI in your local enviroment, create a `.env` file with the following:
+To use the TMC UI in your local environment, create a `.env` file with the following:
 
 ```sh
     CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
@@ -38,7 +37,7 @@ It will check for node version, yarn version, and run the `deploy.sh`
 
 ## Local use - backend
 
-To use the TMC UI in your local enviroment, create a `.env` file with the following:
+To use the TMC UI in your local environment, create a `.env` file with the following:
 
 ```sh
     SERVER_AVAILABLE=true
@@ -46,18 +45,51 @@ To use the TMC UI in your local enviroment, create a `.env` file with the follow
 ```
 If VITE_SERVER_URL is empty the default value will be `http://localhost:8080`. It is assumed that in this address there is a tmc instance running with at least one catalog of TMs configured. More information about tmc instance [here](https://github.com/wot-oss/tmc)
 
+
+In case there is an authentication process on the backend, the following variable needs to be added in the `.env` file:
+
+```sh
+    VITE_TOKEN_URL=http://endpoint/get_access_token/token
+```
+
 And then run:
 
 ```sh
  yarn dev
  ```
 
-## 
+# Static page
+
+There is a process to simplified the deployment of the tmc-ui with a given TM's catalog with the github workflows and gitlab pipelines. The process is flexible enough to be used in repositories with or without the tmc-ui repository. The last scenario can be for example a repository that only contains the TM's catalog. 
+
+##  Static page - deploy using github workflows
+
+Deploy in GitHhub pages use the following files:
+- `.github/workflows/fetch-files.ym`, 
+- `deploy.sh`, 
+- `ci-cd/fetchRepository.sh`, 
+- `ci-cd/validateRequired.sh`
+
+These files need to exist in the repository  for the workflow `fetch-files.ym` to work. 
+The `.env` file need to have the following variables instanciated:
+
+```sh
+APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
+CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+SERVER_AVAILABLE=false
+```
+
+In a sense the `APP_REPO_URL`is the repository URL where the TMC-UI repository lives.
+And, the `CATALOG_REPO_URL`is the repository URL where the catalog with TMs are. 
+
+## Static page - deploy using gitlab workflows
+
+The same setup can be used for Gitlab Pages. Use `deploy.sh` in .gitlab-ci.yml file, and `ci-cd/fetchRepository.sh` and `ci-cd/validateRequired.sh` in the repository.
+
+The configuration variables necessary are the same.
 
 
-
-
-# Deploy
+# Deploy using bash scripts 
 
 The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
@@ -66,9 +98,6 @@ Inside the `ci-cd` folder are the files used by `deploy.sh`.
 - `fetchRepository.sh`
 - `validateRequiredFiles.sh`
 
-## Workflow of deploy.sh
-
-<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
 
 ## Instructions
 
@@ -107,6 +136,10 @@ If `.env` is not present, `deploy.sh` falls back to these defaults:
     CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
     SERVER_AVAILABLE=false
 
+## Workflow of deploy.sh
+
+<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
+
 #### GitHub Pages configuration
 
 - Set up GitHub Pages under **Settings** -> **Environments** -> **github-pages**
@@ -126,6 +159,7 @@ Inside `.tmc`, the following files are required:
 - `tmnames.txt`
 - `mpns.txt`
 - `manufacturers.txt`
+- `protocols.txt`
 
 Notes:
 
@@ -133,39 +167,6 @@ Notes:
 - The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
 - `SERVER_AVAILABLE` only accepts the values `true` or `false`.
 
-## Application Modes
-
-### Static
-
-A static application mode will have all the catalog files deployed on the public folder, exacly the same way as a deploy on github or gitlab pages.
-
-For this mode, the .env file requirements will be (example values), variables with values will mean they are mandatory:
-
-    APP_REPO_URL=https://github.com/wot-oss/tmc-ui.git
-    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
-    SERVER_AVAILABLE=false
-
-### Backend with no auth
-
-    APP_REPO_URL=
-    CATALOG_REPO_URL=
-    SERVER_AVAILABLE=true
-    VITE_TOKEN_URL=
-    VITE_SERVER_URL=https://server.url
-
-If no value is defined in VITE_SERVER_URL the default value will be http://localhost:8080
-
-### Backend with Auth
-
-This UI supports OAuth2 client-credentials authentication for protected catalog backends.
-
-Use this mode when the backend requires an access token before serving catalog or Thing Model data.
-
-    APP_REPO_URL=
-    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
-    SERVER_AVAILABLE=false
-    VITE_TOKEN_URL=https://server/oauth/token
-    VITE_SERVER_URL=https://server.cloud
 
 ### Other variables supported in the `.env` file
 
@@ -215,22 +216,6 @@ Create a local `.env` file with the following keys:
 - Node.js >= 22.20.0
 - Yarn
 
-## Local Setup
-
-If you wish to have a local setup, you only need to have the `setup-local.sh` file, `deploy.sh` file, a `.env` file and the `ci-cd` folder in the current folder.
-
-Edit the `.env` file, and then run:
-
-    sh setup-local.sh
-
-It will automatically install, build and give a preview of the current application.
-
-The `setup-local.sh` script does the following:
-
-1. Checks that Node.js `>= 22.20.0` is installed.
-2. Checks whether Yarn is available.
-3. Runs `deploy.sh` only when the project files or catalog files still need to be prepared.
-4. Runs `yarn install && yarn build && yarn preview`.
 
 ## Formatting
 
