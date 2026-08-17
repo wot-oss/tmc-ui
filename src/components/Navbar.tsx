@@ -18,22 +18,28 @@ export interface UserNavItem {
   href: string;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/', current: true },
-  { name: 'Settings', href: '/settings', current: false },
-];
-
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment }) => {
   const location = useLocation();
   const [theme, setTheme] = useState<ThemeName>(() => getStoredTheme());
 
   const toggleTheme = () => {
     setTheme((currentTheme) => togglePreferredTheme(currentTheme));
   };
+
+  let navigation: NavItem[] = [];
+
+  if (!isServerDeployment) {
+    navigation = [
+      { name: 'Dashboard', href: '/', current: true },
+      { name: 'Settings', href: '/settings', current: false },
+    ];
+  } else {
+    navigation = [{ name: 'Dashboard', href: '/', current: true }];
+  }
 
   return (
     <Disclosure as="nav" className="border-b border-surface-panel-hover bg-surface-panel">

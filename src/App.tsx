@@ -21,10 +21,10 @@ import {
 } from './utils/utils';
 import { CLIENT_ID_SESSION_KEY, CLIENT_SECRET_SESSION_KEY } from './utils/constants';
 
-const AppShell: React.FC = () => {
+const AppShell: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment }) => {
   return (
     <>
-      <Navbar />
+      <Navbar isServerDeployment={isServerDeployment} />
       <Outlet />
     </>
   );
@@ -34,10 +34,11 @@ const AppShellError: React.FC<{
   codeError: number;
   titleError: string;
   descriptionError?: string;
-}> = ({ codeError, titleError, descriptionError }) => {
+  isServerDeployment: boolean;
+}> = ({ codeError, titleError, descriptionError, isServerDeployment }) => {
   return (
     <>
-      <Navbar />
+      <Navbar isServerDeployment={isServerDeployment} />
       <AppError codeError={codeError} titleError={titleError} descriptionError={descriptionError} />
     </>
   );
@@ -219,6 +220,7 @@ const App: React.FC = () => {
                     descriptionError={
                       'Required deployment variables are missing. Please contact the deployment administrator to resolve this configuration issue.'
                     }
+                    isServerDeployment={isServerDeployment}
                     codeError={401}
                   />
                 ),
@@ -226,8 +228,14 @@ const App: React.FC = () => {
             ]
           : [
               {
-                element: <AppShell />,
-                errorElement: <AppShellError titleError={'Settings not found'} codeError={401} />,
+                element: <AppShell isServerDeployment={isServerDeployment} />,
+                errorElement: (
+                  <AppShellError
+                    titleError={'Settings not found'}
+                    codeError={401}
+                    isServerDeployment={isServerDeployment}
+                  />
+                ),
                 children: showSetupCredentials
                   ? [
                       {
@@ -305,6 +313,7 @@ const App: React.FC = () => {
       startupError,
       tokenUrl,
       showSetupCredentials,
+      isServerDeployment,
     ],
   );
 
