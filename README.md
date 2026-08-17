@@ -65,14 +65,14 @@ There is a process to simplified the deployment of the tmc-ui with a given TM's 
 
 ##  Static page - deploy using github workflows
 
-Deploy in GitHhub pages use the following files:
-- `.github/workflows/fetch-files.ym`, 
+Deploy in GitHub pages use the following files:
+- `.github/workflows/fetch-files.yml`, 
 - `deploy.sh`, 
 - `ci-cd/fetchRepository.sh`, 
 - `ci-cd/validateRequired.sh`
 
-These files need to exist in the repository  for the workflow `fetch-files.ym` to work. 
-The `.env` file need to have the following variables instanciated:
+These files need to exist in the repository  for the workflow `fetch-files.yml` to work. 
+The `.env` file need to have the following variables instantiated:
 
 ```sh
 APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
