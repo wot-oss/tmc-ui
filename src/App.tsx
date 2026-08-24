@@ -21,10 +21,10 @@ import {
 } from './utils/utils';
 import { CLIENT_ID_SESSION_KEY, CLIENT_SECRET_SESSION_KEY } from './utils/constants';
 
-const AppShell: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment }) => {
+const AppShell: React.FC<{ showSettings: boolean }> = ({ showSettings }) => {
   return (
     <>
-      <Navbar isServerDeployment={isServerDeployment} />
+      <Navbar showSettings={showSettings} />
       <Outlet />
     </>
   );
@@ -34,11 +34,11 @@ const AppShellError: React.FC<{
   codeError: number;
   titleError: string;
   descriptionError?: string;
-  isServerDeployment: boolean;
-}> = ({ codeError, titleError, descriptionError, isServerDeployment }) => {
+  showSettings: boolean;
+}> = ({ codeError, titleError, descriptionError, showSettings }) => {
   return (
     <>
-      <Navbar isServerDeployment={isServerDeployment} />
+      <Navbar showSettings={showSettings} />
       <AppError codeError={codeError} titleError={titleError} descriptionError={descriptionError} />
     </>
   );
@@ -80,6 +80,8 @@ const App: React.FC = () => {
   const shouldValidateStoredCredentials = authConfigured && credentialsReady && seedToken === null;
 
   const authIsEnabled = authConfigured && !showSetupCredentials && !shouldValidateStoredCredentials;
+
+  const showSettings: boolean = isServerDeployment && hasTokenUrl;
 
   if (__DEBUG__) {
     console.warn('Vite globals', {
@@ -220,7 +222,7 @@ const App: React.FC = () => {
                     descriptionError={
                       'Required deployment variables are missing. Please contact the deployment administrator to resolve this configuration issue.'
                     }
-                    isServerDeployment={isServerDeployment}
+                    showSettings={showSettings}
                     codeError={401}
                   />
                 ),
@@ -228,12 +230,12 @@ const App: React.FC = () => {
             ]
           : [
               {
-                element: <AppShell isServerDeployment={isServerDeployment} />,
+                element: <AppShell showSettings={showSettings} />,
                 errorElement: (
                   <AppShellError
                     titleError={'Settings not found'}
                     codeError={401}
-                    isServerDeployment={isServerDeployment}
+                    showSettings={showSettings}
                   />
                 ),
                 children: showSetupCredentials
@@ -313,7 +315,7 @@ const App: React.FC = () => {
       startupError,
       tokenUrl,
       showSetupCredentials,
-      isServerDeployment,
+      showSettings,
     ],
   );
 

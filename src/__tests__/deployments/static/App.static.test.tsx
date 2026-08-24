@@ -237,5 +237,7 @@ describe('Static deployment integration tests', () => {
     expect(mockFetchLocalThingModel).toHaveBeenCalledWith(
       '/omnicorp/omnicorp/lightall/ThingasLamp.tm.json',
     );
+
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
   });
 });

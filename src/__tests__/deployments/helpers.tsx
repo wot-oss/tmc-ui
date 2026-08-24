@@ -69,7 +69,7 @@ export function stubDeployGlobals({
   viteServerUrl,
   viteSetupCredentialsMessage,
   pipelineCatalogUrl = 'test-tm-ui',
-  debug = true,
+  debug = false,
 }: DeployGlobalsOptions): void {
   const env = import.meta.env as ImportMetaEnv & TestImportMetaEnv;
 

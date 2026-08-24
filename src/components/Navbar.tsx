@@ -22,7 +22,7 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-const Navbar: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment }) => {
+const Navbar: React.FC<{ showSettings: boolean }> = ({ showSettings }) => {
   const location = useLocation();
   const [theme, setTheme] = useState<ThemeName>(() => getStoredTheme());
 
@@ -32,7 +32,7 @@ const Navbar: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment 
 
   let navigation: NavItem[] = [];
 
-  if (isServerDeployment) {
+  if (showSettings) {
     navigation = [
       { name: 'Dashboard', href: '/', current: true },
       { name: 'Settings', href: '/settings', current: false },
