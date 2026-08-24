@@ -111,7 +111,7 @@ Create a `.env` file at the repository root before running the script:
 
     APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
     CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
-    SERVER_AVAILABLE=false
+    SERVER_AVAILABLE=true
 
 Variables:
 
@@ -123,7 +123,9 @@ Variables:
 
 Run the deployment preparation step with:
 
+```sh
     sh deploy.sh
+```
 
 The script performs the following steps:
 
