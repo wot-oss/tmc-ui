@@ -109,7 +109,7 @@ describe('Static deployment integration tests', () => {
 
     expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
     expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
-    expect(await screen.findByRole('link', { name: 'Settings' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
     expect(await screen.findByText('Protocol')).toBeTruthy();
     expect(await screen.findByText('Manufacturer')).toBeTruthy();
     expect(await screen.findByText('Author')).toBeTruthy();
@@ -153,7 +153,7 @@ describe('Static deployment integration tests', () => {
 
     expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
     expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
-    expect(await screen.findByRole('link', { name: 'Settings' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
     expect(await screen.findByText('Protocol')).toBeTruthy();
     expect(await screen.findByText('Manufacturer')).toBeTruthy();
     expect(await screen.findByText('Author')).toBeTruthy();
@@ -161,66 +161,6 @@ describe('Static deployment integration tests', () => {
     await waitFor(() => {
       expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
     });
-  });
-
-  test('Settings page from landing page with one item', async () => {
-    vi.stubEnv('APP_REPO_URL', '');
-    vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');
-    vi.stubEnv('SERVER_AVAILABLE', 'false');
-    vi.stubEnv('VITE_EDITDOR_URL', 'https://eclipse-editor.github.io/editor/');
-    vi.stubEnv('VITE_PLAYGROUND_URL', 'https://playground.thingweb.io/');
-    vi.stubEnv('VITE_TOKEN_URL', 'https://tmcprod.eu1.sws.siemens.com/oauth/token');
-    vi.stubEnv('VITE_SERVER_URL', 'https://eu1.thingmodels.siemens.cloud');
-    vi.stubEnv('VITE_SETUP_CREDENTIALS_MESSAGE', '');
-
-    stubDeployGlobals({
-      appRepoUrl: '',
-      catalogRepoUrl: 'https://github.com/wot-oss/example-catalog.git',
-      deployServerAvailable: false,
-      serverAvailable: false,
-      viteEditdorUrl: 'https://eclipse-editor.github.io/editor/',
-      vitePlaygroundUrl: 'https://playground.thingweb.io/',
-      viteTokenUrl: 'https://tmcprod.eu1.sws.siemens.com/oauth/token',
-      viteServerUrl: 'https://eu1.thingmodels.siemens.cloud',
-      viteSetupCredentialsMessage: '',
-      apiBase: 'https://eu1.thingmodels.siemens.cloud',
-      pipelineCatalogUrl: 'test-tm-ui',
-      debug: false,
-      deployType: 'TYPE_TMC-UI-CATALOG',
-    });
-
-    const item = makeItem('ThingasLamp');
-    mockFetchLocalInventory.mockResolvedValue([item]);
-    mockFetchLocalFilters.mockResolvedValue({
-      nextProtocols: [{ value: 'http', label: 'HTTP', checked: false }],
-      nextManufacturers: [{ value: 'siemens', label: 'Siemens', checked: false }],
-      nextAuthors: [{ value: 'wot-oss', label: 'WoT OSS', checked: false }],
-      nextRepositories: [],
-    });
-
-    renderApp();
-
-    expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
-    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
-    await waitFor(() => {
-      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
-    });
-
-    fireEvent.click(screen.getByRole('link', { name: 'Settings' }));
-
-    await waitFor(() => {
-      expect(window.location.hash).toBe('#/settings');
-    });
-    expect(await screen.findByRole('heading', { name: 'Manage API credentials' })).toBeTruthy();
-    expect(await screen.findByRole('heading', { name: 'Update API credentials' })).toBeTruthy();
-    expect(screen.getByLabelText('Client ID')).toBeTruthy();
-    expect(screen.getByLabelText('Client Secret')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Save credentials' })).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Changes are saved to this browser tab and applied immediately after re-authentication.',
-      ),
-    ).toBeTruthy();
   });
 
   test('Details page for a local Thing Model', async () => {

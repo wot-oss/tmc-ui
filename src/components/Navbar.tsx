@@ -32,7 +32,7 @@ const Navbar: React.FC<{ isServerDeployment: boolean }> = ({ isServerDeployment 
 
   let navigation: NavItem[] = [];
 
-  if (!isServerDeployment) {
+  if (isServerDeployment) {
     navigation = [
       { name: 'Dashboard', href: '/', current: true },
       { name: 'Settings', href: '/settings', current: false },
