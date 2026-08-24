@@ -67,7 +67,7 @@ function buildInventoryUrl(
   }
 
   if (filters?.repository?.length) {
-    searchParams.set('filter.repository', filters.repository.join(','));
+    searchParams.set('repo', filters.repository.join(','));
   }
 
   const query = searchParams.toString();
