@@ -357,7 +357,7 @@ const Layout: React.FC<{
               <div className="mb-4 flex flex-wrap items-center gap-4 text-text-primary">
                 <p className="text-lg">
                   {resultCounts} result
-                  {resultCounts !== 1 ? 's' : ''} found in the catalog with {totalElements} TDs in
+                  {resultCounts !== 1 ? 's' : ''} found in the catalog with {totalElements} TMs in
                   total
                 </p>
                 <Button
