@@ -16,24 +16,13 @@ The UI can be customized by following the instructions in the [Custom theme](#cu
 Communication between applications in the WoT ecosystem, such as Editdor and Playground, uses the `postMessage` feature described in the [`postMessage` integration for external applications](#postmessage-integration-for-external-applications) section.
 
 
-# How to use
 
-## Local use - static 
+# Development
 
-To use the TMC UI in your local environment, create a `.env` file with the following:
+## Prerequisites
 
-```sh
-    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
-    SERVER_AVAILABLE=false
-```
-And then run:
-
-```sh
- sh setup-local.sh
- ```
-
-It will check for node version, yarn version, and run the `deploy.sh`
-
+- Node.js >= 22.20.0
+- Yarn
 
 ## Local use - backend
 
@@ -59,11 +48,27 @@ And then run:
  sh setup-local.sh
  ```
 
-# Static page
+## Local use - static 
+
+To use the TMC UI in your local environment, create a `.env` file with the following:
+
+```sh
+    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+    SERVER_AVAILABLE=false
+```
+And then run:
+
+```sh
+ sh setup-local.sh
+ ```
+
+It will check for node version, yarn version, and run the `deploy.sh`
+
+## Static page
 
 There is a process to simplified the deployment of the tmc-ui with a given TM's catalog with the github workflows and gitlab pipelines. The process is flexible enough to be used in repositories with or without the tmc-ui repository. The last scenario can be for example a repository that only contains the TM's catalog. 
 
-##  Static page - deploy using github workflows
+###  Static page - deploy using github workflows
 
 Deploy in GitHub pages use the following files:
 - `.github/workflows/fetch-files.yml`, 
@@ -83,14 +88,14 @@ SERVER_AVAILABLE=false
 In a sense the `APP_REPO_URL`is the repository URL where the TMC-UI repository lives.
 And, the `CATALOG_REPO_URL`is the repository URL where the catalog with TMs are. 
 
-## Static page - deploy using gitlab workflows
+### Static page - deploy using gitlab workflows
 
 The same setup can be used for Gitlab Pages. Use `deploy.sh` in .gitlab-ci.yml file, and `ci-cd/fetchRepository.sh` and `ci-cd/validateRequired.sh` in the repository.
 
 The configuration variables necessary are the same.
 
 
-# Deploy using bash scripts 
+## Deploy using bash scripts 
 
 The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
 
@@ -100,7 +105,7 @@ Inside the `ci-cd` folder are the files used by `deploy.sh`.
 - `validateRequiredFiles.sh`
 
 
-## Instructions
+### Workflow of deploy.sh
 
 Create a `.env` file at the repository root before running the script:
 
@@ -137,9 +142,11 @@ If `.env` is not present, `deploy.sh` falls back to these defaults:
     CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
     SERVER_AVAILABLE=false
 
-## Workflow of deploy.sh
+
 
 <img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
+
+
 
 #### GitHub Pages configuration
 
@@ -186,7 +193,7 @@ These two options are displayed in the Details page.
 The `Open with` action can integrate with an external application by using `window.postMessage`.
 
 
-#### Startup flow
+### Authentication startup flow
 
 When authentication is enabled, the UI validates credentials before granting access to the catalog.
 
@@ -196,13 +203,13 @@ On startup, the UI behaves as follows:
 2. If no stored credentials are available, or if validation fails, the UI shows the setup screen and blocks access until the user provides valid credentials.
 3. A failed validation keeps the user on the setup form and shows the returned error message.
 
-#### Credential persistence and token handling
+### Credential persistence and token handling
 
 - Closing the tab clears the stored credential session.
 - The access token is kept in memory and is not persisted in browser storage.
 - The Settings page allows users to review and replace the current credentials during the session.
 
-#### Example minimal local configuration
+### Example minimal local configuration
 
 Create a local `.env` file with the following keys:
 
@@ -210,25 +217,8 @@ Create a local `.env` file with the following keys:
     VITE_TOKEN_URL=https://auth.example.local/oauth/token
     VITE_SERVER_URL=https://api.example.local
 
-# Development
 
-## Prerequisites
-
-- Node.js >= 22.20.0
-- Yarn
-
-
-## Formatting
-
-Run to check the code style for errors:
-
-    yarn format:check
-
-To format and fix the errors:
-
-    yarn format
-
-# `postMessage` integration for external applications
+### `postMessage` integration for external applications
 
 When the user clicks **Open with** and chooses the application configured through `VITE_EDITDOR_URL`, the UI opens that application in a new window and waits for a ready message from it.
 
