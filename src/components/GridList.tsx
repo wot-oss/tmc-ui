@@ -60,6 +60,7 @@ const GridList: React.FC<{
           const key = buildItemKey(itemTM, i);
           const title = itemTM.name ?? itemTM.tmName;
           const imageSrc = buildItemImageSrc(title, __DEPLOY_TYPE__, itemTM.attachments);
+          const versionCount = itemTM.versions?.length ?? 0;
 
           return (
             <li key={key} className={CARD_CLASS_NAME}>
@@ -92,8 +93,7 @@ const GridList: React.FC<{
                     {itemTM['schema:description'] ?? ''}
                   </p>
                   <p className="mt-1 truncate text-sm text-text-secondary">
-                    {itemTM.versions.length} Version{itemTM.versions.length > 1 ? 's' : ''}{' '}
-                    available
+                    {versionCount} Version{versionCount > 1 ? 's' : ''} available
                   </p>
                 </Card>
               </Link>
