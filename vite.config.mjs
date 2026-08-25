@@ -47,7 +47,7 @@ export default defineConfig(({ command, mode }) => {
       __VITE_SETUP_CREDENTIALS_MESSAGE__: JSON.stringify(env.VITE_SETUP_CREDENTIALS_MESSAGE),
       __API_BASE__: JSON.stringify(apiBase),
       __PIPELINE_CATALOG_URL__: JSON.stringify('test-tm-ui'), // TODO: ??
-      __DEBUG__: false,
+      __DEBUG__: true,
       __DEPLOY_TYPE__: JSON.stringify(deployType),
     },
   };
