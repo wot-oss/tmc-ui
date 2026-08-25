@@ -14,7 +14,10 @@ export async function fetchLocalDataFilters(baseUrl: string): Promise<{
   nextAuthors: FilterData[];
   nextRepositories: FilterData[];
 }> {
-  const nextProtocols: FilterData[] = await fetchDataFromTxT(baseUrl, PROTOCOLS_FILENAME);
+  const nextProtocols: FilterData[] = await fetchDataFromTxT(
+    baseUrl,
+    PROTOCOLS_FILENAME,
+  ).catch(() => []);
   const nextManufacturers: FilterData[] = await fetchDataFromTxT(baseUrl, MANUFACTURERS_FILENAME);
 
   const nextAuthors: FilterData[] = await fetchDataFromTxT(baseUrl, AUTHORS_FILENAME);
