@@ -183,6 +183,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                     onClick={t.handleOnClick}
                     disabled={!fullDescription}
                     text={t.name}
+                    className="w-40 justify-center border p-4"
                     variant="default"
                   />
                 </div>
@@ -198,6 +199,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
           <div className="mt-6 flex justify-end gap-3">
             <Button
               type="button"
+              className="border p-4"
               onClick={() => {
                 if (editdorReadyTimeoutRef.current !== null) {
                   window.clearTimeout(editdorReadyTimeoutRef.current);
