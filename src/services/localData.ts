@@ -14,10 +14,9 @@ export async function fetchLocalDataFilters(baseUrl: string): Promise<{
   nextAuthors: FilterData[];
   nextRepositories: FilterData[];
 }> {
-  const nextProtocols: FilterData[] = await fetchDataFromTxT(
-    baseUrl,
-    PROTOCOLS_FILENAME,
-  ).catch(() => []);
+  const nextProtocols: FilterData[] = await fetchDataFromTxT(baseUrl, PROTOCOLS_FILENAME).catch(
+    () => [],
+  );
   const nextManufacturers: FilterData[] = await fetchDataFromTxT(baseUrl, MANUFACTURERS_FILENAME);
 
   const nextAuthors: FilterData[] = await fetchDataFromTxT(baseUrl, AUTHORS_FILENAME);
@@ -26,7 +25,7 @@ export async function fetchLocalDataFilters(baseUrl: string): Promise<{
   return { nextProtocols, nextManufacturers, nextAuthors, nextRepositories };
 }
 
-export async function fetchLocalDataInventory(baseUrl: string): Promise<unknown[]> {
+export async function fetchLocalDataInventory(baseUrl: string): Promise<Item[]> {
   const folder = ensureTrailingSlash(
     normalizeRelativePathSegment(REPOSITORY_CATALOG_DEFAULT_FOLDER),
   );
