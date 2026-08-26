@@ -58,15 +58,12 @@ const LayoutLoadData = () => {
             setTotalItems(meta.page.totalElements);
             return;
           }
-          case 'TYPE_TMC-UI-CATALOG': {
+          case 'TYPE_TMC-UI-CATALOG':
+          case 'TYPE_CATALOG-TMC-UI': {
             const response = await fetchLocalDataInventory(import.meta.env.BASE_URL);
             const nexInventoryFiltered = response.filter((item) => item['schema:mpn'] !== '');
             setInventory(nexInventoryFiltered);
             setTotalItems(nexInventoryFiltered.length);
-            return;
-          }
-          case 'TYPE_CATALOG-TMC-UI': {
-            setInventory([]);
             return;
           }
         }
