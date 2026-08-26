@@ -60,7 +60,7 @@ const LayoutLoadData = () => {
           }
           case 'TYPE_TMC-UI-CATALOG': {
             const response = await fetchLocalDataInventory(import.meta.env.BASE_URL);
-            const nexInventoryFiltered = response.filter((item) => item.versions !== null);
+            const nexInventoryFiltered = response.filter((item) => item['schema:mpn'] !== '');
             setInventory(nexInventoryFiltered);
             setTotalItems(nexInventoryFiltered.length);
             return;
