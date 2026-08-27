@@ -156,7 +156,7 @@ const Details = () => {
 
   const handleVersionChange = async (version: string) => {
     setSelectedVersion(version);
-    const versionObject: Version | undefined = item.versions.find(
+    const versionObject: Version | undefined = item.versions?.find(
       (v) => v.version.model === version,
     );
 
@@ -184,7 +184,7 @@ const Details = () => {
 
   const openFullDetails = async (version: string) => {
     if (!fetchName || !__API_BASE__) return;
-    const versionObject: Version | undefined = item.versions.find(
+    const versionObject: Version | undefined = item.versions?.find(
       (v) => v.version.model === version,
     );
 

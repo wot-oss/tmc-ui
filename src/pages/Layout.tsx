@@ -253,6 +253,8 @@ const Layout: React.FC<{
       setPageSize(newPageSize);
       setPage(1);
 
+      if (__DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') return;
+
       const controller = new AbortController();
 
       const fetchPage = async () => {

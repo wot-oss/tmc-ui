@@ -80,7 +80,7 @@ type Item = {
   'schema:mpn': string;
   tmName?: string;
   name?: string;
-  versions: Version[];
+  versions: Version[] | null;
 };
 
 type Filters = {
