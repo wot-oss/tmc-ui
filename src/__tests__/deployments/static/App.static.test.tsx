@@ -164,6 +164,58 @@ describe('Static deployment integration tests', () => {
     });
   });
 
+  test('Filtering and resetting restores all local items and the result count', async () => {
+    stubDeployGlobals({
+      catalogRepoUrl: 'https://github.com/wot-oss/example-catalog.git',
+      deployType: 'TYPE_CATALOG-TMC-UI',
+    });
+
+    const lampItem = {
+      ...makeItem('ThingasLamp'),
+      'schema:manufacturer': { 'schema:name': 'LampManufacturer' },
+    };
+    const sensorItem = {
+      ...makeItem('ThingasSensor'),
+      'schema:manufacturer': { 'schema:name': 'SensorManufacturer' },
+    };
+
+    mockFetchLocalInventory.mockResolvedValue([lampItem, sensorItem]);
+    mockFetchLocalFilters.mockResolvedValue({
+      nextProtocols: [],
+      nextManufacturers: [
+        { value: 'LampManufacturer', label: 'Lamp Manufacturer', checked: false },
+      ],
+      nextAuthors: [],
+      nextRepositories: [],
+    });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+    expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('2 results found');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manufacturer' }));
+    const manufacturerFilter = await screen.findByRole('checkbox', {
+      name: 'Lamp Manufacturer',
+    });
+    fireEvent.click(manufacturerFilter);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeNull();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }));
+
+    await waitFor(() => {
+      expect((manufacturerFilter as HTMLInputElement).checked).toBe(false);
+      expect(screen.getByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('2 results found');
+    });
+  });
+
   test('Details page for a local Thing Model', async () => {
     vi.stubEnv('APP_REPO_URL', '');
     vi.stubEnv('CATALOG_REPO_URL', 'https://github.com/wot-oss/example-catalog.git');

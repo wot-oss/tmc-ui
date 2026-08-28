@@ -139,6 +139,46 @@ describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
     expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
   });
 
+  test('Resetting filters restores the initial backend page and total count', async () => {
+    mockFetchApiInventory
+      .mockResolvedValueOnce({
+        data: [makeItem('ThingasLamp'), makeItem('ThingasSensor')],
+        meta: { lastUpdated: '', page: { pageNumber: 1, pageSize: 10, totalElements: 25 } },
+      })
+      .mockResolvedValueOnce({
+        data: [makeItem('ThingasLamp')],
+        meta: { lastUpdated: '', page: { pageNumber: 1, pageSize: 10, totalElements: 1 } },
+      });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+    await waitFor(() => {
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('25 results found');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manufacturer' }));
+    const manufacturerFilter = await screen.findByRole('checkbox', {
+      name: 'LampManufacturer',
+    });
+    fireEvent.click(manufacturerFilter);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeNull();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }));
+
+    await waitFor(() => {
+      expect((manufacturerFilter as HTMLInputElement).checked).toBe(false);
+      expect(screen.getByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('25 results found');
+    });
+  });
+
   test('Details page for a backend Thing Model without auth', async () => {
     mockFetchApiInventory.mockResolvedValue({
       data: [makeItem('ThingasLamp')],
