@@ -32,7 +32,7 @@ const Layout: React.FC<{
   useEffect(() => {
     setItems(loadedItems ?? []);
     setResultCounts(totalItems ?? 0);
-  }, [loadedItems]);
+  }, [loadedItems, totalItems]);
 
   const [filteredItems, setFilteredItems] = useState<Item[]>(loadedItems ?? []);
 
@@ -102,22 +102,21 @@ const Layout: React.FC<{
 
     if (hasFilters && __DEPLOY_TYPE__ !== 'SERVER_AVAILABLE') {
       // filtering frontend
-      setFilteredItems(
-        items.filter((item) => {
-          const matchesCatalog =
-            checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
-          const matchesManufacturer =
-            checkedManufacturers.length === 0 ||
-            checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
-          const matchesAuthor =
-            checkedAuthors.length === 0 ||
-            checkedAuthors.some((author) =>
-              item.name?.toLowerCase().includes(author.toLowerCase()),
-            );
+      const nextFilteredItems = items.filter((item) => {
+        const matchesCatalog =
+          checkedRepositories.length === 0 || checkedRepositories.includes(item.repo);
+        const matchesManufacturer =
+          checkedManufacturers.length === 0 ||
+          checkedManufacturers.includes(item['schema:manufacturer']?.['schema:name']);
+        const matchesAuthor =
+          checkedAuthors.length === 0 ||
+          checkedAuthors.some((author) => item.name?.toLowerCase().includes(author.toLowerCase()));
 
-          return matchesCatalog && matchesManufacturer && matchesAuthor;
-        }),
-      );
+        return matchesCatalog && matchesManufacturer && matchesAuthor;
+      });
+
+      setFilteredItems(nextFilteredItems);
+      setResultCounts(nextFilteredItems.length);
       return;
     }
 
@@ -159,6 +158,7 @@ const Layout: React.FC<{
     }
 
     setFilteredItems(result);
+    setResultCounts(totalElements);
   }, [
     authorizationHeader,
     checkedAuthors,
@@ -169,6 +169,7 @@ const Layout: React.FC<{
     checkedProtocols,
     page,
     pageSize,
+    totalElements,
   ]);
 
   const paginatedItems = useMemo<Item[]>(() => {
