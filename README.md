@@ -28,7 +28,7 @@ git clone https://github.com/wot-oss/tmc-ui.git
 cd tmc-ui
 ```
 
-Create a `.env` file in the repository root and replace the URLs with your deployment values.
+Rename a `example.env` file in the repository root to `.env` or create a new `.env` file with your TMC deployment values.
 
 #### Backend without authentication
 
