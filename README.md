@@ -82,10 +82,10 @@ Create `.env` in the deployment working directory. Values are read by `deploy.sh
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
 | `SERVER_AVAILABLE` | Yes | `false` | Selects backend (`true`) or static (`false`) mode. Only these two values are supported. |
-| `VITE_SERVER_URL` | Backend mode | `http://localhost:8080` for API requests | TMC API base URL. |
-| `VITE_TOKEN_URL` | Authenticated backend only | None | OAuth 2.0 token endpoint. Its presence enables the client credentials screen. |
-| `APP_REPO_URL` | When the working directory has no UI source | `https://github.com/wot-oss/tmc-ui.git` | Repository containing `package.json` and `src/`. |
-| `CATALOG_REPO_URL` | Separate static catalog | `https://github.com/wot-oss/example-catalog.git` | Repository containing the static catalog. |
+| `VITE_SERVER_URL` | Yes when server available | `http://localhost:8080` for API requests | TMC API base URL. |
+| `VITE_TOKEN_URL` | Yes when server available with auth. | None | OAuth 2.0 token endpoint. Its presence enables the client credentials screen. |
+| `APP_REPO_URL` | Yes when the working directory has no UI source | `https://github.com/wot-oss/tmc-ui.git` | Repository containing `package.json` and `src/`. |
+| `CATALOG_REPO_URL` | Yes in static deployment with separate catalog repository | `https://github.com/wot-oss/example-catalog.git` | Repository containing the static catalog. |
 | `LOCAL` | Local development only | `false` | Uses the Vite API proxy when set to `true`. |
 | `VITE_EDITDOR_URL` | No | `https://eclipse-editdor.github.io/editdor/` | Target for the **Open with EdiTDor** action. |
 | `VITE_PLAYGROUND_URL` | No | `https://playground.thingweb.io/` | Target for the **Open with TD Playground** action. |
