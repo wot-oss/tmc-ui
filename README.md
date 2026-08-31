@@ -73,7 +73,7 @@ Use this path to deploy TMC UI by configuration only. The same scripts support a
 | Static, separate repositories | `SERVER_AVAILABLE=false`, with `APP_REPO_URL` and `CATALOG_REPO_URL` | Catalog cloned into `public/` during deployment |
 | Static, combined repository | `SERVER_AVAILABLE=false`, with catalog files already under `public/` | Catalog shipped with the UI repository |
 
-Static deployments do not support backend-only features such as server-side filtering.
+Static deployments do not support backend-only features such as server-side filtering or free text search.
 
 ### Environment variables
 
