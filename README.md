@@ -34,7 +34,7 @@ Rename a `example.env` file in the repository root to `.env` or create a new `.e
 
 ```dotenv
 SERVER_AVAILABLE=true
-VITE_SERVER_URL=http://localhost:8080
+VITE_SERVER_URL=https://example.com:8080
 LOCAL=true
 ```
 
