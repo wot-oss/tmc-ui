@@ -162,6 +162,8 @@ For GitHub Pages, configure the `github-pages` environment under **Settings > En
 
 For GitLab Pages, call `deploy.sh` from `.gitlab-ci.yml`. Keep `ci-cd/fetchRepository.sh` and `ci-cd/validateRequiredFiles.sh` available at the paths expected by the deployment script.
 
+<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
+
 ## 3. Developer
 
 Use this section when changing application behavior or contributing to the codebase.
