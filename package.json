@@ -1,6 +1,15 @@
 {
   "name": "tmc-ui",
-  "version": "0.0.1",
+  "version": "0.1.5",
+  "description": "Web interface for browsing Thing Models managed by TMC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wot-oss/tmc-ui.git"
+  },
+  "homepage": "https://github.com/wot-oss/tmc-ui",
+  "bugs": {
+    "url": "https://github.com/wot-oss/tmc-ui/issues"
+  }, 
   "private": true,
   "packageManager": "yarn@1.22.22",
   "scripts": {
