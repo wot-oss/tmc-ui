@@ -67,7 +67,7 @@ Use this path to deploy TMC UI by configuration only. The same scripts support a
 
 ### Deployment patterns
 
-| Pattern | Configuration | Data source |
+| Pattern | Configuration | TM source |
 | --- | --- | --- |
 | Backend | `SERVER_AVAILABLE=true` | A running TMC API at `VITE_SERVER_URL` |
 | Static, separate repositories | `SERVER_AVAILABLE=false`, with `APP_REPO_URL` and `CATALOG_REPO_URL` | Catalog cloned into `public/` during deployment |
