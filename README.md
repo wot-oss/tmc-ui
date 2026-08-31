@@ -148,7 +148,7 @@ A static catalog repository must contain `.tmc/` at its root with these files:
 `-- tmnames.txt
 ```
 
-The catalog may also contain the Thing Model JSON files referenced by `tm-catalog.toc.json`. The deployment fails when any required file is missing.
+The deployment fails when any required file is missing.
 
 ### CI/CD
 
