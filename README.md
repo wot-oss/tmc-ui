@@ -1,339 +1,273 @@
 # TMC User Interface
 
-The TMC User Interface is an open-source web interface for TMs managed by a TMC instance. The TMC instance URL is defined on the Settings page.
-The initial goal is to support only GET requests in the UI; this is not a CLI replicated in a browser.
+TMC UI is an open-source web interface for browsing Thing Models (TMs) managed by a [Thing Model Catalog (TMC)](https://github.com/wot-oss/tmc). It supports read-only catalog operations; it is not a browser replacement for the TMC CLI.
 
-There are three use cases for this repository:
+This guide is organized for three types of users:
 
-1. A TMC UI connected to a backend service without authentication.
-2. A TMC UI connected to a backend service with authentication.
-3. A TMC UI served as a static page, with TMs provided as static files. Note that some TMC UI features, such as filters, will not be available.
+1. [Application user](#1-application-user): run TMC UI locally against a TMC backend.
+2. [DevOps user](#2-devops-user): deploy TMC UI without changing its source code.
+3. [Developer](#3-developer): change, test, or extend the application.
 
-Deployment and setup for all three use cases can be handled by the `deploy.sh` file. This file has the goal to automate  the configuration and details  to have a working version. Can be used in GitLab CI/CD pipelines and GitHub workflows. It performs the checks required for deployment to GitLab Pages or GitHub Pages. More information is available in the [Deploy](#deploy) section.
+## 1. Application user
 
-The UI can be customized by following the instructions in the [Custom theme](#custom-theme) section.
-
-Communication between applications in the WoT ecosystem, such as Editdor and Playground, uses the `postMessage` feature described in the [`postMessage` integration for external applications](#postmessage-integration-for-external-applications) section.
-
-
-
-## Development
+Use this path when you want to run the UI against an existing TMC backend, with or without authentication.
 
 ### Prerequisites
 
-- Node.js >= 22.20.0
-- Yarn
+- Git
+- Node.js 22.20.0 or later
+- Yarn 1.22.22
+- A running [TMC instance](https://github.com/wot-oss/tmc) with at least one configured [Thing Model catalog](https://github.com/wot-oss/example-catalog)
 
-### Local use - backend
+### Clone and start
 
-To use the TMC UI in your local environment, create a `.env` file with the following:
+Clone this repository:
 
 ```sh
-    SERVER_AVAILABLE=true
-    VITE_SERVER_URL=http://localhost:8080
-    LOCAL=true
+git clone https://github.com/wot-oss/tmc-ui.git
+cd tmc-ui
 ```
 
-If VITE_SERVER_URL is empty the default value will be `http://localhost:8080`. It is assumed that in this address there is a tmc instance running with at least one catalog of TMs configured. More information about tmc instance [here](https://github.com/wot-oss/tmc)
+Create a `.env` file in the repository root and replace the URLs with your deployment values.
 
-In case there is an authentication process on the backend, the following variable needs to be added in the `.env` file (all other previous variables should be maintain):
+#### Backend without authentication
 
-```sh
-    VITE_TOKEN_URL=http://endpoint/get_access_token/token
+```dotenv
+SERVER_AVAILABLE=true
+VITE_SERVER_URL=http://localhost:8080
+LOCAL=true
 ```
 
-And then run:
+#### Backend with authentication
 
-```sh
- sh setup-local.sh
- ```
+TMC UI uses the OAuth 2.0 client credentials flow when `VITE_TOKEN_URL` is configured.
 
-### Local use - static 
-
-To use the TMC UI in your local environment, create a `.env` file with the following:
-
-```sh
-    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
-    SERVER_AVAILABLE=false
+```dotenv
+SERVER_AVAILABLE=true
+VITE_SERVER_URL=http://localhost:8080
+VITE_TOKEN_URL=https://auth.example.local/oauth/token
+LOCAL=true
 ```
-And then run:
+
+Install the dependencies, prepare the deployment, and start the development server:
 
 ```sh
- sh setup-local.sh
- ```
+yarn install
+sh deploy.sh
+yarn dev
+```
 
-It will check for node version, yarn version, and run the `deploy.sh`
+Open the URL printed by Vite. When authentication is enabled, enter the client ID and client secret on the setup screen. Credentials are stored only for the current browser tab, and the access token is kept in memory.
 
-### Static page
+`LOCAL=true` enables the Vite development proxy. Omit it when the deployed UI can contact `VITE_SERVER_URL` directly and the backend allows requests from the UI origin.
 
-There is a process to simplified the deployment of the tmc-ui with a given TM's catalog with the github workflows and gitlab pipelines. The process is flexible enough to be used in repositories with or without the tmc-ui repository. The last scenario can be for example a repository that only contains the TM's catalog. 
+## 2. DevOps user
 
-####  Static page - deploy using github workflows
+Use this path to deploy TMC UI by configuration only. The same scripts support a backend deployment and two static deployment layouts.
 
-Deploy in GitHub pages use the following files:
-- `.github/workflows/fetch-files.yml`, 
-- `deploy.sh`, 
-- `ci-cd/fetchRepository.sh`, 
-- `ci-cd/validateRequired.sh`
+### Deployment patterns
 
-These files need to exist in the repository  for the workflow `fetch-files.yml` to work. 
-The `.env` file need to have the following variables instantiated:
+| Pattern | Configuration | Data source |
+| --- | --- | --- |
+| Backend | `SERVER_AVAILABLE=true` | A running TMC API at `VITE_SERVER_URL` |
+| Static, separate repositories | `SERVER_AVAILABLE=false`, with `APP_REPO_URL` and `CATALOG_REPO_URL` | Catalog cloned into `public/` during deployment |
+| Static, combined repository | `SERVER_AVAILABLE=false`, with catalog files already under `public/` | Catalog shipped with the UI repository |
 
-```sh
-APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
-CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
+Static deployments do not support backend-only features such as server-side filtering.
+
+### Environment variables
+
+Create `.env` in the deployment working directory. Values are read by `deploy.sh` and Vite.
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `SERVER_AVAILABLE` | Yes | `false` | Selects backend (`true`) or static (`false`) mode. Only these two values are supported. |
+| `VITE_SERVER_URL` | Backend mode | `http://localhost:8080` for API requests | TMC API base URL. |
+| `VITE_TOKEN_URL` | Authenticated backend only | None | OAuth 2.0 token endpoint. Its presence enables the client credentials screen. |
+| `APP_REPO_URL` | When the working directory has no UI source | `https://github.com/wot-oss/tmc-ui.git` | Repository containing `package.json` and `src/`. |
+| `CATALOG_REPO_URL` | Separate static catalog | `https://github.com/wot-oss/example-catalog.git` | Repository containing the static catalog. |
+| `LOCAL` | Local development only | `false` | Uses the Vite API proxy when set to `true`. |
+| `VITE_EDITDOR_URL` | No | `https://eclipse-editdor.github.io/editdor/` | Target for the **Open with EdiTDor** action. |
+| `VITE_PLAYGROUND_URL` | No | `https://playground.thingweb.io/` | Target for the **Open with TD Playground** action. |
+| `VITE_SETUP_CREDENTIALS_MESSAGE` | No | Empty | Operator guidance shown on the credentials screen. |
+
+Example backend deployment:
+
+```dotenv
+SERVER_AVAILABLE=true
+VITE_SERVER_URL=https://tmc.example.com
+VITE_TOKEN_URL=https://auth.example.com/oauth/token
+VITE_SETUP_CREDENTIALS_MESSAGE=Contact the platform team to request access.
+```
+
+Example static deployment with separate repositories:
+
+```dotenv
+APP_REPO_URL=https://github.com/wot-oss/tmc-ui.git
+CATALOG_REPO_URL=https://github.com/your-org/your-catalog.git
 SERVER_AVAILABLE=false
 ```
 
-In a sense the `APP_REPO_URL`is the repository URL where the TMC-UI repository lives.
-And, the `CATALOG_REPO_URL`is the repository URL where the catalog with TMs are. 
+### Deployment scripts
 
-#### Static page - deploy using gitlab workflows
-
-The same setup can be used for Gitlab Pages. Use `deploy.sh` in .gitlab-ci.yml file, and `ci-cd/fetchRepository.sh` and `ci-cd/validateRequired.sh` in the repository.
-
-The configuration variables necessary are the same.
-
-
-### Deploy using bash scripts 
-
-The deployment preparation flow is handled by `deploy.sh`. It reads the deployment settings defined in a `.env` file, ensures the application source is available, fetches the catalog when needed, validates the required files, and updates `vite.config.mjs` according to the selected deployment mode.
-
-Inside the `ci-cd` folder are the files used by `deploy.sh`.
-
-- `fetchRepository.sh`
-- `validateRequiredFiles.sh`
-
-
-#### Workflow of deploy.sh
-
-Create a `.env` file at the repository root before running the script:
-
-    APP_REPO_URL=https://github.com/<user_or_org>/<tmc-ui-repository>.git
-    CATALOG_REPO_URL=https://github.com/<user_or_org>/<catalog-repository>.git
-    SERVER_AVAILABLE=true
-
-Variables:
-
-- `APP_REPO_URL`: repository that contains the TMC UI source code. This is only used when the current workspace does not already contain `package.json` and `src`.
-- `CATALOG_REPO_URL`: repository that contains the catalog content to be copied into `public`.
-- `SERVER_AVAILABLE`: must be either `true` or `false`.
-  - `false`: the UI is prepared as a static deployment and reads catalog files from the contents copied into `public`
-  - `true`: the UI is prepared to work with a backend server, and the build configuration is updated accordingly
-
-Run the deployment preparation step with:
+Run the complete preparation flow with:
 
 ```sh
-    sh deploy.sh
+sh deploy.sh
 ```
 
-The script performs the following steps:
+The script:
 
-1. Loads variables from `.env` if the file exists.
-2. Checks whether the current workspace already contains the UI source.
-3. If the UI source is missing, clones the repository defined in `APP_REPO_URL` into a temporary folder and copies its contents into the working directory.
-4. Verifies that the `public` directory exists.
-5. If `public/.tmc` already exists, skips the catalog download.
-6. Otherwise, clones the repository defined in `CATALOG_REPO_URL` into a temporary folder and copies its contents into `public`.
-7. Validates that the catalog contains all required files under `.tmc`.
-8. Updates `vite.config.mjs` so `SERVER_AVAILABLE` matches the selected deployment mode.
+1. Loads `.env`, or applies the defaults listed above.
+2. Fetches `APP_REPO_URL` when `package.json` or `src/` is missing from the working directory.
+3. Verifies that `public/` exists.
+4. In static mode, fetches `CATALOG_REPO_URL` unless `public/.tmc/` already exists.
+5. Validates the required static catalog files.
 
-If `.env` is not present, `deploy.sh` falls back to these defaults:
+The scripts under `ci-cd/` can also be used independently:
 
-    APP_REPO_URL=https://github.com/wot-oss/tmc-ui.git
-    CATALOG_REPO_URL=https://github.com/wot-oss/example-catalog.git
-    SERVER_AVAILABLE=false
+- `ci-cd/fetchRepository.sh <repository-url> <destination>` performs a shallow clone and removes repository metadata before the files are copied into the deployment workspace.
+- `ci-cd/validateRequiredFiles.sh <catalog-directory>` validates the static catalog contract.
 
+For a complete local setup that checks Node.js and Yarn, prepares the deployment, installs dependencies, builds, and starts Vite preview, run:
 
+```sh
+sh setup-local.sh
+```
 
-<img src="ci-cd/deploy_doc.drawio.png" alt="Deploy workflow" width="800" />
+### Static catalog contract
 
+A static catalog repository must contain `.tmc/` at its root with these files:
 
+```text
+.tmc/
+|-- manufacturers.txt
+|-- mpns.txt
+|-- protocols.txt
+|-- tm-catalog.toc.json
+`-- tmnames.txt
+```
 
-#### GitHub Pages configuration
+The catalog may also contain the Thing Model JSON files referenced by `tm-catalog.toc.json`. The deployment fails when any required file is missing.
 
-- Set up GitHub Pages under **Settings** -> **Environments** -> **github-pages**
-- Under **Deployment branches**, select the branch that should publish the site
+### CI/CD
 
-Detailed documentation is available [here](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+The repository provides these GitHub Actions workflows:
 
-The GitHub Pages workflow for this repository is defined in `.github/workflows/fetch-files.yml`.
+- `.github/workflows/fetch-files.yml` prepares and publishes the application for GitHub Pages.
+- `.github/workflows/integration-tests.yml` runs deployment-mode integration tests.
+- `.github/workflows/code-format.yml` checks source formatting.
 
-#### Catalog repository requirements
+For GitHub Pages, configure the `github-pages` environment under **Settings > Environments > github-pages** and select the branch that may deploy. See the [GitHub Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-The catalog repository must contain a `.tmc` directory at its root.
+For GitLab Pages, call `deploy.sh` from `.gitlab-ci.yml`. Keep `ci-cd/fetchRepository.sh` and `ci-cd/validateRequiredFiles.sh` available at the paths expected by the deployment script.
 
-Inside `.tmc`, the following files are required:
+## 3. Developer
 
-- `tm-catalog.toc.json`
-- `tmnames.txt`
-- `mpns.txt`
-- `manufacturers.txt`
-- `protocols.txt`
+Use this section when changing application behavior or contributing to the codebase.
 
-Notes:
+### Development commands
 
-- The catalog validation step fails if any of the required files are missing.
-- The helper script removes `.git`, `.gitignore`, `.github`, and `README.md` from downloaded repositories before copying them into the workspace.
-- `SERVER_AVAILABLE` only accepts the values `true` or `false`.
+```sh
+yarn install          # Install dependencies
+yarn dev              # Start the Vite development server
+yarn build            # Create a production build
+yarn test             # Run Vitest in watch mode
+yarn test:coverage    # Run all tests with coverage
+yarn format           # Format the repository
+yarn format:check     # Check formatting without modifying files
+```
 
+The test suite is under `src/__tests__/`. Deployment tests cover the three supported patterns:
 
-#### Other variables supported in the `.env` file
+- `deployments/backend-no-auth/`
+- `deployments/backend-with-auth/`
+- `deployments/static/`
 
-To add to the previous sections, the .env file can also have the following variables:
+Tests use Vitest, jsdom, and React Testing Library. Shared test setup is in `src/__tests__/setup.ts`, and deployment helpers are in `src/__tests__/deployments/helpers.tsx`.
 
-    VITE_EDITDOR_URL=https://eclipse-editdor.github.io/editdor/
-    VITE_PLAYGROUND_URL=https://playground.thingweb.io/
-    VITE_SETUP_CREDENTIALS_MESSAGE=
+### Deployment selection
 
-- `VITE_SETUP_CREDENTIALS_MESSAGE`="My Message": Additional text shown in the setup credentials screen. This can be used to provide operator instructions such as who to contact for access.
+Vite reads the environment and defines the deployment mode consumed by the React application:
 
-- `VITE_EDITDOR_URL` and `VITE_PLAYGROUND_URL` are used to configure the application behavior when the user wants to open the Thing Description in another application for editing and validation. The value of each variable defaults to the value shown above when the variable is not present in the `.env` file.
+- `SERVER_AVAILABLE`: load inventory, filters, and Thing Models from the TMC API.
+- `TYPE_TMC-UI-CATALOG`: load a static catalog fetched from a separate repository.
+- `TYPE_CATALOG-TMC-UI`: load static catalog files already included with the UI.
 
-These two options are displayed in the Details page.
+Keep changes compatible with all three modes. Backend behavior lives in `src/services/apiData.ts`; static-file behavior lives in `src/services/localData.ts`.
 
-The `Open with` action can integrate with an external application by using `window.postMessage`.
+### Authentication flow
 
+Authentication is enabled only when backend mode, `VITE_SERVER_URL`, and `VITE_TOKEN_URL` are all configured.
 
-#### Authentication startup flow
+1. `src/App.tsx` decides whether credentials are required and blocks catalog routes until validation succeeds.
+2. `src/services/auth.ts` requests a token with the OAuth 2.0 client credentials grant.
+3. `src/hooks/useClientCredentialsToken.ts` owns in-memory token state and expiry handling.
+4. `src/context/AuthContext.tsx` exposes the authorization header and authentication state to the application.
+5. Credentials use `sessionStorage`; the access token is never persisted in browser storage.
 
-When authentication is enabled, the UI validates credentials before granting access to the catalog.
+The Settings page allows credentials to be reviewed and replaced during the session. Stored credentials are revalidated at startup, and failed validation returns the user to the setup form.
 
-On startup, the UI behaves as follows:
+### `postMessage` integration
 
-1. If valid credentials are already stored for the current browser tab, the UI validates them against the configured token endpoint before loading the catalog.
-2. If no stored credentials are available, or if validation fails, the UI shows the setup screen and blocks access until the user provides valid credentials.
-3. A failed validation keeps the user on the setup form and shows the returned error message.
+The **Open with** action in `src/components/DialogAction.tsx` opens EdiTDor or TD Playground and waits for the target application to announce that it is ready.
 
-#### Credential persistence and token handling
+The receiving application sends this message to its opener:
 
-- Closing the tab clears the stored credential session.
-- The access token is kept in memory and is not persisted in browser storage.
-- The Settings page allows users to review and replace the current credentials during the session.
+```js
+window.opener?.postMessage({ type: 'APPLICATION_READY' }, '<tmc-ui-origin>');
+```
 
-#### Example minimal local configuration
+TMC UI validates both `event.origin` and `event.source`, then sends:
 
-Create a local `.env` file with the following keys:
+```js
+{
+  type: 'LOAD_TD',
+  description: '<thing-title-or-id>',
+  payload: '<formatted-thing-description-json>'
+}
+```
 
-    SERVER_AVAILABLE=true
-    VITE_TOKEN_URL=https://auth.example.local/oauth/token
-    VITE_SERVER_URL=https://api.example.local
+The receiving application must parse `payload` as JSON. TMC UI uses the configured application's origin as the `postMessage` target and marks the action as failed if the ready message is not received within 10 seconds.
 
+### Codebase structure
 
-#### `postMessage` integration for external applications
+```text
+src/
+├── alerts/       Success and error feedback
+├── components/   Reusable application and base UI components
+├── context/      Authentication and filter providers
+├── hooks/        Context access, token lifecycle, filters, and image loading
+├── pages/        Route-level screens and data-loading layouts
+├── services/     Backend API, static catalog, and authentication clients
+├── utils/        Constants, string helpers, theme state, and shared utilities
+└── __tests__/    Unit and deployment-mode tests
+```
 
-When the user clicks **Open with** and chooses the application configured through `VITE_EDITDOR_URL`, the UI opens that application in a new window and waits for a ready message from it.
+Service responsibilities:
 
-To support this flow, the receiving application must implement the following handshake:
+- `apiData.ts` builds backend inventory queries and fetches inventory and Thing Models.
+- `localData.ts` loads inventory, filters, and Thing Models from static files.
+- `auth.ts` performs token requests and normalizes token expiry.
 
-1. After the external application finishes loading, it must send a message to the opener window:
+Context responsibilities:
 
-   window.opener?.postMessage({ type: 'EDITDOR_READY' }, '<tmc-ui-origin>');
+- `AuthContext` exposes token state, the authorization header, and the active API base URL. Components access it through `useAuth`.
+- `FilterContext` loads filter values from either the backend or static files and exposes them through `useFilters`.
+- Shared context types and context objects are declared in `src/context/index.ts`.
 
-2. After that message is received, this UI sends a second message back to the external application window with the Thing Description content:
+### Theme architecture
 
-   {
-   type: 'LOAD_TD',
-   description: '<thing-title-or-id>',
-   payload: '<thing-description-json>'
-   }
+Theme colors are defined as hexadecimal CSS custom properties in `src/theme.css`:
 
-Message fields:
+- Shared values are declared in `:root`.
+- Dark defaults are declared in `:root, html.dark`.
+- Light overrides are declared in `html.light`.
 
-- `type`: message identifier.
-- `description`: Thing Description title when available, otherwise the Thing Description `id`.
-- `payload`: the full Thing Description serialized as formatted JSON.
+`tailwind.config.cjs` maps semantic Tailwind tokens directly to those variables. For example, `bg-surface-panel`, `text-text-primary`, and `border-border-default` resolve to `--color-surface-panel`, `--color-text-primary`, and `--color-border-default`. Add or change colors in `src/theme.css`, and update the Tailwind mapping only when introducing a new semantic token.
 
-The receiving application must listen for the `LOAD_TD` message and parse `payload` as JSON before loading it into its editor.
+Runtime theme state is managed by `src/utils/theme.ts` and initialized from `src/main.jsx`.
 
-Security recommendations:
+## License
 
-- Validate `event.origin` before accepting messages.
-- Reply only to the opener window that created the external application window.
-- Use the origin part of the configured URLs when calling `postMessage`, not the full URL including the path.
-
-The UI waits up to 10 seconds for the `EDITDOR_READY` message. If no ready message is received within that time, the action is marked as failed.
-
-## Custom theme
-
-Customize the colors of the UI by editing the CSS variables in `src/theme.css`.
-
-Theme structure:
-
-- Shared values used by both themes live in `:root`
-- Dark theme defaults live in `:root, html.dark`
-- Light theme overrides live in `html.light`
-
-All color values must be specified in hexadecimal format. Shared variables declared in `:root` are inherited by both themes unless they are overridden in `html.dark` or `html.light`.
-
-Variables (edit in `src/theme.css`):
-
-1. Surface
-
-- `--color-surface-canvas`: page background
-- `--color-surface-panel`: panel and card background
-- `--color-surface-panel-hover`: panel hover background
-- `--color-surface-panel-active`: active panel background
-- `--color-surface-modal`: modal and dialog background
-- `--color-surface-input`: input background
-- `--color-surface-input-hover`: input hover background
-
-2. Media
-
-- `--color-media`: neutral media/background fill
-
-3. Text
-
-- `--color-text-primary`: primary text color
-- `--color-text-secondary`: secondary text color
-- `--color-text-tertiary`: tertiary text color
-- `--color-text-inverse`: text color for inverse surfaces
-- `--color-text-inverse-strong`: stronger inverse text color
-- `--color-text-muted-light`: muted light text
-- `--color-text-marker`: marker and disabled indicator text
-
-4. Border
-
-- `--color-border-default`: default border color
-- `--color-border-subtle`: subtle divider and border color
-- `--color-border-focus`: focus border color
-- `--color-border-accent`: accent border color
-- `--color-border-interactive`: default interactive border color
-- `--color-border-interactive-hover`: interactive border hover color
-- `--color-border-interactive-pressed`: interactive border pressed color
-
-5. Interactive
-
-- `--color-interactive-primary`: primary interactive color
-- `--color-interactive-hover`: interactive hover color
-- `--color-interactive-pressed`: interactive pressed color
-- `--color-interactive-support`: supporting interactive color
-- `--color-interactive-support-hover`: supporting interactive hover color
-- `--color-interactive-accent`: accent interactive color
-
-6. Focus
-
-- `--color-focus-ring`: focus ring color
-- `--color-focus-soft`: softer focus accent color
-
-7. Status
-
-- `--color-status-success`: success color
-- `--color-status-success-subtle`: subtle success background/tint
-- `--color-status-success-outline`: success outline color
-- `--color-status-error`: error color
-- `--color-status-error-subtle`: subtle error background/tint
-- `--color-status-error-hover`: error hover color
-- `--color-status-error-outline`: error outline color
-- `--color-status-error-strong`: stronger error background/accent
-- `--color-status-error-soft`: softer error background/accent
-
-8. Overlay
-
-- `--color-overlay-backdrop`: overlay and modal backdrop color
-- `--color-overlay-success-tint`: success overlay tint
-- `--color-overlay-scroll-thumb`: scrollbar thumb color
-
-9. Icon
-
-- `--color-icon-brand`: brand icon color
+See [LICENSE](LICENSE).
