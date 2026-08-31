@@ -86,7 +86,7 @@ Create `.env` in the deployment working directory. Values are read by `deploy.sh
 | `VITE_TOKEN_URL` | Yes when server available with auth. | None | OAuth 2.0 token endpoint. Its presence enables the client credentials screen. |
 | `APP_REPO_URL` | Yes when the working directory has no UI source | `https://github.com/wot-oss/tmc-ui.git` | Repository containing `package.json` and `src/`. |
 | `CATALOG_REPO_URL` | Yes in static deployment with separate catalog repository | `https://github.com/wot-oss/example-catalog.git` | Repository containing the static catalog. |
-| `LOCAL` | Local development only | `false` | Uses the Vite API proxy when set to `true`. |
+| `LOCAL` | No | `false` | Uses the Vite API proxy when set to `true`. |
 | `VITE_EDITDOR_URL` | No | `https://eclipse-editdor.github.io/editdor/` | Target for the **Open with EdiTDor** action. |
 | `VITE_PLAYGROUND_URL` | No | `https://playground.thingweb.io/` | Target for the **Open with TD Playground** action. |
 | `VITE_SETUP_CREDENTIALS_MESSAGE` | No | Empty | Operator guidance shown on the credentials screen. |
