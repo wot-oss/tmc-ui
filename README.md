@@ -154,7 +154,7 @@ The deployment fails when any required file is missing.
 
 The repository provides these GitHub Actions workflows:
 
-- `.github/workflows/fetch-files.yml` prepares and publishes the application for GitHub Pages.
+- `.github/workflows/deploy-gh-pages.yml` prepares and publishes the application for GitHub Pages.
 - `.github/workflows/integration-tests.yml` runs deployment-mode integration tests.
 - `.github/workflows/code-format.yml` checks source formatting.
 
