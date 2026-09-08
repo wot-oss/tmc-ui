@@ -9,6 +9,7 @@ interface FetchInventoryOptions {
     readonly protocol?: readonly string[];
     readonly manufacturer?: readonly string[];
     readonly repository?: readonly string[];
+    readonly changedSince?: string;
   };
 }
 
@@ -68,6 +69,10 @@ function buildInventoryUrl(
 
   if (filters?.repository?.length) {
     searchParams.set('repo', filters.repository.join(','));
+  }
+
+  if (filters?.changedSince) {
+    searchParams.set('filter.changedSince', filters.changedSince);
   }
 
   const query = searchParams.toString();

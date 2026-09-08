@@ -45,6 +45,7 @@ const Layout: React.FC<{
   const [manufacturersState, setManufacturersState] = useState<FilterData[]>([]);
   const [authorsState, setAuthorsState] = useState<FilterData[]>([]);
   const [protocolsState, setProtocolsState] = useState<FilterData[]>(protocols);
+  const [changedSince, setChangedSince] = useState('');
 
   const [protocolFilteredItems] = useState<Item[] | null>(null);
 
@@ -63,6 +64,16 @@ const Layout: React.FC<{
   const checkedAuthors = useMemo(
     () => authorsState.filter((opt) => opt.checked).map((opt) => opt.value),
     [authorsState],
+  );
+  const apiFilters = useMemo(
+    () => ({
+      protocol: checkedProtocols,
+      repository: checkedRepositories,
+      manufacturer: checkedManufacturers,
+      author: checkedAuthors,
+      ...(changedSince ? { changedSince: changedSince.replace(/-/g, '') } : {}),
+    }),
+    [checkedAuthors, checkedManufacturers, checkedProtocols, checkedRepositories, changedSince],
   );
 
   const [page, setPage] = useState<number>(1);
@@ -96,7 +107,8 @@ const Layout: React.FC<{
       checkedProtocols.length > 0 ||
       checkedRepositories.length > 0 ||
       checkedManufacturers.length > 0 ||
-      checkedAuthors.length > 0;
+      checkedAuthors.length > 0 ||
+      changedSince !== '';
 
     const result = protocolFilteredItems ?? items;
 
@@ -130,12 +142,7 @@ const Layout: React.FC<{
             {
               signal: controller.signal,
               authorizationHeader,
-              filters: {
-                protocol: checkedProtocols,
-                repository: checkedRepositories,
-                manufacturer: checkedManufacturers,
-                author: checkedAuthors,
-              },
+              filters: apiFilters,
             },
             page,
             pageSize,
@@ -161,12 +168,14 @@ const Layout: React.FC<{
     setResultCounts(totalElements);
   }, [
     authorizationHeader,
+    apiFilters,
+    changedSince,
     checkedAuthors,
     checkedManufacturers,
+    checkedProtocols,
     checkedRepositories,
     items,
     protocolFilteredItems,
-    checkedProtocols,
     page,
     pageSize,
     totalElements,
@@ -216,12 +225,7 @@ const Layout: React.FC<{
             {
               signal: controller.signal,
               authorizationHeader,
-              filters: {
-                protocol: checkedProtocols,
-                repository: checkedRepositories,
-                manufacturer: checkedManufacturers,
-                author: checkedAuthors,
-              },
+              filters: apiFilters,
             },
             newPage,
             pageSize,
@@ -239,14 +243,7 @@ const Layout: React.FC<{
 
       return () => controller.abort();
     },
-    [
-      authorizationHeader,
-      pageSize,
-      checkedProtocols,
-      checkedRepositories,
-      checkedManufacturers,
-      checkedAuthors,
-    ],
+    [apiFilters, authorizationHeader, pageSize],
   );
 
   const handlePageSizeChange = useCallback(
@@ -265,12 +262,7 @@ const Layout: React.FC<{
             {
               signal: controller.signal,
               authorizationHeader,
-              filters: {
-                protocol: checkedProtocols,
-                repository: checkedRepositories,
-                manufacturer: checkedManufacturers,
-                author: checkedAuthors,
-              },
+              filters: apiFilters,
             },
             1,
             newPageSize,
@@ -288,13 +280,7 @@ const Layout: React.FC<{
 
       return () => controller.abort();
     },
-    [
-      authorizationHeader,
-      checkedProtocols,
-      checkedRepositories,
-      checkedManufacturers,
-      checkedAuthors,
-    ],
+    [apiFilters, authorizationHeader],
   );
 
   const resetFilters = () => {
@@ -303,6 +289,7 @@ const Layout: React.FC<{
     setManufacturersState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setAuthorsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
     setProtocolsState((prev) => prev.map((opt) => ({ ...opt, checked: false })));
+    setChangedSince('');
     setPage(1);
   };
 
@@ -347,7 +334,12 @@ const Layout: React.FC<{
                   authorsState={authorsState}
                   repositoriesState={repositoriesState}
                   protocolsState={protocolsState}
+                  changedSince={changedSince}
                   onFilterChange={handleFilterChange}
+                  onChangedSinceChange={(value) => {
+                    setChangedSince(value);
+                    setPage(1);
+                  }}
                   onAddProtocol={(protocol) => {
                     setProtocolsState((prev) => [...prev, protocol]);
                   }}
