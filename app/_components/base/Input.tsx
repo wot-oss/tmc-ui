@@ -14,7 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, ...pr
     .trim();
 
   return (
-    <div className="before:border-focus-ring relative w-full before:pointer-events-none before:absolute before:top-[-3px] before:right-[-3px] before:bottom-[-3px] before:left-[-3px] before:rounded-[4px] before:border before:opacity-0 before:content-[''] focus-within:before:opacity-100">
+    <div className="before:border-focus-ring relative w-full before:pointer-events-none before:absolute before:-top-0.75 before:-right-0.75 before:-bottom-0.75 before:-left-0.75 before:rounded-sm before:border before:opacity-0 before:content-[''] focus-within:before:opacity-100">
       <input ref={ref} className={resolvedClassName} {...props} />
     </div>
   );
