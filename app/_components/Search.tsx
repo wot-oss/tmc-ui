@@ -14,7 +14,7 @@ interface SearchProps {
 const DEFAULT_ERROR_MESSAGE = 'An error occurred during the search.';
 
 export function Search({ onSearch, baseItems }: SearchProps) {
-  return;
+  return null;
   // TODO
   /*
   const { authorizationHeader } = useAuth();
