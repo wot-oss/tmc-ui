@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
     API_PROTOCOL: process.env.API_PROTOCOL ?? process.env.VITE_API_PROTOCOL,
     API_BASE: process.env.NODE_ENV === 'development' ? '/__tmc_api__' : SERVER_URL,
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/__tmc_api__/:path*',
+        destination: `${SERVER_URL}/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

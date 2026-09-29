@@ -1,7 +1,7 @@
 import { StrictMode, type ReactNode } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import AuthenticationGuard from '../app/_components/AuthenticationGuard';
+import AuthenticationGuard from '../app/_components/auth/AuthenticationGuard';
 import { requestClientCredentialsToken } from '../lib/services/auth';
 import { clearStoredCredentialsSession, getProcessedSessionStoreValue } from '../lib/utils/storage';
 

@@ -1,11 +1,10 @@
 import { ensureTrailingSlash, normalizeRelativePathSegment } from '../utils/strings';
 import { REPOSITORY_CATALOG_DEFAULT_FOLDER, INVENTORY_FILENAME } from '../utils/constants';
 import { type ThingDescription } from 'wot-typescript-definitions';
-import { type FilterData } from '@/app/_components/inventory/types';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-export async function fetchLocalDataInventory(): Promise<Item[]> {
+export async function fetchLocalDataInventory(): Promise<InventoryItem[]> {
   const baseUrl = process.env.API_BASE;
   if (!baseUrl) {
     throw new Error('Base url not set');
@@ -33,18 +32,15 @@ export async function fetchLocalDataInventory(): Promise<Item[]> {
     typeof json === 'object' &&
     json !== null &&
     'data' in json &&
-    Array.isArray((json as { data?: Item[] }).data)
+    Array.isArray((json as { data?: InventoryItem[] }).data)
   ) {
-    return (json as { data: Item[] }).data;
+    return (json as { data: InventoryItem[] }).data;
   }
 
   return [];
 }
 
-export async function fetchDataFromTxT(
-  baseUrl: string,
-  textFilename: string,
-): Promise<FilterData[]> {
+export async function fetchDataFromTxT(baseUrl: string, textFilename: string): Promise<string[]> {
   const folder = ensureTrailingSlash(
     normalizeRelativePathSegment(REPOSITORY_CATALOG_DEFAULT_FOLDER),
   );
@@ -69,11 +65,7 @@ export async function fetchDataFromTxT(
     ),
   );
 
-  return data.map((valueLine) => ({
-    value: valueLine,
-    label: valueLine.charAt(0).toUpperCase() + valueLine.slice(1),
-    checked: false,
-  }));
+  return data;
 }
 
 export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescription> {

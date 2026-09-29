@@ -1,12 +1,11 @@
 import React from 'react';
-import defaultImage from '../assets/default-image.png';
-import { Link } from 'react-router-dom';
 import Loader from './base/Loader';
 import Card from './Card';
+import Link from 'next/link';
 
-const DEFAULT_IMAGE_SRC = defaultImage;
+const DEFAULT_IMAGE_SRC = 'default-image.png';
 
-const buildItemKey = (itemTM: Item, i: number): string =>
+const buildItemKey = (itemTM: InventoryItem, i: number): string =>
   `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
 const buildItemImageSrc = (
@@ -17,7 +16,7 @@ const buildItemImageSrc = (
 
   const pngImageSrc: Attachments | undefined = attachments.find((att) => att.name.endsWith('png'));
 
-  if (!__SERVER_AVAILABLE__) {
+  if (!process.env.SERVER_URL) {
     if (!tmName || !pngImageSrc) return DEFAULT_IMAGE_SRC;
 
     return `${tmName}/.attachments/${pngImageSrc?.name}`;
@@ -29,18 +28,15 @@ const buildItemImageSrc = (
 
   if (!attachmentLink) return DEFAULT_IMAGE_SRC;
 
-  if (!__API_BASE__) return DEFAULT_IMAGE_SRC;
+  if (!process.env.API_BASE) return DEFAULT_IMAGE_SRC;
 
-  return `${__API_BASE__}/${attachmentLink}`;
+  return `${process.env.API_BASE}/${attachmentLink}`;
 };
 
 const CARD_CLASS_NAME =
   "relative min-w-0 rounded-[4px] border border-border-default bg-surface-panel shadow-md before:pointer-events-none before:absolute before:bottom-[-3px] before:left-[-3px] before:right-[-3px] before:top-[-3px] before:rounded-[4px] before:border before:border-focus-ring before:opacity-0 before:content-[''] focus-within:rounded-[4px] focus-within:border focus-within:border-border-default focus-within:bg-surface-panel focus-within:outline-none focus-within:before:opacity-100 hover:bg-surface-panel-hover hover:shadow-sm hover:outline-interactive-support-hover";
 
-const GridList: React.FC<{
-  items: ItemExtended[];
-  loading: boolean;
-}> = ({ items, loading }) => {
+export function GridList({ items, loading }: { items: ItemExtended[]; loading: boolean }) {
   if (loading) return <Loader text="Loading catalog..." />;
 
   return (
@@ -53,17 +49,19 @@ const GridList: React.FC<{
           const key = buildItemKey(itemTM, i);
           const title = itemTM.name ?? itemTM.tmName;
           const imageSrc = buildItemImageSrc(title, itemTM.attachments);
+          console.log(imageSrc);
           const versionCount = itemTM.versions?.length ?? 0;
 
           return (
             <li key={key} className={CARD_CLASS_NAME}>
               <Link
                 className="block h-full"
-                to={`/details/${title}`}
-                state={{
-                  item: itemTM,
-                  imageSrc: imageSrc,
-                }}
+                href={`/details/${title}?item=${itemTM}`}
+                // TODO:
+                // state={{
+                //   item: itemTM,
+                //   imageSrc: imageSrc,
+                // }}
               >
                 <Card
                   title={title}
@@ -109,6 +107,6 @@ const GridList: React.FC<{
       </ul>
     </div>
   );
-};
+}
 
 export default React.memo(GridList);

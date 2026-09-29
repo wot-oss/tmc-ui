@@ -1,5 +1,5 @@
 import { useState, useEffect, type SubmitEventHandler } from 'react';
-import Button from './base/Button';
+import Button from '../base/Button';
 import { isNonEmptyString } from '@/lib/utils/strings';
 
 interface CredentialsFormProps {

@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import type { ReactNode } from 'react';
 import type { RequestClientCredentialsTokenResult } from './services/auth';
+import { type FilterData } from '@/app/_components/inventory/types';
 
 export interface AuthProviderProps {
   readonly children: ReactNode;
@@ -12,14 +13,8 @@ export interface AuthProviderProps {
 }
 
 export interface AuthContextType {
-  readonly accessToken: string | null;
   readonly authorizationHeader: string | null;
-  readonly expiresAt: number | null;
-  readonly isAuthenticated: boolean;
-  readonly isExpired: boolean;
-  readonly requestToken: () => Promise<void>;
   readonly clearToken: () => void;
-  readonly serverUrl: string | undefined;
 }
 
 export interface FilterContextType {

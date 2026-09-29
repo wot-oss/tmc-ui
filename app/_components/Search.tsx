@@ -2,26 +2,21 @@ import { ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/
 import React, { useState, useEffect, useRef } from 'react';
 import Input from './base/Input';
 import { SEARCH_ENDPOINT } from '@/lib/utils/constants';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const DEBOUNCE_MS = 350;
 
 interface SearchProps {
-  query: string;
-  onSearch: (value: string) => void;
-  onResultsChange: (items: Item[]) => void;
-  baseItems: Item[];
-  authorizationHeader?: string | null;
+  onSearch: (items: InventoryItem[], query: string) => void;
+  baseItems: InventoryItem[];
 }
 
 const DEFAULT_ERROR_MESSAGE = 'An error occurred during the search.';
 
-const Search: React.FC<SearchProps> = ({
-  query,
-  onSearch,
-  onResultsChange,
-  baseItems,
-  authorizationHeader,
-}) => {
+export function Search({ onSearch, baseItems }: SearchProps) {
+  const { authorizationHeader } = useAuth();
+
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
   const [progressWidth, setProgressWidth] = useState('0%');
@@ -75,7 +70,7 @@ const Search: React.FC<SearchProps> = ({
     abortRef.current?.abort();
 
     if (!query.trim()) {
-      onResultsChange(baseItems);
+      onSearch(baseItems, query);
       setLoading(false);
       setError('');
       return;
@@ -111,21 +106,21 @@ const Search: React.FC<SearchProps> = ({
           };
           if (requestIdRef.current === requestId) {
             setError(json.detail || DEFAULT_ERROR_MESSAGE);
-            onResultsChange([]);
+            onSearch([], query);
           }
           return;
         }
 
         const results = Array.isArray(json.data) ? json.data : [];
         if (requestIdRef.current === requestId) {
-          onResultsChange(results);
+          onSearch(results, query);
         }
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') return;
 
         if (requestIdRef.current === requestId) {
           setError(DEFAULT_ERROR_MESSAGE);
-          onResultsChange([]);
+          onSearch([], query);
         }
       } finally {
         if (requestIdRef.current === requestId) {
@@ -138,7 +133,7 @@ const Search: React.FC<SearchProps> = ({
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
       abortRef.current?.abort();
     };
-  }, [authorizationHeader, baseItems, onResultsChange, query]);
+  }, [authorizationHeader, baseItems, onSearch, query]);
 
   return (
     <>
@@ -150,7 +145,7 @@ const Search: React.FC<SearchProps> = ({
           value={query}
           className={`h-12 pr-10 text-base sm:text-sm ${loading ? 'pl-32' : 'pl-11'}`}
           placeholder="Search..."
-          onChange={(e) => onSearch(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
           aria-label="Search inventory"
         />
         {loading ? (
@@ -172,7 +167,7 @@ const Search: React.FC<SearchProps> = ({
             type="button"
             aria-label="Clear search"
             onClick={() => {
-              onSearch('');
+              setQuery('');
               requestAnimationFrame(() => inputRef.current?.focus());
             }}
             className="text-interactive-support hover:bg-interactive-support hover:text-text-primary absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
@@ -195,6 +190,4 @@ const Search: React.FC<SearchProps> = ({
       <>{error && <div className="text-status-error mt-2 h-5 text-sm">{error}</div>}</>
     </>
   );
-};
-
-export default Search;
+}

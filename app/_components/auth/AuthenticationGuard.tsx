@@ -5,17 +5,16 @@ import {
   isAuthenticationEnabled,
   requestClientCredentialsToken,
   type RequestClientCredentialsTokenResult,
-} from '../../lib/services/auth';
-import { CLIENT_ID_SESSION_KEY, CLIENT_SECRET_SESSION_KEY } from '../../lib/utils/constants';
+} from '../../../lib/services/auth';
+import { CLIENT_ID_SESSION_KEY, CLIENT_SECRET_SESSION_KEY } from '../../../lib/utils/constants';
 import {
   clearStoredCredentialsSession,
   getProcessedSessionStoreValue,
   setStoredSessionValue,
-} from '../../lib/utils/storage';
-import { ValidationLoader } from './ValidationLoader';
+} from '../../../lib/utils/storage';
+import { ValidationLoader } from '../ValidationLoader';
 import { AuthenticationForm } from './AuthenticationForm';
-import { Navbar } from './Navbar';
-import { useClientCredentialsToken } from '@/lib/hooks/useClientCredentialsToken';
+import { Navbar } from '../Navbar';
 import { AuthContext } from '@/lib/context';
 
 interface AuthenticationGuardProps {
@@ -37,23 +36,14 @@ export default function AuthenticationGuard({
   // Credentials
   const [clientIdInput, setClientIdInput] = useState('');
   const [clientSecretInput, setClientSecretInput] = useState('');
-  const [validatedToken, setValidatedToken] = useState<RequestClientCredentialsTokenResult | null>(
-    null,
-  );
+  const [token, setToken] = useState<RequestClientCredentialsTokenResult | null>(null);
 
   //Authentication states
   const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
   const [isValidatingCredentials, setIsValidatingCredentials] = useState(isAuthEnabled);
 
-  // Token validation state and management
-  const tokenState = useClientCredentialsToken({
-    tokenUrl,
-    clientId: clientIdInput,
-    clientSecret: clientSecretInput,
-    seedToken: validatedToken,
-  });
-
   // Authentication on load
+  // TODO: set an Interval to refresh the token before it expires
   useEffect(() => {
     if (isAuthEnabled) {
       // Next.js requires getting store values on mount
@@ -71,7 +61,7 @@ export default function AuthenticationGuard({
               signal: controller.signal,
             });
             if (controller.signal.aborted) return;
-            setValidatedToken(validatedTokenResponse);
+            setToken(validatedTokenResponse);
           } catch (caughtError: unknown) {
             if (controller.signal.aborted) return;
             setAuthErrorMessage(
@@ -80,7 +70,8 @@ export default function AuthenticationGuard({
 
             clearStoredCredentialsSession();
           } finally {
-            // Changing the validation state is faster than navigation, so we delay the update to avoid UI flicker.
+            // TODO: fix this
+            // Needs a timeout to avoid UI flickering
             setTimeout(() => {
               setIsValidatingCredentials(false);
             }, 1000);
@@ -109,7 +100,7 @@ export default function AuthenticationGuard({
       // If successfull, store the credentials in session storage
       setStoredSessionValue(CLIENT_ID_SESSION_KEY, clientIdInput);
       setStoredSessionValue(CLIENT_SECRET_SESSION_KEY, clientSecretInput);
-      setValidatedToken(validatedTokenResponse);
+      setToken(validatedTokenResponse);
     } catch (caughtError: unknown) {
       setAuthErrorMessage(
         caughtError instanceof Error ? caughtError.message : 'Failed to validate credentials',
@@ -123,23 +114,19 @@ export default function AuthenticationGuard({
   let content: JSX.Element | null = (
     <AuthContext.Provider
       value={{
-        accessToken: tokenState.accessToken,
-        authorizationHeader: tokenState.authorizationHeader,
-        expiresAt: tokenState.expiresAt,
-        isAuthenticated: Boolean(tokenState.accessToken) && !tokenState.isExpired,
-        isExpired: tokenState.isExpired,
-        requestToken: tokenState.requestToken,
-        clearToken: tokenState.clearToken,
-        serverUrl: process.env.API_BASE,
+        authorizationHeader: token && `Bearer ${token.accessToken}`,
+        clearToken: () => {
+          setToken(null);
+        },
       }}
     >
       {children}
     </AuthContext.Provider>
   );
   if (isAuthEnabled) {
-    if (isValidatingCredentials || tokenState.isLoading) {
+    if (isValidatingCredentials) {
       content = <ValidationLoader />;
-    } else if (!validatedToken) {
+    } else if (!token) {
       const setupCredentialsMessage =
         process.env.CREDENTIALS_SETUP_MESSAGE ||
         'The credentials are used for authenticated catalog requests. If you do not have credentials, contact the administrator.';
@@ -169,7 +156,7 @@ export default function AuthenticationGuard({
 
   return (
     <>
-      <Navbar isAuthenticationEnabled={!!validatedToken} />
+      <Navbar isAuthenticationEnabled={!!token} />
       {content}
     </>
   );

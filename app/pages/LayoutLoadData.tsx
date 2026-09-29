@@ -12,7 +12,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const LayoutLoadData = () => {
   const { authorizationHeader, enabled, error, isLoading } = useAuth();
 
-  const [inventory, setInventory] = useState<Item[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [inventoryLoading, setInventoryLoading] = useState<boolean>(true);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -54,7 +54,7 @@ const LayoutLoadData = () => {
             DEFAULT_PAGE_SIZE,
           );
 
-          setInventory(data as Item[]);
+          setInventory(data as InventoryItem[]);
           setTotalItems(meta.page.totalElements);
           return;
         }

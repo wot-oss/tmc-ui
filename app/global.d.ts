@@ -16,7 +16,7 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-interface ItemExtended extends Item {
+interface ItemExtended extends InventoryItem {
   name?: string;
 }
 
@@ -45,7 +45,7 @@ type Attachments = {
   mediaType: string;
 };
 
-type Item = {
+type InventoryItem = {
   attachments?: Attachments[];
   links: Link;
   repo: string;
@@ -53,6 +53,7 @@ type Item = {
     'schema:name': string;
     [key: string]: string;
   };
+  'schema:description': string;
   'schema:manufacturer': {
     'schema:name': string;
     [key: string]: string;

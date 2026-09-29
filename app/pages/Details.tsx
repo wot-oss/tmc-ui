@@ -22,11 +22,11 @@ const Details = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const stateItem: Item =
+  const stateItem: InventoryItem =
     location.state &&
     (
       location.state as {
-        item: Item;
+        item: InventoryItem;
         imageSrc: string;
       }
     ).item;
@@ -35,12 +35,12 @@ const Details = () => {
     location.state &&
     (
       location.state as {
-        item: Item;
+        item: InventoryItem;
         imageSrc: string;
       }
     ).imageSrc;
 
-  const [item] = useState<Item | ItemExtended>(stateItem);
+  const [item] = useState<InventoryItem | ItemExtended>(stateItem);
   const [imageSrc] = useState<string>(stateImageSrc ?? DEFAULT_IMAGE_SRC);
 
   const [loading, setLoading] = useState<boolean>(!stateItem);
