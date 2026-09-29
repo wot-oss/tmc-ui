@@ -13,15 +13,17 @@ interface SideBarProps {
   resetFilters: () => void;
   areAvailableFiltersLoading: boolean;
   didFiltersChange: boolean;
+  applyFilters: () => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({
+export function SideBar({
   filters,
   onFilterCheck,
   resetFilters,
   areAvailableFiltersLoading,
   didFiltersChange,
-}) => {
+  applyFilters,
+}: SideBarProps) {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -92,10 +94,10 @@ const SideBar: React.FC<SideBarProps> = ({
                 className="mt-8 border pr-4 pl-4"
                 disabled={!didFiltersChange}
                 variant="default"
+                onClick={applyFilters}
               />
             </form>
 
-            {/* Product grid */}
             {showScrollTop && (
               <div className="fixed right-4 bottom-4 z-50">
                 <Button
@@ -117,6 +119,4 @@ const SideBar: React.FC<SideBarProps> = ({
       </section>
     </div>
   );
-};
-
-export default SideBar;
+}

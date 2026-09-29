@@ -5,7 +5,7 @@ import Dropdown from './_components/base/Dropdown';
 import GridList from './_components/GridList';
 import Pagination from './_components/Pagination';
 import { Search } from './_components/Search';
-import SideBar from './_components/sidebar/SideBar';
+import { SideBar } from './_components/sidebar/SideBar';
 import { useInventory } from './_components/sidebar/hooks';
 import { useCallback, useDeferredValue, useMemo } from 'react';
 
@@ -28,7 +28,10 @@ export default function InventoryLoad() {
     totalPages,
     handlePageSizeChangeServer,
     handlePageChangeServer,
+    applyFilters,
   } = useInventory();
+
+  console.log(filteredInventory);
 
   const onSearchResponse = useCallback(
     (results: InventoryItem[], query: string) => {
@@ -81,6 +84,7 @@ export default function InventoryLoad() {
                 resetFilters={resetFilters}
                 areAvailableFiltersLoading={areAvailableFiltersLoading}
                 didFiltersChange={didFiltersChange}
+                applyFilters={applyFilters}
               />
             </aside>
 

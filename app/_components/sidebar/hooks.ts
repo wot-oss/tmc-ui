@@ -105,6 +105,7 @@ export function useInventory() {
             page,
             pageSize,
           );
+          console.log({ data });
           nextFilteredInventory = data as InventoryItem[];
         } else {
           // Client Filtering
@@ -251,6 +252,7 @@ export function useInventory() {
   );
 
   return {
+    applyFilters,
     filters,
     baseInventory: baseInventory.current,
     setInventoryError,

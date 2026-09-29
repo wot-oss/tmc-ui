@@ -14,6 +14,9 @@ interface SearchProps {
 const DEFAULT_ERROR_MESSAGE = 'An error occurred during the search.';
 
 export function Search({ onSearch, baseItems }: SearchProps) {
+  return;
+  // TODO
+  /*
   const { authorizationHeader } = useAuth();
 
   const [query, setQuery] = useState('');
@@ -190,4 +193,5 @@ export function Search({ onSearch, baseItems }: SearchProps) {
       <>{error && <div className="text-status-error mt-2 h-5 text-sm">{error}</div>}</>
     </>
   );
+  */
 }
