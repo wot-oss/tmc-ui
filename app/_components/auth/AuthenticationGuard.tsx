@@ -37,15 +37,15 @@ export default function AuthenticationGuard({
   const [clientIdInput, setClientIdInput] = useState('');
   const [clientSecretInput, setClientSecretInput] = useState('');
   const [token, setToken] = useState<RequestClientCredentialsTokenResult | null>(null);
+  const [isTokenExpired, setIsTokenExpired] = useState(true);
 
   //Authentication states
   const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
   const [isValidatingCredentials, setIsValidatingCredentials] = useState(isAuthEnabled);
 
   // Authentication on load
-  // TODO: set an Interval to refresh the token before it expires
   useEffect(() => {
-    if (isAuthEnabled) {
+    if (isAuthEnabled && isTokenExpired) {
       // Next.js requires getting store values on mount
       const storedClientId = getProcessedSessionStoreValue(CLIENT_ID_SESSION_KEY);
       const storedClientSecret = getProcessedSessionStoreValue(CLIENT_SECRET_SESSION_KEY);
@@ -62,6 +62,12 @@ export default function AuthenticationGuard({
             });
             if (controller.signal.aborted) return;
             setToken(validatedTokenResponse);
+            setIsTokenExpired(false);
+            if (validatedTokenResponse.expiresAt) {
+              setTimeout(() => {
+                setIsTokenExpired(true);
+              }, validatedTokenResponse.expiresAt - Date.now());
+            }
           } catch (caughtError: unknown) {
             if (controller.signal.aborted) return;
             setAuthErrorMessage(
@@ -85,7 +91,7 @@ export default function AuthenticationGuard({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isTokenExpired]);
 
   const handleAuthSubmit = useCallback(async () => {
     setIsValidatingCredentials(true);

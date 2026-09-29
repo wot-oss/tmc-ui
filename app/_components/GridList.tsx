@@ -8,6 +8,7 @@ const DEFAULT_IMAGE_SRC = 'default-image.png';
 const buildItemKey = (itemTM: InventoryItem, i: number): string =>
   `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
+// TODO: adapt the builder to the next.js migration
 const buildItemImageSrc = (
   tmName: string | undefined,
   attachments: Attachments[] | undefined,
