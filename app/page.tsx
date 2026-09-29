@@ -1,6 +1,5 @@
 'use client';
 import Loader from './_components/base/Loader';
-import { AppErrorUI } from './_components/AppErrorUI';
 import Dropdown from './_components/base/Dropdown';
 import GridList from './_components/GridList';
 import Pagination from './_components/Pagination';
@@ -22,6 +21,7 @@ import {
   getAvailableFilterOptionsServer,
   getAvailableFilterOptionsClient,
 } from './_components/sidebar/utils';
+import { ErrorUI } from './_components/error/ErrorUI';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -83,6 +83,7 @@ export default function InventoryLoad() {
     });
   }
 
+  // TODO: apply the reset filters immediately
   const resetFilters = () => {
     setFilters((prev) => {
       const newFilters = { ...prev };
@@ -285,9 +286,6 @@ export default function InventoryLoad() {
   if (isInventoryLoading) {
     return <Loader text="Loading inventory..." />;
   }
-  if (inventoryError) {
-    return <AppErrorUI title={"Couldn't load inventory"} description={inventoryError} />;
-  }
 
   return (
     <>
@@ -299,7 +297,11 @@ export default function InventoryLoad() {
           >
             <div className="w-full md:w-3/4 lg:w-3/5">
               {process.env.SERVER_URL && (
-                <Search onSearch={onSearchResponse} baseItems={baseInventory.current} />
+                <Search
+                  onSearchResponse={onSearchResponse}
+                  baseInventory={baseInventory.current}
+                  setError={setInventoryError}
+                />
               )}
             </div>
           </div>
@@ -317,66 +319,67 @@ export default function InventoryLoad() {
             </aside>
 
             {/* Results */}
-            <section className="w-full flex-1 lg:w-3/4">
-              <div className="text-text-primary mb-4 flex flex-wrap items-center justify-between gap-4">
-                <p className="text-lg">
-                  <span className="text-(--color-icon-brand)">{filteredInventory.length}</span>{' '}
-                  result
-                  {filteredInventory.length !== 1 ? 's' : ''} found in the catalog with{' '}
-                  {filteredInventory.length} TMs in total
-                </p>
+            {inventoryError ? (
+              <ErrorUI title={"Couldn't load inventory"} description={inventoryError} />
+            ) : (
+              <section className="w-full flex-1 lg:w-3/4">
+                <div className="text-text-primary mb-4 flex flex-wrap items-center justify-between gap-4">
+                  <p className="text-lg">
+                    <span className="text-(--color-icon-brand)">{filteredInventory.length}</span>{' '}
+                    result
+                    {filteredInventory.length !== 1 ? 's' : ''} of {baseInventory.current.length}{' '}
+                    catalog TMs matched
+                  </p>
 
-                <label className="text-text-primary flex items-center gap-2 text-sm">
-                  TMs per page:
-                  <Dropdown
-                    id="page-size"
-                    label="TMs per page"
-                    value={String(pageSize)}
-                    onChange={async (value) => {
-                      await handlePageSizeChangeServer(Number(value));
-                    }}
-                    options={[10, 20, 50, 100].map((n) => ({
-                      key: String(n),
-                      value: String(n),
-                    }))}
-                    showChevron={true}
-                    className="bg-surface-canvas rounded px-2 py-1 pr-10 text-sm"
-                  />
-                </label>
-              </div>
-
-              {!process.env.SERVER_URL && (
-                <div>
-                  {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
-                  {!areAvailableFiltersLoading && (
-                    <GridList items={deferredPaginatedItems} loading={isInventoryLoading} />
-                  )}
-
-                  <Pagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={(p) => setPage(p)}
-                  />
+                  <label className="text-text-primary flex items-center gap-2 text-sm">
+                    TMs per page:
+                    <Dropdown
+                      id="page-size"
+                      label="TMs per page"
+                      value={String(pageSize)}
+                      onChange={async (value) => {
+                        await handlePageSizeChangeServer(Number(value));
+                      }}
+                      options={[10, 20, 50, 100].map((n) => ({
+                        key: String(n),
+                        value: String(n),
+                      }))}
+                      showChevron={true}
+                      className="bg-surface-canvas rounded px-2 py-1 pr-10 text-sm"
+                    />
+                  </label>
                 </div>
-              )}
 
-              {process.env.SERVER_URL && (
-                <div>
-                  {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
-                  {!areAvailableFiltersLoading && (
-                    <GridList items={deferredFilteredItems} loading={isInventoryLoading} />
-                  )}
+                {process.env.SERVER_URL ? (
+                  <div>
+                    {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
+                    {!areAvailableFiltersLoading && (
+                      <GridList items={deferredFilteredItems} loading={isInventoryLoading} />
+                    )}
 
-                  <Pagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChangeServer}
-                  />
-                </div>
-              )}
-            </section>
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChangeServer}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
+                    {!areAvailableFiltersLoading && (
+                      <GridList items={deferredPaginatedItems} loading={isInventoryLoading} />
+                    )}
+
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={(p) => setPage(p)}
+                    />
+                  </div>
+                )}
+              </section>
+            )}
           </div>
-          ;
         </main>
       </div>
     </>

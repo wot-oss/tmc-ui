@@ -7,7 +7,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => {
   const resolvedClassName = [
-    'w-full rounded-md border border-transparent bg-surface-input px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:outline-none focus-visible:outline-none hover:rounded-[2px] hover:border-border-interactive-hover hover:bg-surface-input-hover focus:rounded-[2px] focus:border-border-interactive-hover focus:bg-surface-input-hover',
+    'w-full rounded-md border border-transparent bg-surface-input px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary outline-none focus:outline-none focus-visible:outline-none hover:rounded-[2px] hover:border-border-interactive-hover hover:bg-surface-input-hover focus:rounded-[2px] focus:border-border-interactive-hover focus:bg-surface-input-hover font-mono',
     className ?? '',
   ]
     .join(' ')

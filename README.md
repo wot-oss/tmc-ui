@@ -1,3 +1,7 @@
+# Refactoring Draft
+
+- env variables change requires server restart
+
 # TMC User Interface
 
 TMC UI is an open-source web interface for browsing Thing Models (TMs) managed by a [Thing Model Catalog (TMC)](https://github.com/wot-oss/tmc). It supports read-only catalog operations; it is not a browser replacement for the TMC CLI.
