@@ -1,12 +1,16 @@
 'use client';
 import Dropdown from '@/app/_components/base/Dropdown';
-import FieldCard from '@/app/_components/base/FieldCard';
 import Loader from '@/app/_components/base/Loader';
-import DialogAction from '@/app/_components/DialogAction';
 import { fetchTmContentFromServer } from '@/lib/services/apiData';
 import { fetchLocalThingModel } from '@/lib/services/localData';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
-import { ArrowLeftIcon, PlusIcon, MinusIcon } from '@heroicons/react/20/solid';
+import {
+  ArrowLeftIcon,
+  ShareIcon,
+  CodeBracketIcon,
+  PlusIcon,
+  MinusIcon,
+} from '@heroicons/react/20/solid';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -14,6 +18,8 @@ import { ErrorUI } from '@/app/_components/error/ErrorUI';
 import type { DetailedInventoryItem } from '@/app/_components/inventory/types';
 import { buildItemImageSrc } from '@/app/_components/inventory/InventoryResults';
 import Button from '@/app/_components/base/Button';
+import { TmJsonModal } from './_components/TmJsonModal';
+import ShareModal from './_components/ShareModal';
 
 // TODO: create a loading component that shows the loader only after 1-2 seconds to avoid UI flash
 export default function Details() {
@@ -29,7 +35,8 @@ export default function Details() {
   // Page state
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setLoading] = useState(true);
-  const [openWith, setOpenWith] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isTmJsonOpen, setTmJsonOpen] = useState(false);
 
   const navigateBack = () => {
     router.back();
@@ -90,145 +97,166 @@ export default function Details() {
 
   return (
     <div className="bg-surface-canvas min-h-dvh">
-      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 sm:pt-10 lg:px-8">
-        <Button
-          type="button"
-          onClick={navigateBack}
-          className="text-interactive-primary hover:text-interactive-hover mb-6 px-1"
-          variant="default"
-        >
-          <ArrowLeftIcon aria-hidden="true" className="size-5" />
-          Back to catalog
-        </Button>
-        <div className="mx-auto max-w-2xl lg:max-w-none">
-          <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-x-8">
-            <div className="shrink-0 md:w-80">
-              <div className="bg-media rounded-lg">
-                <img
-                  alt={`Product image of ${TM.name ?? TM.tmName}`}
-                  src={buildItemImageSrc(TM.tmName, TM.attachments)}
-                  className="h-80 w-full rounded-lg object-contain p-4 shadow-md"
-                />
-              </div>
-              <div className="mt-5 flex w-full items-center justify-between gap-4">
-                <h1 className="text-text-secondary shrink-0 text-sm font-medium tracking-[0.18em] uppercase">
-                  Version:
-                </h1>
-                <Dropdown
-                  label="version"
-                  id="currentVersion"
-                  options={dropdownData}
-                  value={TM?.id ?? ''}
-                  onChange={(value) => {
-                    router.replace(`/details/${encodeURIComponent(value ?? '')}`);
-                  }}
-                  showChevron={true}
-                  wrapperClassName="ml-auto w-full max-w-[13rem]"
-                  className="block h-10 w-full px-3"
-                ></Dropdown>
-              </div>
-              <div className="divide-border-subtle border-border-subtle mt-4 divide-y border-t"></div>
-              <div className="mt-4 flex w-full items-center gap-3">
-                <div className="flex-1">
-                  <Button
-                    type="button"
-                    onClick={() => {}}
-                    disabled={!TM}
-                    className="border p-4"
-                    variant="default"
-                  >
-                    Open full details
-                  </Button>
-                </div>
-                <div className="flex-1">
-                  <Button
-                    type="button"
-                    onClick={() => setOpenWith(true)}
-                    className="border p-4"
-                    variant="default"
-                  >
-                    Open with …
-                  </Button>
-                </div>
-              </div>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <header className="border-border-subtle mb-8 border-b pb-6">
+          <Button
+            type="button"
+            onClick={navigateBack}
+            className="text-interactive-primary hover:text-interactive-hover mb-2 px-0"
+            variant="none"
+            size="sm"
+          >
+            <ArrowLeftIcon aria-hidden="true" className="size-4" />
+            Back to catalog
+          </Button>
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+            <h1 className="text-text-primary min-w-0 flex-1 text-3xl font-semibold wrap-break-word sm:text-4xl">
+              {TM.title || TM.name || TM.tmName || 'Untitled Thing Model'}
+            </h1>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  setTmJsonOpen(true);
+                }}
+                className="justify-center gap-1.5 border"
+                variant="default"
+                size="sm"
+              >
+                <CodeBracketIcon aria-hidden="true" className="size-4 shrink-0" />
+                Open TM JSON
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setShareUrl(window.location.href)}
+                className="justify-center gap-1.5 border"
+                variant="default"
+                size="sm"
+              >
+                <ShareIcon aria-hidden="true" className="size-4 shrink-0" />
+                Share
+              </Button>
             </div>
-
-            {/* Right: flexible content */}
-            <div className="text-text-secondary mt-0 flex-1 px-4 sm:px-0">
-              <FieldCard
-                label="Manufacturer"
-                value={TM?.['schema:manufacturer']?.['schema:name'] ?? TM.tmName}
+          </div>
+          {(TM.description || TM['schema:description']) && (
+            <p className="text-text-secondary mt-3 max-w-2xl text-sm leading-6 wrap-break-word">
+              {TM.description || TM['schema:description']}
+            </p>
+          )}
+        </header>
+        <div className="grid min-w-0 gap-8 md:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+          <aside className="min-w-0">
+            <div className="bg-media overflow-hidden rounded-lg">
+              <img
+                alt={`Product image of ${TM.name ?? TM.tmName}`}
+                src={buildItemImageSrc(TM.tmName, TM.attachments)}
+                className="aspect-square w-full object-contain p-6"
               />
-              <FieldCard label="Author" value={TM?.['schema:author']?.['schema:name'] ?? '—'} />
-              <FieldCard label="Title" value={(TM?.title as string) ?? '—'} />
-              <FieldCard label="MPN" value={(TM?.['schema:mpn'] as string) ?? '—'} />
-              <div className="mt-2 flex items-center gap-10 divide-gray-200 border-t border-gray-200 pt-2">
-                <div className="flex items-center gap-4">
-                  <FieldCard
-                    label="Current Version"
-                    value={(TM?.version?.model as string) ?? '—'}
-                  ></FieldCard>
-                </div>
-                <div className="flex items-center pl-10">
-                  <FieldCard
-                    label="Number of Versions"
-                    value={TM.versions?.length.toString() ?? '0'}
-                  />
-                </div>
-              </div>
-
-              <div className="divide-border-subtle border-border-subtle mt-2 flex divide-y border-t"></div>
-              <FieldCard label="ID" value={TM?.id ?? '—'} />
-              <section aria-labelledby="details-heading" className="mt-12">
-                <h2 id="details-heading" className="">
-                  Additional details
-                </h2>
-
-                <div className="divide-border-subtle border-border-subtle divide-y border-t">
-                  {sections.map((detail) => (
-                    <Disclosure key={detail.name} as="div" className="group">
-                      <h3>
-                        <DisclosureButton className="group relative flex w-full items-center justify-between py-6 text-left">
-                          <span className="group-data-open:text-interactive-accent text-text-secondary text-sm font-medium">
-                            {detail.name}
-                          </span>
-                          <span className="ml-6 flex items-center">
-                            <PlusIcon
-                              aria-hidden="true"
-                              className="text-icon-brand group-hover:text-interactive-hover block h-6 w-6 group-data-open:hidden"
-                            />
-                            <MinusIcon
-                              aria-hidden="true"
-                              className="text-icon-brand group-hover:text-interactive-hover hidden h-6 w-6 group-data-open:block"
-                            />
-                          </span>
-                        </DisclosureButton>
-                      </h3>
-                      <DisclosurePanel className="pb-6">
-                        {detail.items.length === 0 ? (
-                          <p className="text-text-secondary pl-5 text-sm">No data to display</p>
-                        ) : (
-                          <ul
-                            role="list"
-                            className="text-text-primary marker:text-text-marker list-disc space-y-1 pl-5 text-sm"
-                          >
-                            {detail.items.map((d) => (
-                              <li key={d} className="pl-2">
-                                {d}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </DisclosurePanel>
-                    </Disclosure>
-                  ))}
-                </div>
-              </section>
             </div>
+            <div className="mt-5">
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <label htmlFor="currentVersion" className="text-text-secondary text-sm font-medium">
+                  Model version
+                </label>
+                <span className="text-text-tertiary text-right text-xs">
+                  {TM.versions?.length ?? 0} versions available
+                </span>
+              </div>
+              <Dropdown
+                label="version"
+                id="currentVersion"
+                options={dropdownData}
+                value={TM?.id ?? ''}
+                onChange={(value) => {
+                  router.replace(`/details/${encodeURIComponent(value ?? '')}`);
+                }}
+                showChevron={true}
+                wrapperClassName="w-full"
+                className="block h-10 w-full px-3"
+              ></Dropdown>
+            </div>
+          </aside>
+          <div className="min-w-0">
+            <section aria-labelledby="overview-heading">
+              <h2 id="overview-heading" className="text-text-primary text-lg font-semibold">
+                Overview
+              </h2>
+              <dl className="mt-5 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                {[
+                  { label: 'Manufacturer', value: TM['schema:manufacturer']?.['schema:name'] },
+                  { label: 'Author', value: TM['schema:author']?.['schema:name'] },
+                  { label: 'MPN', value: TM['schema:mpn'] },
+                  { label: 'Current version', value: TM.version?.model },
+                ].map(({ label, value }) => (
+                  <div key={label} className="min-w-0">
+                    <dt className="text-text-secondary text-xs font-medium">{label}</dt>
+                    <dd className="text-text-primary mt-1 text-base font-medium wrap-break-word">
+                      {typeof value === 'string' && value ? value : 'Not provided'}
+                    </dd>
+                  </div>
+                ))}
+                <div className="min-w-0 sm:col-span-2">
+                  <dt className="text-text-secondary text-xs font-medium">Model ID</dt>
+                  <dd className="text-text-primary mt-2 font-mono text-sm break-all">
+                    {TM.id || 'Not provided'}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+            <section aria-labelledby="details-heading" className="mt-9">
+              <h2 id="details-heading" className="text-text-primary mb-4 text-lg font-semibold">
+                Interactions
+              </h2>
+              <div className="divide-border-subtle border-border-subtle divide-y border-y">
+                {sections.map((detail) => (
+                  <Disclosure key={detail.name} as="div" className="group">
+                    <h3>
+                      <DisclosureButton className="group focus-visible:outline-focus-ring relative flex w-full items-center justify-between gap-4 py-4 text-left focus-visible:outline-2">
+                        <span className="group-data-open:text-interactive-accent text-text-primary text-sm font-medium">
+                          {detail.name}
+                        </span>
+                        <span className="text-text-secondary ml-auto text-sm tabular-nums">
+                          {detail.items.length}
+                        </span>
+                        <span className="flex items-center">
+                          <PlusIcon
+                            aria-hidden="true"
+                            className="text-icon-brand group-hover:text-interactive-hover block h-6 w-6 group-data-open:hidden"
+                          />
+                          <MinusIcon
+                            aria-hidden="true"
+                            className="text-icon-brand group-hover:text-interactive-hover hidden h-6 w-6 group-data-open:block"
+                          />
+                        </span>
+                      </DisclosureButton>
+                    </h3>
+                    <DisclosurePanel className="pb-6">
+                      {detail.items.length === 0 ? (
+                        <p className="text-text-secondary pl-5 text-sm">No data to display</p>
+                      ) : (
+                        <ul
+                          role="list"
+                          className="text-text-primary marker:text-text-marker list-disc space-y-1 pl-5 text-sm"
+                        >
+                          {detail.items.map((d) => (
+                            <li key={d} className="pl-2 wrap-break-word">
+                              {d}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </DisclosurePanel>
+                  </Disclosure>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </main>
-      <DialogAction open={openWith} onClose={() => setOpenWith(false)} TM={TM} />
+      <TmJsonModal isOpen={isTmJsonOpen} setIsOpen={setTmJsonOpen} TM={TM} />
+      {shareUrl !== null && (
+        <ShareModal url={shareUrl} version={TM.version?.model} onClose={() => setShareUrl(null)} />
+      )}
     </div>
   );
 }

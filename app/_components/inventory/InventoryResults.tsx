@@ -4,7 +4,7 @@ import Card from './Card';
 import Link from 'next/link';
 import type { Attachment, InventoryItem, Version } from './types';
 
-const DEFAULT_IMAGE_SRC = 'default-image.png';
+const DEFAULT_IMAGE_SRC = '/default-image.png';
 
 const buildItemKey = (itemTM: InventoryItem, i: number): string =>
   `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;

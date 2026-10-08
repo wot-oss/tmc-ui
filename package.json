@@ -32,6 +32,7 @@
     "@heroicons/react": "^2.2.0",
     "lodash": "^4.18.1",
     "next": "16.3.4",
+    "prismjs": "^1.30.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "wot-typescript-definitions": "^0.8.0-SNAPSHOT.31"
@@ -41,6 +42,7 @@
     "@testing-library/react": "^16.3.0",
     "@types/lodash": "^4.17.25",
     "@types/node": "^20",
+    "@types/prismjs": "^1.26.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-router-dom": "^5.3.3",

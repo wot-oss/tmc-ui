@@ -104,6 +104,10 @@ html.dark {
   --color-overlay-scroll-thumb: #6b7d93;
 
   --color-icon-brand: #3b82f6;
+  --color-json-key: #79c0ff;
+  --color-json-string: #a5d6a7;
+  --color-json-number: #ffca80;
+  --color-json-literal: #ff9da4;
 }
 
 html.light {
@@ -159,4 +163,30 @@ html.light {
   --color-overlay-scroll-thumb: #94a3b8;
 
   --color-icon-brand: #2563eb;
+  --color-json-key: #0550ae;
+  --color-json-string: #116329;
+  --color-json-number: #953800;
+  --color-json-literal: #a40e26;
+}
+
+.tm-json .token.property {
+  color: var(--color-json-key);
+}
+
+.tm-json .token.string {
+  color: var(--color-json-string);
+}
+
+.tm-json .token.number {
+  color: var(--color-json-number);
+}
+
+.tm-json .token.boolean,
+.tm-json .token.null {
+  color: var(--color-json-literal);
+}
+
+.tm-json .token.punctuation,
+.tm-json .token.operator {
+  color: var(--color-text-secondary);
 }

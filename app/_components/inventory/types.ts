@@ -43,6 +43,9 @@ export type InventoryItem = {
   tmName?: string;
   name?: string;
   versions: Version[] | null;
+  version: {
+    model: string;
+  };
 };
 
 export type DetailedInventoryItem = ThingDescription & InventoryItem;
