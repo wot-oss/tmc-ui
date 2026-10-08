@@ -7,10 +7,12 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tailwind from 'eslint-plugin-tailwindcss';
 import configPrettier from 'eslint-config-prettier';
 
+//TODO: add mandatory function return types
 export default [
   {
     ignores: ['dist/', 'build/', 'node_modules/', '**/vite.config.*', 'eslint.config.js'],
   },
+
   // Base TS + React
   {
     files: ['**/*.{ts,tsx}'],
@@ -49,9 +51,12 @@ export default [
       ...js.configs.recommended.rules,
       'no-undef': 'off',
       'no-unused-vars': 'off',
-      // TypeScript recommended
+
+      // TypeScript
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
+      '@typescript-eslint/no-floating-promises': 'error',
+
       // React
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
@@ -59,15 +64,18 @@ export default [
       'react/no-unknown-property': ['error', { ignore: ['class', 'for'] }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+
       // Tailwind
       'tailwindcss/classnames-order': 'off',
       'tailwindcss/no-custom-classname': 'off',
+
       // Style & quality
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       eqeqeq: ['error', 'smart'],
     },
   },
+
   // Test files (Vitest)
   {
     files: ['**/*.test.{ts,tsx}'],
@@ -75,6 +83,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.es2022,
+
         // Vitest globals
         vi: 'readonly',
         describe: 'readonly',
@@ -91,5 +100,6 @@ export default [
       'no-console': 'off',
     },
   },
+
   configPrettier,
 ];

@@ -1,0 +1,50 @@
+import { type FilterData } from '@/app/_components/inventory/types';
+
+export const INVENTORY_ENDPOINT = 'inventory';
+
+export const THING_MODEL_ENDPOINT = 'thing-models';
+
+export const SEARCH_ENDPOINT = 'inventory?search=';
+
+export const REPOSITORY_ENDPOINT = 'repos';
+
+export const MANUFACTURER_ENDPOINT = 'manufacturers';
+
+export const AUTHOR_ENDPOINT = 'authors';
+
+export const PROTOCOLS_FILTER = 'filter.protocol=';
+
+export const AUTHOR_FILTER = 'filter.author=';
+
+export const PROTOCOLS: FilterData[] = [
+  { value: 'http/https', checked: false },
+  { value: 'modbus', checked: false },
+  { value: 'modbus+tcp', checked: false },
+  { value: 'mqtt', checked: false },
+  { value: 'websocket', checked: false },
+  { value: 'coap', checked: false },
+];
+
+export const THEME_KEY = 'tmc-ui-theme';
+
+export const OPTIONS_LIST_SIZE = 10;
+
+export const SCROLL_THRESHOLD_PX = 64;
+
+export const INVENTORY_TIMEOUT_MS = 10000;
+
+export const REPOSITORY_CATALOG_DEFAULT_FOLDER = '.tmc/';
+
+export const AUTHORS_FILENAME = 'tmnames.txt'; // it will be latter another file
+
+export const PROTOCOLS_FILENAME = 'protocols.txt';
+
+export const MANUFACTURERS_FILENAME = 'manufacturers.txt';
+
+export const INVENTORY_FILENAME = 'tm-catalog.toc.json';
+
+export const CLIENT_ID_SESSION_KEY = 'tmc-ui.client-id';
+
+export const CLIENT_SECRET_SESSION_KEY = 'tmc-ui.client-secret';
+
+export const CREDENTIALS_SUBMITTED_SESSION_KEY = 'tmc-ui.credentials-submitted';

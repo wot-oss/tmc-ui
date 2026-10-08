@@ -1,0 +1,254 @@
+// @vitest-environment jsdom
+//
+// Deployment mode 2: BACKEND NO AUTH
+// __SERVER_AVAILABLE__ is true and a server URL is configured, but no
+// TOKEN_URL is provided. App.tsx computes authConfigured = false, so the
+// credentials prompt is never shown and the catalog is loaded straight from the
+// backend inventory endpoint.
+
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import type { MockedFunction } from 'vitest';
+
+import { fetchApiDataInventory, fetchApiThingModel } from '../../../../src/services/apiData';
+import { requestClientCredentialsToken } from '../../../../src/services/auth';
+import {
+  TEST_API_BASE,
+  TOKEN_RESULT,
+  clearStoredSession,
+  makeItem,
+  okJsonResponse,
+  renderApp,
+  stubDeployGlobals,
+} from '../helpers';
+
+vi.mock('../../../services/apiData', () => ({
+  fetchApiDataInventory: vi.fn(),
+  fetchApiThingModel: vi.fn(),
+}));
+
+vi.mock('../../../services/localData', () => ({
+  fetchLocalDataInventory: vi.fn(),
+  fetchLocalDataFilters: vi.fn(),
+  fetchDataFromTxT: vi.fn(),
+  fetchLocalThingModel: vi.fn(),
+}));
+
+vi.mock('../../../services/auth', () => ({
+  requestClientCredentialsToken: vi.fn(),
+  buildTokenRequestError: vi.fn(),
+}));
+
+const mockFetchApiInventory = fetchApiDataInventory as MockedFunction<typeof fetchApiDataInventory>;
+const mockFetchApiThingModel = fetchApiThingModel as MockedFunction<typeof fetchApiThingModel>;
+const mockRequestToken = requestClientCredentialsToken as MockedFunction<
+  typeof requestClientCredentialsToken
+>;
+
+function mockBackendFilters(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((input: RequestInfo | URL) => {
+      const url = input.toString();
+
+      if (url.endsWith('/repos')) {
+        return Promise.resolve(okJsonResponse({ data: [{ name: 'test-repo' }] }));
+      }
+
+      if (url.endsWith('/manufacturers')) {
+        return Promise.resolve(okJsonResponse({ data: ['LampManufacturer'] }));
+      }
+
+      if (url.endsWith('/authors')) {
+        return Promise.resolve(okJsonResponse({ data: ['LampAuthor'] }));
+      }
+
+      return Promise.resolve(okJsonResponse({ data: [] }));
+    }),
+  );
+}
+
+beforeEach(() => {
+  clearStoredSession();
+  stubDeployGlobals({ serverAvailable: true });
+
+  // Server URL present, token URL absent → backend no auth.
+  vi.stubEnv('SERVER_URL', TEST_API_BASE);
+  vi.stubEnv('TOKEN_URL', '');
+  vi.stubEnv('CREDENTIALS_SETUP_MESSAGE', '');
+
+  mockBackendFilters();
+
+  // With no token URL configured, auth stays disabled and no token request runs.
+  // Provide a default resolution only as a safety net; tests assert it is unused.
+  mockRequestToken.mockResolvedValue(TOKEN_RESULT);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+  vi.clearAllMocks();
+});
+
+describe('Backend No Auth (SERVER_AVAILABLE, SERVER_URL; no token URL)', () => {
+  test('Landing page navigation, filters, and results no items', async () => {
+    mockFetchApiInventory.mockResolvedValue({
+      data: [],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
+    });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
+    expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Protocol' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Manufacturer' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Author' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Repository' })).toBeTruthy();
+
+    expect(screen.queryByText('Enter API credentials')).toBeNull();
+    expect(screen.queryByText('Environment not configured')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
+  });
+
+  test('Landing page with one item', async () => {
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'Filters' })).toBeTruthy();
+    expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Protocol' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Manufacturer' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Author' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Repository' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    await waitFor(() => {
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+    expect(mockFetchApiInventory).toHaveBeenCalledWith(
+      TEST_API_BASE,
+      expect.objectContaining({ authorizationHeader: null, signal: expect.any(AbortSignal) }),
+      1,
+      10,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
+  });
+
+  test('Resetting filters restores the initial backend page and total count', async () => {
+    mockFetchApiInventory
+      .mockResolvedValueOnce({
+        data: [makeItem('ThingasLamp'), makeItem('ThingasSensor')],
+        meta: { lastUpdated: '', page: { pageNumber: 1, pageSize: 10, totalElements: 25 } },
+      })
+      .mockResolvedValueOnce({
+        data: [makeItem('ThingasLamp')],
+        meta: { lastUpdated: '', page: { pageNumber: 1, pageSize: 10, totalElements: 1 } },
+      });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+    await waitFor(() => {
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('25 results found');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manufacturer' }));
+    const manufacturerFilter = await screen.findByRole('checkbox', {
+      name: 'LampManufacturer',
+    });
+    fireEvent.click(manufacturerFilter);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeNull();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }));
+
+    await waitFor(() => {
+      expect((manufacturerFilter as HTMLInputElement).checked).toBe(false);
+      expect(screen.getByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'ThingasSensor', level: 3 })).toBeTruthy();
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('25 results found');
+    });
+  });
+
+  test('Details page for a backend Thing Model without auth', async () => {
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
+    mockFetchApiThingModel.mockResolvedValue({
+      id: 'lampuser/lampcorp/thingaslamp',
+      title: 'ThingasLamp',
+      '@context': 'https://www.w3.org/2022/wot/td/v1.1',
+      '@type': 'tm:ThingModel',
+      'schema:mpn': 'LampMpn',
+      'schema:manufacturer': {
+        'schema:name': 'LampManufacturer',
+      },
+      'schema:author': {
+        'schema:name': 'LampAuthor',
+      },
+      securityDefinitions: {
+        nosec_sc: {
+          scheme: 'nosec',
+        },
+      },
+      security: ['nosec_sc'],
+      properties: {},
+    });
+
+    renderApp();
+
+    const cardHeading = await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 });
+    const cardLink = cardHeading.closest('a');
+
+    expect(cardLink).not.toBeNull();
+    fireEvent.click(cardLink as HTMLAnchorElement);
+
+    expect(await screen.findByRole('heading', { name: 'Title' })).toBeTruthy();
+    expect(await screen.findByText('ThingasLamp')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Manufacturer' })).toBeTruthy();
+    expect(await screen.findByText('LampManufacturer')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Author' })).toBeTruthy();
+    expect(await screen.findByText('LampAuthor')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Additional details' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Open full details' })).toBeTruthy();
+    expect(mockFetchApiThingModel).toHaveBeenCalledWith(
+      TEST_API_BASE,
+      'ThingasLamp',
+      expect.objectContaining({ authorizationHeader: null }),
+    );
+    expect(screen.queryByText('Enter API credentials')).toBeNull();
+  });
+
+  test('no token URL never requests a token and loads the catalog unauthenticated', async () => {
+    mockFetchApiInventory.mockResolvedValue({
+      data: [makeItem('ThingasLamp')],
+      meta: { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 1 } },
+    });
+
+    renderApp();
+
+    expect(await screen.findByRole('heading', { name: 'ThingasLamp', level: 3 })).toBeTruthy();
+    await waitFor(() => {
+      expect(document.body.textContent?.replace(/\s+/g, ' ')).toContain('1 result found');
+    });
+
+    expect(mockRequestToken).not.toHaveBeenCalled();
+
+    expect(mockFetchApiInventory).toHaveBeenCalledWith(
+      TEST_API_BASE,
+      expect.objectContaining({ authorizationHeader: null, signal: expect.any(AbortSignal) }),
+      1,
+      10,
+    );
+  });
+});
