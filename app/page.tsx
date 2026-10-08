@@ -1,7 +1,7 @@
 'use client';
 import Loader from './_components/base/Loader';
 import Dropdown from './_components/base/Dropdown';
-import GridList from './_components/GridList';
+import InventoryResults from './_components/inventory/InventoryResults';
 import Pagination from './_components/Pagination';
 import { Search } from './_components/Search';
 import { SideBar } from './_components/sidebar/SideBar';
@@ -9,31 +9,32 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { useAuth } from '@/lib/hooks/useAuth';
 import { fetchApiDataInventory } from '@/lib/services/apiData';
 import { fetchLocalDataInventory } from '@/lib/services/localData';
-import { isNonEmptyString } from '@/lib/utils/strings';
 import _ from 'lodash';
 import {
   initialFilters,
   type Filters,
   type CheckedFilterOptions,
   type FilterKey,
-} from './_components/inventory/types';
+} from './_components/filters/types';
 import {
   getAvailableFilterOptionsServer,
   getAvailableFilterOptionsClient,
 } from './_components/sidebar/utils';
 import { ErrorUI } from './_components/error/ErrorUI';
+import { type InventoryItem } from './_components/inventory/types';
 
 const DEFAULT_PAGE_SIZE = 10;
 
+// TODO: check if signals are actually necessary
 export default function InventoryLoad() {
   const { authorizationHeader } = useAuth();
-  const isServerAvailable = isNonEmptyString(process.env.SERVER_URL);
 
   // Inventory
   const [filteredInventory, setFilteredInventory] = useState<InventoryItem[]>([]);
   const [isInventoryLoading, setIsInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const baseInventory = useRef<InventoryItem[]>([]);
+  console.log({ filteredInventory });
 
   // Pagination
   const [page, setPage] = useState<number>(1);
@@ -105,7 +106,7 @@ export default function InventoryLoad() {
       const controller = new AbortController();
       try {
         let nextFilteredInventory: InventoryItem[];
-        if (isServerAvailable) {
+        if (process.env.SERVER_URL) {
           //Server Filtering
           const { data } = await fetchApiDataInventory(
             process.env.API_BASE,
@@ -162,16 +163,10 @@ export default function InventoryLoad() {
         setIsInventoryLoading(false);
       }
     },
-    [
-      authorizationHeader,
-      checkedFilterOptions,
-      filteredInventory,
-      isServerAvailable,
-      page,
-      pageSize,
-    ],
+    [authorizationHeader, checkedFilterOptions, filteredInventory, page, pageSize],
   );
 
+  // TODO: items are being fetched twice from the server
   // Load the inventory and the available filters on mount
   useEffect(() => {
     const controller = new AbortController();
@@ -320,7 +315,12 @@ export default function InventoryLoad() {
 
             {/* Results */}
             {inventoryError ? (
-              <ErrorUI title={"Couldn't load inventory"} description={inventoryError} />
+              <ErrorUI
+                title={"Couldn't load inventory"}
+                description={inventoryError}
+                buttonText="Retry"
+                buttonOnclick={applyFilters}
+              />
             ) : (
               <section className="w-full flex-1 lg:w-3/4">
                 <div className="text-text-primary mb-4 flex flex-wrap items-center justify-between gap-4">
@@ -354,7 +354,10 @@ export default function InventoryLoad() {
                   <div>
                     {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
                     {!areAvailableFiltersLoading && (
-                      <GridList items={deferredFilteredItems} loading={isInventoryLoading} />
+                      <InventoryResults
+                        items={deferredFilteredItems}
+                        loading={isInventoryLoading}
+                      />
                     )}
 
                     <Pagination
@@ -367,7 +370,10 @@ export default function InventoryLoad() {
                   <div>
                     {areAvailableFiltersLoading && <Loader text="Loading catalog..." />}
                     {!areAvailableFiltersLoading && (
-                      <GridList items={deferredPaginatedItems} loading={isInventoryLoading} />
+                      <InventoryResults
+                        items={deferredPaginatedItems}
+                        loading={isInventoryLoading}
+                      />
                     )}
 
                     <Pagination

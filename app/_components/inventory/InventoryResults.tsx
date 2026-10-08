@@ -1,7 +1,8 @@
 import React from 'react';
-import Loader from './base/Loader';
+import Loader from '../base/Loader';
 import Card from './Card';
 import Link from 'next/link';
+import type { Attachment, InventoryItem, Version } from './types';
 
 const DEFAULT_IMAGE_SRC = 'default-image.png';
 
@@ -9,13 +10,13 @@ const buildItemKey = (itemTM: InventoryItem, i: number): string =>
   `${itemTM.repo}:${itemTM.repo}:${itemTM['schema:mpn']}:row-${i}`;
 
 // TODO: adapt the builder on client to the next.js migration
-const buildItemImageSrc = (
+export const buildItemImageSrc = (
   tmName: string | undefined,
-  attachments: Attachments[] | undefined,
+  attachments: Attachment[] | undefined,
 ): string => {
   if (!attachments) return DEFAULT_IMAGE_SRC;
 
-  const pngImageSrc: Attachments | undefined = attachments.find((att) => att.name.endsWith('png'));
+  const pngImageSrc: Attachment | undefined = attachments.find((att) => att.name.endsWith('png'));
 
   if (!process.env.SERVER_URL) {
     if (!tmName || !pngImageSrc) return DEFAULT_IMAGE_SRC;
@@ -31,14 +32,34 @@ const buildItemImageSrc = (
 
   if (!process.env.API_BASE) return DEFAULT_IMAGE_SRC;
 
-  return `${process.env.API_BASE}/${attachmentLink}`;
+  return `${process.env.API_BASE}/${attachmentLink.replaceAll('../', '')}`;
 };
 
 const CARD_CLASS_NAME =
   "relative min-w-0 rounded-[4px] border border-border-default bg-surface-panel shadow-md before:pointer-events-none before:absolute before:bottom-[-3px] before:left-[-3px] before:right-[-3px] before:top-[-3px] before:rounded-[4px] before:border before:border-focus-ring before:opacity-0 before:content-[''] focus-within:rounded-[4px] focus-within:border focus-within:border-border-default focus-within:bg-surface-panel focus-within:outline-none focus-within:before:opacity-100 hover:bg-surface-panel-hover hover:shadow-sm hover:outline-interactive-support-hover";
 
-export function GridList({ items, loading }: { items: ItemExtended[]; loading: boolean }) {
+export function InventoryResults({ items, loading }: { items: InventoryItem[]; loading: boolean }) {
   if (loading) return <Loader text="Loading catalog..." />;
+
+  const getLatestTmID = (versions: Version[]): string | undefined => {
+    return versions.reduce<Version | undefined>((latest, current) => {
+      if (!latest) return current;
+
+      return compareVersions(current.version.model, latest.version.model) > 0 ? current : latest;
+    }, undefined)?.tmID;
+  };
+
+  const compareVersions = (a: string, b: string): number => {
+    const av = a.split('.').map(Number);
+    const bv = b.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(av.length, bv.length); i++) {
+      const diff = (av[i] ?? 0) - (bv[i] ?? 0);
+      if (diff !== 0) return diff;
+    }
+
+    return 0;
+  };
 
   return (
     <div className="w-full">
@@ -56,12 +77,7 @@ export function GridList({ items, loading }: { items: ItemExtended[]; loading: b
             <li key={key} className={CARD_CLASS_NAME}>
               <Link
                 className="block h-full"
-                href={`/details/${title}?item=${itemTM}`}
-                // TODO:
-                // state={{
-                //   item: itemTM,
-                //   imageSrc: imageSrc,
-                // }}
+                href={`/details/${encodeURIComponent(getLatestTmID(itemTM.versions ?? []) ?? '')}`}
               >
                 <Card
                   title={title}
@@ -109,4 +125,4 @@ export function GridList({ items, loading }: { items: ItemExtended[]; loading: b
   );
 }
 
-export default React.memo(GridList);
+export default React.memo(InventoryResults);

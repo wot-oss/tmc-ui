@@ -1,45 +1,48 @@
-export interface FetchFailure {
-  instance: string;
-  status: number;
-  detail: string;
-}
-export interface ServerResponseError {
-  code: string;
-  detail: string;
-  instance: string;
-  status: number;
-  title: string;
-}
+import { ThingDescription } from 'wot-typescript-definitions';
 
-export interface SettledFetchResult<T> {
-  data: T;
-  failure: FetchFailure | null;
-}
-
-export const allFilterKeys = ['repository', 'manufacturer', 'author', 'protocol'] as const;
-export type FilterKey = (typeof allFilterKeys)[number];
-
-export type Filters = Record<FilterKey, FilterData[] | { errorMessage: string }>;
-export type FilterData = {
-  value: string;
-  checked: boolean;
-};
-export const initialFilters: Filters = {
-  author: [],
-  manufacturer: [],
-  protocol: [],
-  repository: [],
+export type Link = {
+  self: string;
+  content?: string;
+  [key: string]: string | undefined;
 };
 
-export type CheckedFilterOptions = Record<FilterKey, string[]>;
+export type Version = {
+  description: string;
+  digest: string;
+  externalID: string;
+  links: Link;
+  repo: string;
+  timestamp: string;
+  tmID: string;
+  version: {
+    model: string;
+  };
+};
 
-export type FilterOptionParam =
-  | FilterOptionsFetchFunctionParams
-  | {
-      skip: true;
-    };
+export type Attachment = {
+  links: Link;
+  name: string;
+  mediaType: string;
+};
 
-export interface FilterOptionsFetchFunctionParams {
-  endpoint: string;
-  transform?: (res: any) => string[];
-}
+export type InventoryItem = {
+  id: string;
+  attachments?: Attachment[];
+  links: Link;
+  repo: string;
+  'schema:author': {
+    'schema:name': string;
+    [key: string]: string;
+  };
+  'schema:description': string;
+  'schema:manufacturer': {
+    'schema:name': string;
+    [key: string]: string;
+  };
+  'schema:mpn': string;
+  tmName?: string;
+  name?: string;
+  versions: Version[] | null;
+};
+
+export type DetailedInventoryItem = ThingDescription & InventoryItem;

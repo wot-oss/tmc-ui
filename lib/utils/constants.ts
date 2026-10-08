@@ -2,7 +2,7 @@ import { type FilterData } from '@/app/_components/inventory/types';
 
 export const INVENTORY_ENDPOINT = 'inventory';
 
-export const THING_MODEL_ENDPOINT = 'thing-models/.latest';
+export const THING_MODEL_ENDPOINT = 'thing-models';
 
 export const SEARCH_ENDPOINT = 'inventory?search=';
 
@@ -17,12 +17,12 @@ export const PROTOCOLS_FILTER = 'filter.protocol=';
 export const AUTHOR_FILTER = 'filter.author=';
 
 export const PROTOCOLS: FilterData[] = [
-  { value: 'http/https', label: 'HTTP/HTTPS', checked: false },
-  { value: 'modbus', label: 'Modbus', checked: false },
-  { value: 'modbus+tcp', label: 'Modbus TCP', checked: false },
-  { value: 'mqtt', label: 'MQTT', checked: false },
-  { value: 'websocket', label: 'WebSocket', checked: false },
-  { value: 'coap', label: 'CoAP', checked: false },
+  { value: 'http/https', checked: false },
+  { value: 'modbus', checked: false },
+  { value: 'modbus+tcp', checked: false },
+  { value: 'mqtt', checked: false },
+  { value: 'websocket', checked: false },
+  { value: 'coap', checked: false },
 ];
 
 export const THEME_KEY = 'tmc-ui-theme';

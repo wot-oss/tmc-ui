@@ -1,4 +1,4 @@
-import { type ThingDescription } from 'wot-typescript-definitions';
+import { type DetailedInventoryItem } from '@/app/_components/inventory/types';
 import { INVENTORY_TIMEOUT_MS, INVENTORY_ENDPOINT, THING_MODEL_ENDPOINT } from '../utils/constants';
 
 interface FetchInventoryOptions {
@@ -117,7 +117,7 @@ export async function fetchApiDataInventory(
       const meta = (json as { meta?: MetaResponse }).meta;
 
       return {
-        data: data,
+        data,
         meta: meta ?? { lastUpdated: '', page: { pageNumber: 0, pageSize: 0, totalElements: 0 } },
       };
     }
@@ -141,31 +141,49 @@ export async function fetchApiDataInventory(
   }
 }
 
-export async function fetchApiThingModel(
-  baseUrl: string | undefined,
-  itemName: string,
+// TODO: use a separate type for the response
+export async function fetchTmContentFromServer(
+  id: string,
   options: FetchThingModelOptions = {},
-): Promise<ThingDescription> {
-  if (!baseUrl) {
-    throw new Error('Catalog URL not configured');
-  }
-
-  if (!itemName) {
-    throw new Error('Missing item name');
-  }
-
+): Promise<DetailedInventoryItem> {
   try {
-    const res = await fetch(`${baseUrl}/${THING_MODEL_ENDPOINT}/${encodeURIComponent(itemName)}`, {
-      signal: options.signal,
-      headers: buildRequestHeaders(options.authorizationHeader),
-    });
+    const tmName = id.split('/').slice(0, 3).join('/');
 
-    if (!res.ok) {
-      throw new Error('Item not found');
+    const getTmNameNAttachments = async () => {
+      return await fetch(`${process.env.API_BASE}/${INVENTORY_ENDPOINT}/.tmName/${tmName}`, {
+        signal: options.signal,
+        headers: buildRequestHeaders(options.authorizationHeader),
+      });
+    };
+
+    const getTmContent = async () => {
+      return await fetch(`${process.env.API_BASE}/${THING_MODEL_ENDPOINT}/${id}`, {
+        signal: options.signal,
+        headers: buildRequestHeaders(options.authorizationHeader),
+      });
+    };
+
+    const [tmNameNAttachmentsRes, tmContentRes] = await Promise.all([
+      getTmNameNAttachments(),
+      getTmContent(),
+    ]);
+
+    if (!tmNameNAttachmentsRes.ok || !tmContentRes.ok) {
+      throw new Error("Coudn't fetch TM");
     }
+    const { data: tmNameNAttachmentsArray } = await tmNameNAttachmentsRes.json();
+    console.log(tmNameNAttachmentsArray);
+    const tmContent = await tmContentRes.json();
+    console.log(tmContent);
 
-    const json = await res.json();
-    return json.data ?? json;
+    if (!tmNameNAttachmentsArray || tmNameNAttachmentsArray.length === 0) return tmContent;
+
+    const tmNameNAttachments = tmNameNAttachmentsArray[0];
+    tmContent.tmName = tmNameNAttachments.tmName;
+    tmContent.attachments = tmNameNAttachments.attachments;
+    tmContent.versions = tmNameNAttachments.versions;
+
+    return tmContent;
   } catch (err: unknown) {
     throw new Error(err instanceof Error ? err.message : 'Failed to load thing model');
   }

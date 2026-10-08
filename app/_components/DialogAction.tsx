@@ -7,7 +7,7 @@ type ItemStatus = 'idle' | 'copied' | 'error' | 'sent';
 
 interface DialogActionProps {
   open: boolean;
-  fullDescription: ThingDescription | null;
+  TM: ThingDescription | null;
   onClose: () => void;
 }
 
@@ -24,7 +24,7 @@ interface PendingEditdorMessage {
   payload: string;
 }
 
-const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onClose }) => {
+const DialogAction: React.FC<DialogActionProps> = ({ open, TM, onClose }) => {
   const [statuses, setStatuses] = useState(INITIAL_STATUSES);
   const editdorWindowRef = useRef<Window | null>(null);
   const pendingEditdorMessageRef = useRef<PendingEditdorMessage | null>(null);
@@ -106,10 +106,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
     pendingStatusKeyRef.current = statusKey;
     setStatuses((prev) => ({ ...prev, [statusKey]: 'idle' }));
     pendingEditdorMessageRef.current = {
-      description:
-        fullDescription?.title ||
-        fullDescription?.id ||
-        'No title or id available in the Thing Description',
+      description: TM?.title || TM?.id || 'No title or id available in the Thing Description',
       payload: tdJson,
     };
 
@@ -144,12 +141,8 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       url: EDITDOR_URL,
       status: statuses.editdor,
       handleOnClick: () => {
-        if (!fullDescription) return;
-        handleOnOpenExternalApplication(
-          EDITDOR_URL,
-          JSON.stringify(fullDescription, null, 2),
-          'editdor',
-        );
+        if (!TM) return;
+        handleOnOpenExternalApplication(EDITDOR_URL, JSON.stringify(TM, null, 2), 'editdor');
       },
     },
     {
@@ -157,12 +150,8 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
       url: PLAYGROUND_URL,
       status: statuses.playground,
       handleOnClick: () => {
-        if (!fullDescription) return;
-        handleOnOpenExternalApplication(
-          PLAYGROUND_URL,
-          JSON.stringify(fullDescription, null, 2),
-          'playground',
-        );
+        if (!TM) return;
+        handleOnOpenExternalApplication(PLAYGROUND_URL, JSON.stringify(TM, null, 2), 'playground');
       },
     },
   ];
@@ -180,7 +169,7 @@ const DialogAction: React.FC<DialogActionProps> = ({ open, fullDescription, onCl
                   <Button
                     type="button"
                     onClick={t.handleOnClick}
-                    disabled={!fullDescription}
+                    disabled={!TM}
                     text={t.name}
                     className="w-40 justify-center border p-4"
                     variant="default"

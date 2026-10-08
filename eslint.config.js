@@ -7,6 +7,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tailwind from 'eslint-plugin-tailwindcss';
 import configPrettier from 'eslint-config-prettier';
 
+//TODO: add mandatory function return types
 export default [
   {
     ignores: ['dist/', 'build/', 'node_modules/', '**/vite.config.*', 'eslint.config.js'],

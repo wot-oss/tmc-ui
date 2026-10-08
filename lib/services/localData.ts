@@ -1,6 +1,6 @@
 import { ensureTrailingSlash, normalizeRelativePathSegment } from '../utils/strings';
 import { REPOSITORY_CATALOG_DEFAULT_FOLDER, INVENTORY_FILENAME } from '../utils/constants';
-import { type ThingDescription } from 'wot-typescript-definitions';
+import type { DetailedInventoryItem, InventoryItem } from '@/app/_components/inventory/types';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -68,7 +68,8 @@ export async function fetchDataFromTxT(baseUrl: string, textFilename: string): P
   return data;
 }
 
-export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescription> {
+// TODO: Enhance fetchLocalThingModel to also extract imgSrc and tmName from the fetched JSON.
+export async function fetchLocalThingModel(fullpath: string): Promise<DetailedInventoryItem> {
   isDevelopment && console.warn('Fetching local Thing Model from path:', fullpath);
 
   const basePath = import.meta.env.BASE_URL || '/';
@@ -88,5 +89,5 @@ export async function fetchLocalThingModel(fullpath: string): Promise<ThingDescr
   const json: unknown = await res.json();
   isDevelopment && console.warn('Fetched local Thing Model JSON:', json);
 
-  return json as ThingDescription;
+  return json as DetailedInventoryItem;
 }

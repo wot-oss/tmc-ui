@@ -1,5 +1,4 @@
 'use client';
-import React from 'react';
 import { Disclosure } from '@headlessui/react';
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
 import Button from './base/Button';
@@ -53,7 +52,7 @@ export function Navbar({ isAuthenticationEnabled }: { isAuthenticationEnabled: b
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex w-full items-center justify-between gap-6">
-            <div className="flex shrink-0 items-center">
+            <Link href="/" className="flex shrink-0 items-center">
               <img
                 alt="Things model Catalog"
                 className="theme-dark-only h-14 w-auto"
@@ -64,7 +63,7 @@ export function Navbar({ isAuthenticationEnabled }: { isAuthenticationEnabled: b
                 className="theme-light-only h-14 w-auto"
                 src="/tm-catalog-logo.svg"
               />
-            </div>
+            </Link>
             <div className="flex items-center gap-2">
               <div className="flex h-full sm:-my-px">
                 {navigation.map((item) => {
