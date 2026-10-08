@@ -15,6 +15,10 @@ export interface AuthProviderProps {
 export interface AuthContextType {
   readonly authorizationHeader: string | null;
   readonly clearToken: () => void;
+  readonly isAuthenticationEnabled: boolean;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly updateCredentials: (clientId: string, clientSecret: string) => Promise<void>;
 }
 
 export interface FilterContextType {

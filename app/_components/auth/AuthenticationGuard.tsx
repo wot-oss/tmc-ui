@@ -61,6 +61,8 @@ export default function AuthenticationGuard({
               signal: controller.signal,
             });
             if (controller.signal.aborted) return;
+            setClientIdInput(storedClientId);
+            setClientSecretInput(storedClientSecret);
             setToken(validatedTokenResponse);
             setIsTokenExpired(false);
             if (validatedTokenResponse.expiresAt) {
@@ -93,20 +95,28 @@ export default function AuthenticationGuard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTokenExpired]);
 
+  const updateCredentials = useCallback(
+    async (clientId: string, clientSecret: string) => {
+      const validatedTokenResponse = await requestClientCredentialsToken({
+        tokenUrl,
+        clientId,
+        clientSecret,
+      });
+      setStoredSessionValue(CLIENT_ID_SESSION_KEY, clientId);
+      setStoredSessionValue(CLIENT_SECRET_SESSION_KEY, clientSecret);
+      setClientIdInput(clientId);
+      setClientSecretInput(clientSecret);
+      setToken(validatedTokenResponse);
+    },
+    [tokenUrl],
+  );
+
   const handleAuthSubmit = useCallback(async () => {
     setIsValidatingCredentials(true);
     setAuthErrorMessage(null);
 
     try {
-      const validatedTokenResponse = await requestClientCredentialsToken({
-        tokenUrl,
-        clientId: clientIdInput,
-        clientSecret: clientSecretInput,
-      });
-      // If successfull, store the credentials in session storage
-      setStoredSessionValue(CLIENT_ID_SESSION_KEY, clientIdInput);
-      setStoredSessionValue(CLIENT_SECRET_SESSION_KEY, clientSecretInput);
-      setToken(validatedTokenResponse);
+      await updateCredentials(clientIdInput, clientSecretInput);
     } catch (caughtError: unknown) {
       setAuthErrorMessage(
         caughtError instanceof Error ? caughtError.message : 'Failed to validate credentials',
@@ -114,13 +124,17 @@ export default function AuthenticationGuard({
     } finally {
       setIsValidatingCredentials(false);
     }
-  }, [clientIdInput, clientSecretInput, tokenUrl]);
+  }, [clientIdInput, clientSecretInput, updateCredentials]);
 
   // Page content based on authentication state
   let content: JSX.Element | null = (
     <AuthContext.Provider
       value={{
         authorizationHeader: token && `Bearer ${token.accessToken}`,
+        isAuthenticationEnabled: isAuthEnabled,
+        clientId: clientIdInput,
+        clientSecret: clientSecretInput,
+        updateCredentials,
         clearToken: () => {
           setToken(null);
         },

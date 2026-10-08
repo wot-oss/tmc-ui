@@ -11,10 +11,12 @@ interface CredentialsFormProps {
   readonly onClientIdChange: (value: string) => void;
   readonly onClientSecretChange: (value: string) => void;
   readonly onSubmit: () => void;
+  readonly onDiscard?: () => void;
   readonly submitText: string;
   readonly errorMessage?: string | null;
   readonly autoFocusClientId?: boolean;
   readonly isSubmitting?: boolean;
+  readonly actionsDisabled?: boolean;
   readonly size?: 'md' | 'lg';
 }
 
@@ -64,10 +66,12 @@ export function AuthenticationForm({
   onClientIdChange,
   onClientSecretChange,
   onSubmit,
+  onDiscard,
   submitText,
   errorMessage,
   autoFocusClientId = false,
   isSubmitting = false,
+  actionsDisabled = false,
   size = 'md',
 }: CredentialsFormProps) {
   // Browser autofill on load doesn't trigger onChange() and the states are not updated. The user should manually click on the input fields to trigger autofill.
@@ -145,16 +149,34 @@ export function AuthenticationForm({
           </label>
         </div>
 
-        {/* Continue Button */}
-        <Button
-          text={isSubmitting ? 'Saving...' : submitText}
-          type="submit"
-          autoComplete="off" // Otherwise Firefox causes hydration error
-          className={`mt-3 w-min border`}
-          variant="default"
-          size={size}
-          disabled={isSubmitting || !isNonEmptyString(clientId) || !isNonEmptyString(clientSecret)}
-        />
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Button
+            text={isSubmitting ? 'Saving...' : submitText}
+            type="submit"
+            autoComplete="off" // Otherwise Firefox causes hydration error
+            className="w-fit border"
+            variant="default"
+            size={size}
+            disabled={
+              actionsDisabled ||
+              isSubmitting ||
+              !isNonEmptyString(clientId) ||
+              !isNonEmptyString(clientSecret)
+            }
+          />
+          {onDiscard ? (
+            <Button
+              text="Discard"
+              type="button"
+              autoComplete="off"
+              className="border-border-default text-text-secondary hover:bg-surface-input-hover hover:text-text-primary w-fit border"
+              variant="none"
+              size={size}
+              disabled={actionsDisabled || isSubmitting}
+              onClick={onDiscard}
+            />
+          ) : null}
+        </div>
       </form>
     </section>
   );
